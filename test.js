@@ -5,16 +5,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if ( ! canvas || ! canvas.getContext ) {
         return false;
     }
-    var cvs = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
     /* rectangle */
-    cvs.beginPath(); /* 図形を描き始めることを宣言 */
-    cvs.moveTo(50, 50); /* 図形の描き始めを移動 */
-    cvs.lineTo(150, 50); /* 図形の線の終わりを決める */
-    cvs.lineTo(150, 150);
-    cvs.lineTo(50, 150);
-    cvs.closePath(); /* 描いた線を閉じる */
-    cvs.stroke(); /* 描いた図形を線で表示させる */
-
+    ctx.beginPath(); /* 図形を描き始めることを宣言 */
+    ctx.moveTo(50, 50); /* 図形の描き始めを移動 */
+    ctx.lineTo(150, 50); /* 図形の線の終わりを決める */
+    ctx.lineTo(150, 150);
+    ctx.lineTo(50, 150);
+    ctx.closePath(); /* 描いた線を閉じる */
+    ctx.stroke(); /* 描いた図形を線で表示させる */
     const outputDiv = document.getElementById("output");
     if (outputDiv) {
         outputDiv.innerHTML = "<p>Hello, World! This is a test from test.js</p>";
