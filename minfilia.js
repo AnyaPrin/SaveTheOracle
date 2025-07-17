@@ -435,12 +435,17 @@ window.onload = async function() {
     ctx = canvas.getContext("2d");
     canvas.width = SCRN_W;
     canvas.height = SCRN_H;
-    initGameState();
-    await loadAllResources();
-    canvas.addEventListener("mousedown", onMouseDown);
-    canvas.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("mouseup", onMouseUp);
-    mainLoop();
+       if (outputDiv) {
+        outputDiv.innerHTML = "<p>Hello, World!</p>";
+    } else {
+        console.error("Output div not found!");
+    }
+   // initGameState();
+    //await loadAllResources();
+    //canvas.addEventListener("mousedown", onMouseDown);
+    //canvas.addEventListener("mousemove", onMouseMove);
+    //canvas.addEventListener("mouseup", onMouseUp);
+    //mainLoop();
 };
 
 /*
