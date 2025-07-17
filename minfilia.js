@@ -429,7 +429,7 @@ function mainLoop() {
     requestAnimationFrame(mainLoop);
 }
 
-// 初期化
+/*// 初期化
 window.onload = async function() {
     canvas = document.getElementById("gamecanvas");
     ctx = canvas.getContext("2d");
@@ -450,8 +450,8 @@ window.onload = async function() {
     //canvas.addEventListener("mouseup", onMouseUp);
     //mainLoop();
 };
+*/
 
-/*
 document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById('gameCanvas');
     if ( ! canvas || ! canvas.getContext ) {return false;}
@@ -475,4 +475,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-*/
+
