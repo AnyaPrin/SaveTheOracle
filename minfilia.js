@@ -440,8 +440,8 @@ window.onload = async function() {
     } else {
         console.error("Output div not found!");
     }
-   initGameState();
-   await loadAllResources();
+   //initGameState();
+   //await loadAllResources();
     //canvas.addEventListener("mousedown", onMouseDown);
     //canvas.addEventListener("mousemove", onMouseMove);
     //canvas.addEventListener("mouseup", onMouseUp);
