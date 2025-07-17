@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     var canvas = document.getElementById('gameCanvas');
-    if ( ! canvas || ! canvas.getContext ) {
-        return false;
-    }
+    if ( ! canvas || ! canvas.getContext ) {return false;}
     const ctx = canvas.getContext('2d');
     ctx.font = '24px Arial';
     ctx.fillText('Puzzle Game (JS)', 25, 100);
