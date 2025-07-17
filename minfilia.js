@@ -448,6 +448,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const canvas = document.getElementById('gameCanvas');
     if ( ! canvas || ! canvas.getContext ) {return false;}
     const ctx = canvas.getContext('2d');
+    canvas.width = SCRN_W;
+    canvas.height = SCRN_H;
     ctx.font = '24px Arial';
     ctx.fillText('Puzzle Game (JS)', 25, 100);
     ctx.beginPath();
