@@ -1,6 +1,5 @@
 // Minfilia JS version.1.0
 // SAVE THE ORACLE (Web Edition)
-
 const CELL = 100;
 const W = 4, H = 5;
 const GOAL_X = 1, GOAL_Y = 3;
@@ -443,3 +442,5 @@ window.onload = async function() {
     canvas.addEventListener("mouseup", onMouseUp);
     mainLoop();
 };
+
+
