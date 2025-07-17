@@ -436,7 +436,7 @@ window.onload = async function() {
     canvas.width = SCRN_W;
     canvas.height = SCRN_H;
        if (outputDiv) {
-        outputDiv.innerHTML = "<p>Hello, World!</p>";
+        outputDiv.innerHTML = "<p>Save The Oracle</p>";
     } else {
         console.error("Output div not found!");
     }
