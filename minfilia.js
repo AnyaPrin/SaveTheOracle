@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ctx.stroke();
     const outputDiv = document.getElementById("output");
     if (outputDiv) {
-        outputDiv.innerHTML = "<p>Hello, World!</p>";
+        outputDiv.innerHTML = "<p>ello, World!</p>";
     } else {
         console.error("Output div not found!");
     }
