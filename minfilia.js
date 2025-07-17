@@ -444,7 +444,7 @@ window.onload = async function() {
         console.error("Output div not found!");
     }
    //initGameState();
-   //await loadAllResources();
+   //wait loadAllResources();
     //canvas.addEventListener("mousedown", onMouseDown);
     //canvas.addEventListener("mousemove", onMouseMove);
     //canvas.addEventListener("mouseup", onMouseUp);
@@ -459,7 +459,7 @@ document.addEventListener("DOMContentLoaded", function () {
     canvas.width = SCRN_W;
     canvas.height = SCRN_H;
     ctx.font = '24px Arial';
-    ctx.fillText('Puzzle Game (JS)', 25, 100);
+    ctx.fillText('Save The Oracle', 25, 100);
     ctx.beginPath();
     ctx.moveTo(50, 50);
     ctx.lineTo(150, 50);
@@ -467,6 +467,9 @@ document.addEventListener("DOMContentLoaded", function () {
     ctx.lineTo(50, 150);
     ctx.closePath();
     ctx.stroke();
+    initGameState();
+    wait loadAllResources();
+
     const outputDiv = document.getElementById("output");
     if (outputDiv) {
         outputDiv.innerHTML = "<p>ello, World!</p>";
