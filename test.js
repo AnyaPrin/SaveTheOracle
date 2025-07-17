@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctx = canvas.getContext('2d');
     ctx.font = '24px Arial';
     ctx.fillText('Puzzle Game (JS)', 25, 100);
-    ctx.beginPath(); 
+    ctx.beginPath();
     ctx.moveTo(50, 50);
     ctx.lineTo(150, 50);
     ctx.lineTo(150, 150);
