@@ -436,10 +436,10 @@ window.onload = async function() {
     canvas.width = SCRN_W;
     canvas.height = SCRN_H;
     ctx.font = '24px Arial';
-    ctx.fillText('Puzzle Game (JS)', 25, 100);
+    ctx.fillText('---------', 25, 100);
 
     if (outputDiv) {
-        outputDiv.innerHTML = "<p>Save The Oracle</p>";
+        outputDiv.innerHTML = "<p>Minfilia: Save The Oracle</p>";
     } else {
         console.error("Output div not found!");
     }
