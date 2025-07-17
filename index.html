@@ -21,6 +21,16 @@
         <script src="minfilia.js">
             console.log("Hello World!");
         </script>     
+
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.font = '48px Arial';
+        ctx.fillText('Puzzle Game (JS)', 50, 200);
+        // ここにパズルゲームのロジックを追加（例: タイル移動、クリック処理）
+    </script>
     </main>
    <footer>
        
