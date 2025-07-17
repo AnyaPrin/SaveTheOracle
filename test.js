@@ -5,8 +5,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if ( ! canvas || ! canvas.getContext ) {
         return false;
     }
-    var ctx = canvas.getContext('2d');
-    /* rectangle */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.font = '24px Arial';
+    ctx.fillText('Puzzle Game (JS)', 25, 100);
+    // ここにパズルゲームのロジックを追加（例: タイル移動、クリック処理）
     ctx.beginPath(); /* 図形を描き始めることを宣言 */
     ctx.moveTo(50, 50); /* 図形の描き始めを移動 */
     ctx.lineTo(150, 50); /* 図形の線の終わりを決める */
