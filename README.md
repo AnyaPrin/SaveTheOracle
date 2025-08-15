@@ -1,20 +1,15 @@
 # Save The Oracle version 1.1
 (minfilia.1.1.py)
 
-このゲームで使用している画像は © SQUARE ENIX
 
-「箱入り娘ゲーム」です。
-”The Oracle” を導き外へ脱出させることが目的と見せかけて
-ヨシPの有難いお言葉を聞くことが目的です。
+FF14漆黒編のキャラクター画像を使用した「箱入り娘」ゲームです。
+”The Oracle” を導き外へ脱出させることが目的です。
 
+実行環境：
 windows10 環境、python とpygame が必要です。
-
-
 
 操作方法；
 マウスドラッグでブロックを移動
-
-
 
 動作環境：
 Windows 10
@@ -22,16 +17,17 @@ Python 3.8 以降
 pygame 2.x
 
 
-
 インストール・起動方法：
 １．Pythonをインストールする
 2. pygameをインストールする
 
-	　pip install pygame
+(cmd.exe)
+>　pip install pygame
 
-3. 解凍したフォルダ内にある`Minifilia.1.1.py` をpythonで実行する
- 
-	　python Minifilia.1.1.py
+3. 解凍したフォルダ内にある Minifilia.1.1.py をpythonで実行する
+
+(cmd.exe)
+>　python Minifilia.1.1.py
 
 
 
