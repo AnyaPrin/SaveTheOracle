@@ -1,6 +1,7 @@
 # Save The Oracle version 1.1
 (minfilia.1.1.py)
 
+<img width="35%" src="./SaveTheOracleUsage.png">
 FF14漆黒編のキャラクター画像を使用した「箱入り娘」ゲームです。<br>
 ”The Oracle” を導き外へ脱出させることが目的です。
 
