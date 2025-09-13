@@ -1,4 +1,4 @@
-# Save The Oracle version 1.1
+# Save The Oracle Pygame version 1.1
 (minfilia.1.1.py)
 
 <img width="35%" src="./SaveTheOracleUsage.png">
