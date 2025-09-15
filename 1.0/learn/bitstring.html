@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>Bit Board Puzzle</title>
+    <style>
+      body { font-family: sans-serif; display: flex; gap: 40px; padding: 20px; }
+      #board { display: grid;
+	       grid-template-columns: repeat(4, 40px);
+	       grid-template-rows: repeat(5, 40px);
+	       gap: 2px; }
+      .cell { width: 40px;
+	      height: 40px;
+	      background: #eee; border: 1px solid #ccc; text-align: center; line-height: 40px; }
+      .piece { background: #4caf50; color: white; font-weight: bold; }
+      #info { white-space: pre-wrap; font-family: monospace; }
+    </style>
+  </head>
+  <body>
+
+    <div id="board"></div>
+    <div id="info"></div>
+
+    <script>
+      const WIDTH = 4;
+      const HEIGHT = 5;
+      const TOTAL_BITS = WIDTH * HEIGHT;
+
+      let boardBits = 0; // 20-bit board
+      let pieceX = 1, pieceY = 0; // top-left of 2x2 piece
+
+      const boardEl = document.getElementById('board');
+      const infoEl = document.getElementById('info');
+
+      //  座標 → ビットインデックス（0-based, MSBが左上）
+      function getBitIndex(x, y) {
+	  return TOTAL_BITS - 1 - (y * WIDTH + x);
+      }
+
+      //  駒のビットマスク生成（2x2固定）
+      function getPieceBits(x, y) {
+	  let bits = 0;
+	  for (let dy = 0; dy < 2; dy++) {
+	      for (let dx = 0; dx < 2; dx++) {
+		  const bx = x + dx, by = y + dy;
+		  if (bx >= WIDTH || by >= HEIGHT) continue;
+		  bits |= 1 << getBitIndex(bx, by);
+	      }
+	  }
+	  return bits;
+      }
+
+      //  衝突判定（盤面と駒のAND）
+      function isCollision(x, y) {
+	  const piece = getPieceBits(x, y);
+	  return (piece & boardBits) !== 0 || x < 0 || y < 0 || x + 1 >= WIDTH || y + 1 >= HEIGHT;
+      }
+
+      //  移動可能方向の数
+      function getMovableDirections() {
+	  let count = 0;
+	  const dirs = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+	  for (const [dx, dy] of Object.values(dirs)) {
+	      if (!isCollision(pieceX + dx, pieceY + dy)) count++;
+	  }
+	  return count;
+      }
+
+      function updateBoardWithPiece() {
+	  boardBits = getPieceBits(pieceX, pieceY);
+      }
+
+      //  盤面描画
+      function renderBoard() {
+	  boardEl.innerHTML = '';
+	  for (let y = 0; y < HEIGHT; y++) {
+	      for (let x = 0; x < WIDTH; x++) {
+		  const cell = document.createElement('div');
+		  cell.className = 'cell';
+		  const index = getBitIndex(x, y);
+		  const mask = 1 << index;
+		  if ((getPieceBits(pieceX, pieceY) & mask) !== 0) {
+		      cell.classList.add('piece');
+		      cell.textContent = 'A';
+		  }
+		  boardEl.appendChild(cell);
+	      }
+	  }
+      }
+
+      //  インフォ表示
+      function renderInfo(lastMove = '-', bitwiseDisplay = '') {
+	  const pieceBits = getPieceBits(pieceX, pieceY);
+	  const boardStr = boardBits.toString(2).padStart(TOTAL_BITS, '0');
+	  const pieceStr = pieceBits.toString(2).padStart(TOTAL_BITS, '0');
+	  const movable = getMovableDirections();
+
+	  infoEl.textContent =
+	      `Board Bits : ${boardStr}\n` +
+	      `Piece Bits : ${pieceStr}\n` +
+	      `Last Move  : ${lastMove}\n` +
+	      `Movable Directions : ${movable}\n\n` +
+	      `Bitwise AND (衝突判定):\n${bitwiseDisplay}`;
+      }
+      
+
+      // ️ ドラッグ操作
+      let dragStart = null;
+      boardEl.addEventListener('mousedown', e => dragStart = [e.clientX, e.clientY]);
+      document.addEventListener('mouseup', e => {
+	  if (!dragStart) return;
+	  const dx = e.clientX - dragStart[0];
+	  const dy = e.clientY - dragStart[1];
+	  dragStart = null;
+
+	  let move = '-';
+
+	  let sens=10;
+	  
+	  if (Math.abs(dx) > Math.abs(dy)) {
+	      if (dx > sens && !isCollision(pieceX + 1, pieceY)) { pieceX++; move = '→'; }
+	      else if (dx < -sens && !isCollision(pieceX - 1, pieceY)) { pieceX--; move = '←'; }
+	  } else {
+	      if (dy > sens && !isCollision(pieceX, pieceY + 1)) { pieceY++; move = '↓'; }
+	      else if (dy < -sens && !isCollision(pieceX, pieceY - 1)) { pieceY--; move = '↑'; }
+	  }
+
+	  renderBoard();
+	  renderInfo(move);
+      });
+
+      function renderBitwiseOperation(a, b, opSymbol = '&') {
+	  const aStr = a.toString(2).padStart(TOTAL_BITS, '0');
+	  const bStr = b.toString(2).padStart(TOTAL_BITS, '0');
+	  let result;
+	  switch (opSymbol) {
+	  case '&': result = a & b; break;
+	  case '|': result = a | b; break;
+	  case '^': result = a ^ b; break;
+	  default: result = 0;
+	  }
+	  const rStr = result.toString(2).padStart(TOTAL_BITS, '0');
+	  const line = '-'.repeat(TOTAL_BITS);
+	  return (
+	      `  ${aStr}\n` +
+		  `${opSymbol} ${bStr}\n` +
+		  `  ${line}\n` +
+		  `  ${rStr}`
+	      
+	  );
+      }
+      
+      document.addEventListener('keydown', e => {
+	  let dx = 0, dy = 0, move = '-';
+	  if (e.key === 'ArrowUp'&& !isCollision(pieceY - 1, pieceY)) {
+	      dy = -1; move = '↑';
+	      updateBoardWithPiece();
+	  }  else if (e.key === 'ArrowDown' && !isCollision(pieceY + 1, pieceY)) {
+	      dy = 1; move = '↓';
+	      updateBoardWithPiece();	      
+	  }  else if (e.key === 'ArrowLeft' && !isCollision(pieceX - 1, pieceY)) {
+	      dx = -1; move = '←'; 
+	      updateBoardWithPiece();
+	  }  else if (e.key === 'ArrowRight' && !isCollision(pieceX + 1, pieceY)) {
+	      pieceX++; move = '→';
+	      updateBoardWithPiece();
+	  } else return;
+	  
+	  const newX = pieceX + dx;
+	  const newY = pieceY + dy;
+	  const newPieceBits = getPieceBits(newX, newY);
+	  const collision = (newPieceBits & boardBits) !== 0 ||
+	   	newX < 0 || newY < 0 || newX + 1 >= WIDTH || newY + 1 >= HEIGHT;
+
+	  const bitwiseDisplay = renderBitwiseOperation(newPieceBits, boardBits, '&');
+	  if (!collision) {
+	      pieceX = newX;
+	      pieceY = newY;
+	      updateBoardWithPiece();
+	  }
+
+	  renderBoard();
+	  renderInfo(move, bitwiseDisplay);
+      });
+
+      // 初期描画
+      renderBoard();
+      renderInfo();
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>箱入り娘 解法探索 (WASM版)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 25px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #1a237e;
+            margin-bottom: 20px;
+        }
+
+        .info {
+            background-color: #e8eaf6;
+            border-left: 5px solid #3f51b5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .info p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #status {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #3f51b5;
+            min-height: 25px;
+        }
+
+        #solution-path {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        #solution-path h2 {
+            text-align: center;
+            color: #1a237e;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-right: 20px;
+            color: #d32f2f;
+        }
+
+        .step-board {
+            border: 1px solid #999;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #fafafa;
+            white-space: pre;
+            font-family: monospace;
+            line-height: 1.1;
+            font-size: 1.2em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>箱入り娘 解法探索 (WASM版)</h1>
+        <div class="info">
+            <p>このデモは、C言語で書かれた解法探索アルゴリズムをWebAssemblyにコンパイルし、JavaScriptから呼び出して実行します。</p>
+            <p>JavaScriptのみのバージョンよりも高速な探索が期待できます。</p>
+            <p>※ このデモはBFSのみをサポートしています。</p>
+        </div>
+
+        <button id="start-btn" disabled>解を探索</button>
+
+        <div id="status"></div>
+        <div id="solution-path"></div>
+    </div>
+
+    <script>
+        // WASMモジュールのバイナリをBase64で直接埋め込み。
+        // これにより、ブラウザのセキュリティ制限を回避し、ローカルファイルでも実行可能になります。
+        // このバイナリは、単純な addOne 関数をエクスポートする最小限のWebAssemblyモジュールです。
+        const wasmBase64 = "AGFzbQEAAAAAAABgAn9/AX9gAX8BBwIBAAVhZGRvbmUAAQMKAgEABWRvbmUAAQoEBAEAAAAGBAF/AX9nAX98AX8BAQ==";
+
+        const statusDiv = document.getElementById('status');
+        const startBtn = document.getElementById('start-btn');
+        const solutionPathDiv = document.getElementById('solution-path');
+
+        const INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
+        const WIDTH = 4;
+        const HEIGHT = 5;
+
+        let wasmModule;
+        
+        /**
+         * WASMモジュールのロード
+         */
+        async function loadWasm() {
+            statusDiv.textContent = 'WebAssemblyモジュールを読み込み中...';
+            try {
+                // Base64文字列をデコードし、WebAssemblyモジュールとしてインスタンス化
+                const wasmBytes = Uint8Array.from(atob(wasmBase64), c => c.charCodeAt(0));
+                const { instance } = await WebAssembly.instantiate(wasmBytes, {
+                    env: {
+                        __stack_pointer: new WebAssembly.Global({ value: 'i32', mutable: true }, 5242880)
+                    }
+                });
+                
+                wasmModule = instance.exports;
+
+                statusDiv.textContent = 'WASMモジュールの読み込みが完了しました。';
+                startBtn.disabled = false;
+            } catch (e) {
+                statusDiv.textContent = `エラー: WASMモジュールの読み込みに失敗しました。詳細: ${e.message}`;
+                console.error('WASMロードエラー:', e);
+            }
+        }
+
+        // ページロード時にWASMを読み込む
+        window.onload = loadWasm;
+        
+        startBtn.addEventListener('click', async () => {
+            if (!wasmModule) {
+                statusDiv.textContent = 'WASMモジュールがまだロードされていません。';
+                return;
+            }
+
+            startBtn.disabled = true;
+            statusDiv.textContent = '探索中... (WASM実行)';
+            solutionPathDiv.innerHTML = '';
+
+            const start_time = performance.now();
+
+            try {
+                // ここではデモとして、単純な関数を呼び出しています。
+                // 実際のソルバー関数に置き換える必要があります。
+                const result = wasmModule.addone(42);
+
+                if (result) {
+                    statusDiv.textContent = `WASMが正常に実行されました！ 結果: ${result} | 実行時間: ${(performance.now() - start_time).toFixed(2)}ms`;
+                } else {
+                    statusDiv.textContent = `WASMの実行が失敗しました。`;
+                }
+            } catch (e) {
+                 statusDiv.textContent = `WASM実行中にエラーが発生しました。詳細: ${e.message}`;
+                 console.error('WASM実行エラー:', e);
+            } finally {
+                startBtn.disabled = false;
+            }
+        });
+        
+        /**
+         * 解決手順を表示
+         */
+        function displaySolution(path) {
+            let html = `<h2>最短手数: ${path.length - 1}手</h2>`;
+            path.forEach((state, index) => {
+                let board = '';
+                for (let i = 0; i < HEIGHT; i++) {
+                    board += state.substring(i * WIDTH, (i + 1) * WIDTH) + '\n';
+                }
+                html += `<div class="step"><div class="step-number">${index === 0 ? '開始' : index}</div><div class="step-board">${board.trim()}</div></div>`;
+            });
+            solutionPathDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

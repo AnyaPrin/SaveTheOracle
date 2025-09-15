@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>箱入り娘 解法探索 (Klotski Solver)</title>
+    <style>
+      body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Helvetica Neue", Arial, sans-serif;
+          margin: 0;
+          padding: 20px 0;
+          background-color: #f0f2f5;
+          color: #333;
+      }
+
+      .container {
+          width: 90%;
+          max-width: 800px;
+          margin: 20px auto;
+          padding: 25px;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          text-align: center;
+      }
+
+      h1 {
+          color: #1a237e;
+          margin-bottom: 20px;
+      }
+
+      .info {
+          background-color: #e8eaf6;
+          border-left: 5px solid #3f51b5;
+          padding: 15px;
+          margin-bottom: 20px;
+          border-radius: 4px;
+          text-align: left;
+      }
+
+      .info p {
+          margin: 0;
+          line-height: 1.6;
+      }
+
+      .board {
+          white-space: pre;
+          font-family: monospace;
+          line-height: 1.1;
+          font-size: 1.5em;
+          margin-bottom: 20px;
+          text-align: left;
+          border: 2px solid #333;
+          display: inline-block;
+          padding: 5px;
+          border-radius: 4px;
+          background-color: #eee;
+      }
+      
+      button {
+          background-color: #4CAF50;
+          color: white;
+          padding: 12px 24px;
+          border: none;
+          border-radius: 20px;
+          font-size: 1em;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.2s;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      button:hover {
+          background-color: #45a049;
+          transform: translateY(-2px);
+      }
+
+      button:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+          box-shadow: none;
+      }
+
+      #status {
+          font-size: 1.2em;
+          font-weight: bold;
+          color: #3f51b5;
+      }
+      
+      #progress-details {
+          font-size: 0.9em;
+          color: #666;
+          margin-top: 10px;
+      }
+      
+      #solution-path {
+          margin-top: 30px;
+          text-align: left;
+      }
+
+      #solution-path h2 {
+          text-align: center;
+          color: #1a237e;
+      }
+
+      .step {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+      }
+
+      .step-number {
+          font-size: 1.5em;
+          font-weight: bold;
+          margin-right: 20px;
+          color: #d32f2f;
+      }
+
+      .step-board {
+          border: 1px solid #999;
+          padding: 10px;
+          border-radius: 4px;
+          background-color: #fafafa;
+          white-space: pre;
+          font-family: monospace;
+          line-height: 1.1;
+          font-size: 1.2em;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .algorithm-selection {
+          margin: 20px 0;
+          text-align: center;
+      }
+      .algorithm-selection p {
+          margin-bottom: 10px;
+          font-weight: bold;
+          color: #3f51b5;
+      }
+      .algorithm-selection label {
+          margin: 0 15px;
+          font-size: 1em;
+          cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>箱入り娘 解法探索</h1>
+      <div class="info">
+        <p>「解を探索」ボタンを押すと、初期状態からゴールまでの最短手数を見つけます。</p>
+        <p>アルゴリズムとして「幅優先探索（BFS）」と「A*探索」を選択できます。</p>
+      </div>
+      
+      <div class="algorithm-selection">
+        <p>探索アルゴリズムを選択:</p>
+        <label>
+          <input type="radio" name="algorithm" value="bfs" checked> 幅優先探索 (BFS)
+        </label>
+        <label>
+          <input type="radio" name="algorithm" value="astar"> A*探索
+        </label>
+      </div>
+
+      <button id="start-btn">解を探索</button>
+
+      <div id="status"></div>
+      <div id="progress-details"></div>
+
+      <div id="solution-path"></div>
+
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          // --- Constants and DOM Elements ---
+          let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
+          const WIDTH = 4;
+          const HEIGHT = 5;
+          const GOAL_PIECE = 'A';
+          const CHUNK_SIZE = 500;
+
+          const statusDiv = document.getElementById('status');
+          const progressDetailsDiv = document.getElementById('progress-details');
+          const startBtn = document.getElementById('start-btn');
+          const solutionPathDiv = document.getElementById('solution-path');
+          const algorithmRadios = document.getElementsByName('algorithm');
+
+          // --- Search variables ---
+          let queue, visited, parentMap, head, selectedAlgorithm;
+
+          /**
+           * Trigger search on button click
+           */
+          startBtn.addEventListener('click', () => {
+              for (const radio of algorithmRadios) {
+                  if (radio.checked) {
+                      selectedAlgorithm = radio.value;
+                      break;
+                  }
+              }
+
+              if (selectedAlgorithm === 'bfs') {
+                  queue = [INITIAL_STATE];
+              } else {
+                  const startNode = { state: INITIAL_STATE, g: 0, h: heuristic(INITIAL_STATE), f: heuristic(INITIAL_STATE) };
+                  queue = [startNode];
+              }
+              
+              visited = new Set([INITIAL_STATE]);
+              parentMap = new Map([[INITIAL_STATE, null]]);
+              head = 0;
+
+              startBtn.disabled = true;
+              statusDiv.textContent = '探索中...';
+              solutionPathDiv.innerHTML = '';
+              
+              updateProgress();
+              setTimeout(processQueueChunk, 0);
+          });
+
+          /**
+           * Check if the state is the goal state.
+           */
+          function isGoalState(state) {
+              return state[13] === GOAL_PIECE && state[14] === GOAL_PIECE &&
+                  state[17] === GOAL_PIECE && state[18] === GOAL_PIECE;
+          }
+
+          /**
+           * Heuristic function h(n) for A* search.
+           * Returns the sum of Manhattan distance and blocking pieces.
+           */
+          function heuristic(state) {
+              const GOAL_X = 1;
+              const GOAL_Y = 3;
+              let currentX = -1;
+              let currentY = -1;
+              for (let i = 0; i < state.length; i++) {
+                  if (state[i] === 'A') {
+                      currentX = i % WIDTH;
+                      currentY = Math.floor(i / WIDTH);
+                      break;
+                  }
+              }
+              const dx = Math.abs(currentX - GOAL_X);
+              const dy = Math.abs(currentY - GOAL_Y);
+              
+              let blockingPieces = 0;
+              // 'A'がゴール位置にない場合のみブロッキングピースをカウント
+              if (currentY < GOAL_Y) {
+                  // ゴールへの垂直な通路（Aの真下の2列）にいるピースを数える
+                  for (let y = currentY + 2; y <= GOAL_Y + 1; y++) {
+                      const index1 = y * WIDTH + currentX;
+                      const index2 = y * WIDTH + currentX + 1;
+                      if (y < HEIGHT) {
+                          if (state[index1] !== '.' && state[index1] !== GOAL_PIECE) {
+                              // 同じピースを複数回カウントしないようにSetを使う
+                              blockingPieces++;
+                          }
+                          if (state[index2] !== '.' && state[index2] !== GOAL_PIECE) {
+                              blockingPieces++;
+                          }
+                      }
+                  }
+              }
+              // 同じピースが複数回カウントされるのを避けるためSetを使用する
+              const uniqueBlockers = new Set();
+              if (currentY < GOAL_Y) {
+                  for (let y = currentY + 2; y <= GOAL_Y; y++) {
+                      const index1 = y * WIDTH + currentX;
+                      const index2 = y * WIDTH + currentX + 1;
+                      if (state[index1] !== '.' && state[index1] !== GOAL_PIECE) {
+                          uniqueBlockers.add(state[index1]);
+                      }
+                      if (state[index2] !== '.' && state[index2] !== GOAL_PIECE) {
+                          uniqueBlockers.add(state[index2]);
+                      }
+                  }
+              }
+              
+              // マンハッタン距離とブロッキングピース数を合計する
+              return dx + dy + uniqueBlockers.size;
+          }
+          
+          /**
+           * Process a chunk of the queue to prevent UI freezing.
+           */
+          function processQueueChunk() {
+              let processedInChunk = 0;
+              while (head < queue.length && processedInChunk < CHUNK_SIZE) {
+                  let currentState, currentG;
+
+                  if (selectedAlgorithm === 'bfs') {
+                      currentState = queue[head++];
+                  } else { // astar
+                      queue.sort((a, b) => a.f - b.f);
+                      const currentNode = queue[head++];
+                      currentState = currentNode.state;
+                      currentG = currentNode.g;
+                  }
+
+                  if (isGoalState(currentState)) {
+                      const path = reconstructPath(currentState);
+                      displaySolution(path);
+                      statusDiv.textContent = `ゴールに到達しました！ (${path.length - 1}手)`;
+                      startBtn.disabled = false;
+                      return;
+                  }
+
+                  const nextStates = getPossibleNextStates(currentState);
+                  for (const nextState of nextStates) {
+                      if (!visited.has(nextState)) {
+                          visited.add(nextState);
+                          parentMap.set(nextState, currentState);
+
+                          if (selectedAlgorithm === 'bfs') {
+                              queue.push(nextState);
+                          } else { // astar
+                              const nextG = currentG + 1;
+                              const nextH = heuristic(nextState);
+                              const nextF = nextG + nextH;
+                              queue.push({ state: nextState, g: nextG, h: nextH, f: nextF });
+                          }
+                      }
+                  }
+                  processedInChunk++;
+              }
+
+              updateProgress();
+              if (head < queue.length) {
+                  setTimeout(processQueueChunk, 0);
+              } else {
+                  statusDiv.textContent = '解が見つかりませんでした。';
+                  startBtn.disabled = false;
+              }
+          }
+
+          /**
+           * Reconstruct the path from the goal state to the initial state.
+           */
+          function reconstructPath(goalState) {
+              const path = [];
+              let current = goalState;
+              while (current !== null) {
+                  path.unshift(current);
+                  current = parentMap.get(current);
+              }
+              return path;
+          }
+
+          /**
+           * Display the solution steps.
+           */
+          function displaySolution(path) {
+              let html = `<h2>最短手数: ${path.length - 1}手</h2>`;
+              path.forEach((state, index) => {
+                  let board = '';
+                  for (let i = 0; i < HEIGHT; i++) {
+                      board += state.substring(i * WIDTH, (i + 1) * WIDTH) + '\n';
+                  }
+                  html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board">${board.trim()}</div></div>`;
+              });
+              solutionPathDiv.innerHTML = html;
+          }
+
+          function updateProgress() {
+              progressDetailsDiv.textContent = `探索アルゴリズム: ${selectedAlgorithm.toUpperCase()} | 探索済みノード数: ${visited.size.toLocaleString()} | キューの長さ: ${(queue.length - head).toLocaleString()}`;
+          }
+
+          function getPossibleNextStates(state) {
+              const nextStates = new Set();
+              const processedPieces = new Set();
+              for (let i = 0; i < state.length; i++) {
+                  const piece = state[i];
+                  if (piece !== '.' && !processedPieces.has(piece)) {
+                      processedPieces.add(piece);
+                      const positions = [];
+                      for (let j = 0; j < state.length; j++) {
+                          if (state[j] === piece) {
+                              positions.push({ x: j % WIDTH, y: Math.floor(j / WIDTH) });
+                          }
+                      }
+                      const directions = [
+                          { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+                          { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+                      ];
+                      for (const dir of directions) {
+                          if (canMove(state, positions, dir)) {
+                              nextStates.add(movePiece(state, positions, dir));
+                          }
+                      }
+                  }
+              }
+              return nextStates;
+          }
+
+          function canMove(state, positions, dir) {
+              for (const pos of positions) {
+                  const nextX = pos.x + dir.dx;
+                  const nextY = pos.y + dir.dy;
+                  if (nextX < 0 || nextX >= WIDTH || nextY < 0 || nextY >= HEIGHT) return false;
+                  const targetCell = state[nextY * WIDTH + nextX];
+                  const isPartOfSelf = positions.some(p => p.x === nextX && p.y === nextY);
+                  if (targetCell !== '.' && !isPartOfSelf) return false;
+              }
+              return true;
+          }
+
+          function movePiece(state, positions, dir) {
+              const newBoard = state.split('');
+              const pieceChar = state[positions[0].y * WIDTH + positions[0].x];
+              for (const pos of positions) {
+                  newBoard[pos.y * WIDTH + pos.x] = '.';
+              }
+              for (const pos of positions) {
+                  const newIndex = (pos.y + dir.dy) * WIDTH + (pos.x + dir.dx);
+                  newBoard[newIndex] = pieceChar;
+              }
+              return newBoard.join('');
+          }
+      });
+    </script>
+  </body>
+</html>

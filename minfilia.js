@@ -36,7 +36,7 @@ const MIRACLE_FLASH_BUST_DELAY = 200;
 const FLASH_EFFECT_DURATION = 20;
 const FLASH_COLOR = "rgba(255,255,200,";
 
-// ゲーム初期状態
+// ゲーム初期状態 1-9: block ID, 0:void
 const INIT_BOARD = [
     [2, 1, 1, 3],
     [2, 1, 1, 3],
@@ -44,7 +44,8 @@ const INIT_BOARD = [
     [4, 9, 10, 5],
     [7, 0, 0, 8]
 ];
-const INIT_BLKS = {
+// block ID : size and position
+const INIT_BLKS = { 
     1: {size: [2,2], pos: [1,0]},
     2: {size: [1,2], pos: [0,0]},
     3: {size: [1,2], pos: [3,0]},

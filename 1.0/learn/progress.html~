@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Loading Progress</title>
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+  </head>
+  <body>
+    <div id="loading-container">
+      <div id="progress-text">Loading: 0%</div>
+      <div id="threejs-canvas-container"></div>
+    </div>
+  </body>
+  <script src="main.js"></script>
+</html>

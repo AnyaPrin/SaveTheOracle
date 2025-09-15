@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="minfilia.css" >
+    <style>
+      :root {
+	  --link: #92b2c8;
+	  --menu: #92b2c8;	  
+	  --bg-color: #012345;
+	  --text-color: #f0f0f0;
+	  --panel: rgba(255,255,255,0.05);
+	  --panela: rgba(0,0,0,0.15);
+	  --acc-b: #2f81f7;
+	  --acc-g: #2d333b;
+	  --border: #444c56;
+	  --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
+      }
+      #puzzlecanvas {
+	  display:block;	  
+	  position:fixed;
+	  top: 60px;
+	  left: 30px;
+	  width:600px; 
+	  height:800px;
+	  background:black;
+	  z-index:1;
+      }
+      #info{
+	  display:block;
+	  position:fixed;
+	  top: 64px;
+	  left: 644px;
+	  width:440px;
+	  height:320px;
+	  background:var(--panel);
+	  font-size:10pt;
+	  z-index:100;
+    	  font-family: 'Nimbus Mono','IPAゴシック','courier','Ariel';
+      }
+      #graphcanvas {
+	  display:block;
+	  position:fixed;
+	  top: 60px;
+	  left: 640px; 
+	  width:1024px;
+	  height:800px;
+	  background:black;
+	  z-index:1;    
+      }
+    </style>
+    <link rel="stylesheet" href="minfilia.css">
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    <title>Save The Oracle</title>
+  </head>
+  <body>
+    <header>
+      <span style="font-size:16pt">Save The Oracle</span>
+    </header>
+    <div id="info"> Info.</div>
+    <main>
+      <div><canvas id="puzzlecanvas"></canvas></div>
+      <div><canvas id="graphcanvas"></canvas></div>
+    </main>
+    <footer>
+      <hr>
+      画像はFINAL FANTASY XIV ゲーム内で撮影、３Dモデルはミニオン[マメット・
+      リーン]を見ながら blenderで自作しました。ⒸSQUARE ENIX <br>謎の声は実質
+      フリー素材っぽいけれども厳密にはたぶんⒸすくえに。 クリア時のチャイム音
+      その他効果音はすべてWindows10システム音源です。<br>
+      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+	mifilia.js v.1.0 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+      <span style="position:fixed;right:20px;">
+	<a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+	  <img width="20" src="img/github-mark-white.png"> GitHub </a> </span>
+    </footer>
+  </body>
+  <script src="puzzle.js"></script>  
+  <script src="graph1.js"></script>        
+</html>

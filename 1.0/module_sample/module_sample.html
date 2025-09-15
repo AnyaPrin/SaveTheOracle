@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二つのCanvasに図形を描画 (モジュール版)</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f5;
+        }
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: #e8e8e8;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>二つのCanvasに図形を描画 (モジュール版)</h1>
+    <p>JavaScriptモジュールを使って、コードが分割されています。</p>
+    <div class="canvas-container">
+        <!-- Canvas for drawing a rectangle -->
+        <canvas id="rectangleCanvas" width="200" height="200"></canvas>
+        
+        <!-- Canvas for drawing a circle -->
+        <canvas id="circleCanvas" width="200" height="200"></canvas>
+    </div>
+    <!-- モジュールとして外部スクリプトを読み込みます -->
+    <script type="module">
+        // shapes.js から必要な関数をインポートします。
+        import { drawRectangle, drawCircle } from './shapes.js';
+        // DOMが完全に読み込まれた後にコードを実行
+        window.onload = function() {
+            // キャンバス要素を取得
+            const rectangleCanvas = document.getElementById('rectangleCanvas');
+            const circleCanvas = document.getElementById('circleCanvas');
+            
+            // インポートした関数を使って描画
+            drawRectangle(rectangleCanvas, '#4A90E2');
+            drawCircle(circleCanvas, '#FF6B6B');
+        };
+    </script>
+</body>
+</html>
+
+  

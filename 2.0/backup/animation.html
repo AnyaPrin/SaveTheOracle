@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>アニメーションの関数化</title>
+    <style>
+        body {
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        canvas {
+            background-color: #000;
+            border: 2px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // スプライトシートの座標を配列で管理
+        const SPRITE_MAP = {
+            'D': [0, 0, 200, 200],
+            'R': [200, 0, 200, 200],
+            'U': [400, 0, 200, 200],
+            'L': [600, 0, 200, 200],
+        };
+
+        // アニメーションを管理するクラス
+        class SpriteAnimator {
+            constructor(image, spriteMap, animationKeys, frameInterval, x, y) {
+                this.image = image;
+                this.spriteMap = spriteMap;
+                this.animationKeys = animationKeys;
+                this.frameInterval = frameInterval;
+                this.x = x;
+                this.y = y;
+                this.currentFrameIndex = 0;
+                this.lastUpdateTime = 0;
+            }
+
+            /**
+             * フレームを更新し、キャンバスに描画する
+             * @param {CanvasRenderingContext2D} ctx - 描画コンテキスト
+             * @param {number} timestamp - requestAnimationFrame から渡されるタイムスタンプ
+             */
+            update(ctx, timestamp) {
+                // 前回の更新から一定時間が経過したら次のフレームへ
+                if (timestamp - this.lastUpdateTime > this.frameInterval) {
+                    // 現在のフレームのキーを取得
+                    const currentKey = this.animationKeys[this.currentFrameIndex];
+                    const coords = this.spriteMap[currentKey];
+
+                    // スプライトを描画
+                    // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
+                    ctx.drawImage(
+                        this.image,
+                        ...coords,
+                        this.x,
+                        this.y,
+                        coords[2], // 描画先の幅
+                        coords[3]  // 描画先の高さ
+                    );
+
+                    // フレームインデックスを更新
+                    this.currentFrameIndex = (this.currentFrameIndex + 1) % this.animationKeys.length;
+                    this.lastUpdateTime = timestamp;
+                }
+            }
+        }
+
+        // スプライトシートの画像
+        const spriteSheet = new Image();
+        spriteSheet.src = 'img/imagesheet.png'; 
+        let animator1;
+        let animator2;
+        // 画像がロードされたらアニメーションを開始
+        spriteSheet.onload = () => {
+            // 2つの異なる位置でアニメーションを作成
+            animator1 = new SpriteAnimator(
+                spriteSheet,
+                SPRITE_MAP,
+                ['D', 'R', 'U', 'L'], // アニメーションの順番
+                250,                 // フレーム間隔
+                100, 100             // 描画位置 (x, y)
+            );
+            animator2 = new SpriteAnimator(
+                spriteSheet,
+                SPRITE_MAP,
+                ['U', 'L', 'D', 'R'], // 別の順番でアニメーション
+                150,                 // より速いフレーム間隔
+                400, 300             // 別の描画位置
+            );
+            // 描画ループを開始
+            requestAnimationFrame(gameLoop);
+        };
+        function gameLoop(timestamp) {
+            // キャンバスを毎回クリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 各アニメーターの更新と描画を実行
+            if (animator1) animator1.update(ctx, timestamp);
+            if (animator2) animator2.update(ctx, timestamp);
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>

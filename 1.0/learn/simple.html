@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple JSON Plotting</title>
+    <style>
+      body { margin: 0; overflow: hidden; background-color: #000; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <script type="importmap">
+      {
+          "imports": {
+              "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+              "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+          }
+      }
+    </script>
+    <script src="data.json"></script>
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // シーン設定
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+      camera.position.z = 1;
+      camera.position.y = 2;
+      camera.position.x = 4;            
+
+      // カメラコントロール
+      const controls = new OrbitControls(camera, renderer.domElement);
+
+      // オブジェクトの準備
+      const nodes = [];
+      let previousPosition = null;
+      const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x00888888 });
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x00123488 });
+
+      // JSONデータ
+      let vertexIndex = 0;
+      //    fetch('./data.json')
+      //    .then(response => response.json())
+      //    .then(data => {
+      //        console.log(data.vertices);
+      //    });    
+
+//      const totalTime = 5000; // 5秒で完了
+//      let elapsedTime = 0;
+//      const intervalTime = 16; // 約60fps      
+//      const interval = setInterval(updateProgress, intervalTime);
+      const interval = setInterval(addNextVertex, 0); // 秒ごとに次の頂点をプロット
+      
+      // 次の頂点をプロットする関数
+      function addNextVertex() {
+          if (vertexIndex >= jsonData.vertices.length) {
+              clearInterval(interval);
+              return;
+          }
+          const vertexData = jsonData.vertices[vertexIndex];
+          const currentPosition = new THREE.Vector3(vertexData.x, vertexData.y, vertexData.z);
+
+          // 頂点のプロット
+          const nodeGeometry = new THREE.SphereGeometry(0.001, 8, 8);
+          const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+          node.position.copy(currentPosition);
+          scene.add(node);
+          nodes.push(node);
+
+          // 前の頂点とエッジで結ぶ
+          if (previousPosition) {
+              const points = [previousPosition, currentPosition];
+              const edgeGeometry = new THREE.BufferGeometry().setFromPoints(points);
+              const edge = new THREE.Line(edgeGeometry, edgeMaterial);
+              scene.add(edge);
+          }
+
+          previousPosition = currentPosition;
+          vertexIndex++;
+      }
+
+      // アニメーションループ
+      function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>

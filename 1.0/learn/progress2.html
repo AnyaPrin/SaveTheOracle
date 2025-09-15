@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Loading Progress</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <style>
+      body {
+	  margin: 0;
+	  overflow: hidden;
+	  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	  background-color: #1a1a2e;
+	  color: #e0e0e0;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  height: 100vh;
+      }
+
+      #loading-container {
+	  position: relative;
+	  width: 80vw;
+	  height: 80vh;
+	  display: flex;
+	  flex-direction: column;
+	  justify-content: center;
+	  align-items: center;
+	  background-color: #0f0f1a;
+	  border-radius: 10px;
+	  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      }
+
+      #progress-text {
+	  position: absolute;
+	  top: 20px;
+	  left: 50%;
+	  transform: translateX(-50%);
+	  font-size: 2em;
+	  font-weight: bold;
+	  color: #00ffff;
+	  z-index: 10;
+	  text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+      }
+
+      #threejs-canvas-container {
+	  width: 100%;
+	  height: 100%;
+	  /* Three.js のcanvasはここに挿入されます */
+      }
+
+      canvas {
+	  display: block;
+	  border-radius: 10px; /* 親コンテナの角丸に合わせる */
+      }
+    </style>
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    
+  </head>
+  <body>
+    <div id="loading-container">
+      <div id="progress-text">Loading: 0%</div>
+      <div id="threejs-canvas-container"></div>
+    </div>
+    <script>
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      const container = document.getElementById('threejs-canvas-container');
+      const progressText = document.getElementById('progress-text');
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const jsonPath = './vertex_data.json';
+      let jsonVertices = null; // 読み込んだ頂点データをキャッシュ
+      let vertexIndex = 0; // 次に取得する頂点のインデックス      
+
+      camera.position.z = 5;
+
+      // --- カメラコントロール ---
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // --- 光源 ---
+      const ambientLight = new THREE.AmbientLight(0x404040, 2); // 柔らかな環境光
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(5, 5, 5).normalize();
+      scene.add(directionalLight);
+
+      // --- グローバル変数 ---
+      const nodes = [];
+      const edges = [];
+      const nodeGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+      const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.3 });
+
+      const MAX_NODES = 1200; // 最終的な球体を構成するノードの数
+      const SPHERE_RADIUS = 2; // 完成する球体の半径
+
+      let currentProgress = 0; // 0から100
+
+      // --- 関数: 球面のランダムな位置を生成 ---
+      function getRandomPointOnSphere(radius) {
+       	  const phi = Math.random() * Math.PI * 2;
+       	  const theta = Math.acos(Math.random() * 2 - 1);
+       	  const x = radius * Math.sin(theta) * Math.cos(phi);
+       	  const y = radius * Math.sin(theta) * Math.sin(phi);
+       	  const z = radius * Math.cos(theta);
+       	  return new THREE.Vector3(x, y, z);
+      }
+      
+      // --- 関数: JSONから頂点座標を取得 ---
+      // 外部からは getRandomPointOnSphere と同じように扱えるように実装
+      async function getPointFromJson(radius = 1) {
+	  // データがまだキャッシュされていなければ、読み込みを開始
+	  if (!jsonVertices) {
+              progressText.textContent = 'Loading JSON data...';
+              try {
+		  const response = await fetch(jsonPath);
+		  if (!response.ok) {
+                      throw new Error(`HTTP error! Status: ${response.status}`);
+		  }
+		  const data = await response.json();
+		  jsonVertices = data.vertices; // データをキャッシュ
+		  if (!jsonVertices || jsonVertices.length === 0) {
+                      throw new Error("JSON file contains no vertices.");
+		  }
+		  progressText.textContent = 'JSON data loaded!';
+              } catch (error) {
+		  progressText.textContent = 'Loading Error!';
+		  console.error('Error loading or parsing JSON:', error);
+		  return null;
+              }
+	  }
+
+	  // すべての頂点を表示し終えたら、ループさせる
+	  if (vertexIndex >= jsonVertices.length) {
+              vertexIndex = 0;
+	  }
+
+	  const vertexData = jsonVertices[vertexIndex];
+	  vertexIndex++;
+
+	  // 読み込んだ座標に radius を乗じてスケールを適用
+	  const x = vertexData.x * radius;
+	  const y = vertexData.y * radius;
+	  const z = vertexData.z * radius;
+
+	  return new THREE.Vector3(x, y, z);
+      }
+       
+      // --- 関数: プログレスに応じてノードとエッジを追加 ---
+      function updateProgressVisualization(progress) {
+	  const totalVertices = jsonVertices.length;
+	  const targetNodeCount = Math.floor(totalVertices * (progress / 100));
+//	  const targetNodeCount = Math.floor(MAX_NODES * (progress / 100));
+	  
+	  // ノードを追加
+	  while (nodes.length < targetNodeCount) {
+	      //              const position = getRandomPointOnSphere(SPHERE_RADIUS);
+	      const position = getPointFromJson(2);
+	      if (!position) {
+		  console.error("Failed Loading from JSON");
+		  return;
+	      }
+              const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+              node.position.copy(position);
+              scene.add(node);
+              nodes.push(node);
+
+	      // 前のノードと接続
+	      if (nodes.length > 1) {
+		  const previousNode = nodes[nodes.length - 2];
+		  const points = [node.position.clone(), previousNode.position.clone()];
+		  const edgeGeometry = new THREE.BufferGeometry().setFromPoints(points);
+		  const edge = new THREE.Line(edgeGeometry, edgeMaterial);
+		  scene.add(edge);
+		  edges.push(edge);
+              }	      
+              //ノード接続
+	      // if (nodes.length > 1) {
+	      // 	  const numConnections = Math.floor(Math.random() * 6) + 1; // 1-3本接続
+	      // 	  for (let i = 0; i < numConnections; i++) {
+	      // 	      const otherNodeIndex = Math.floor(Math.random() * (nodes.length - 1));
+	      // 	      const otherNode = nodes[otherNodeIndex];
+	      // 	      const points = [node.position.clone(), otherNode.position.clone()];
+	      // 	      const edgeGeometry = new THREE.BufferGeometry().setFromPoints(points);
+	      // 	      const edge = new THREE.Line(edgeGeometry, edgeMaterial);
+	      // 	      scene.add(edge);
+	      // 	      edges.push(edge);
+	      // 	  }
+	      // }
+	  }
+	  // 古いノードとエッジを削除しない（今回のコンセプトでは追加のみ）
+	  // 後で進捗が戻る場合を考慮するなら、ここで削除処理が必要
+      }
+
+      // --- アニメーションループ ---
+      function animate() {
+	  requestAnimationFrame(animate);
+	  controls.update();
+	  // ノードをゆっくり回転させる
+	  nodes.forEach(node => {
+              node.rotation.x += 0.01;
+              node.rotation.y += 0.01;
+	  });
+
+	  renderer.render(scene, camera);
+      }
+
+      // --- プログレスのシミュレーションとGLTF読み込みの模擬 ---
+      function simulateProgress() {
+	  const interval = setInterval(() => {
+              currentProgress += Math.random() * 5; // ランダムにプログレスを進める
+              if (currentProgress > 100) {
+		  currentProgress = 100;
+		  clearInterval(interval);
+		  progressText.textContent = `Loading: 100% - Complete!`;
+		  // GLTFモデルの読み込みを完了させる処理をここに記述
+		  // loadActualGLTFModel(); // 実際のモデルを読み込む場合はこれを呼び出す
+              }
+
+              progressText.textContent = `Loading: ${Math.floor(currentProgress)}%`;
+              updateProgressVisualization(currentProgress);
+	  }, 100); // 0.1秒ごとに更新
+      }
+
+
+      // --- 実際のGLTFモデル読み込み関数 (コメントアウト、進捗表示のシミュレーション用) ---
+      /*
+	const gltfLoader = new GLTFLoader();
+
+	function loadActualGLTFModel() {
+	gltfLoader.load(
+	'path/to/your/model.gltf', // 実際のGLTFモデルのパス
+	(gltf) => {
+	scene.add(gltf.scene);
+	console.log('GLTF model loaded successfully!');
+	progressText.textContent = 'Loading Complete!';
+	// 読み込み完了後の処理
+	},
+	(xhr) => {
+	// ここでxhr.loadedとxhr.totalを使って進捗を計算し、currentProgressを更新する
+	currentProgress = (xhr.loaded / xhr.total) * 100;
+	progressText.textContent = `Loading: ${Math.floor(currentProgress)}%`;
+	updateProgressVisualization(currentProgress);
+	console.log(`GLTF loading: ${currentProgress}%`);
+	},
+	(error) => {
+	console.error('An error happened during GLTF loading:', error);
+	progressText.textContent = 'Loading Error!';
+	}
+	);
+	}
+      */
+
+      // --- イベントリスナー ---
+      window.addEventListener('resize', () => {
+	  camera.aspect = container.clientWidth / container.clientHeight;
+	  camera.updateProjectionMatrix();
+	  renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+
+      // --- 初期化 ---
+      animate(); // アニメーション開始
+      simulateProgress(); // プログレスのシミュレーションを開始（実際のGLTF読み込みと置き換え可能）
+
+      // もしGLTFを実際にロードするなら、simulateProgress() の代わりに loadActualGLTFModel() を呼び出す
+      // loadActualGLTFModel();
+
+    </script>
+  </body>
+</html>

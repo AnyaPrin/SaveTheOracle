@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 箱入り娘パズル</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.4/gsap.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 95%;
+            max-height: 95%;
+        }
+        .canvas-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 320px; /* パズルサイズに合わせて幅を固定 */
+        }
+        #game-board-canvas {
+            background-color: #1eacf7;
+        }
+        #graph-canvas {
+            background-color: black;
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        #solve-button {
+            width: 100%;
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            z-index: 20;
+        }
+        #message-box.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        button:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        #progress-details {
+            font-size: 0.9em;
+            color: #d1d5db;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-100 flex items-center justify-center p-4">
+
+    <div class="main-container">
+        <h1 class="text-3xl font-bold text-center">3D 箱入り娘パズル</h1>
+        
+        <div class="canvas-wrapper">
+            <!-- ゲーム盤キャンバスとコントロール -->
+            <div class="canvas-container">
+                <canvas id="game-board-canvas"></canvas>
+                <div id="controls">
+                    <button id="solve-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">
+                        自動で解く
+                    </button>
+                    <div id="progress-details" class="text-center text-sm text-gray-400"></div>
+                </div>
+            </div>
+
+            <!-- 状態遷移グラフキャンバス -->
+            <div class="canvas-container">
+                <canvas id="graph-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="message-box"></div>
+
+    <script>
+        // DOM elements
+        const messageBox = document.getElementById('message-box');
+        const solveButton = document.getElementById('solve-button');
+        const progressDetailsDiv = document.getElementById('progress-details');
+
+        // Board dimensions
+        const WIDTH = 4;
+        const HEIGHT = 5;
+        const GOAL_PIECE = 'A';
+        const squareSize = 80;
+        const animationSpeed = 0.2; // seconds
+        const DRAG_THRESHOLD = 40; // Pixels to drag before a move is registered
+        const ZOOM_SPEED = 50; // Speed of zoom using mouse wheel
+
+        // The initial state of the Klotski puzzle, represented as a string.
+        const INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
+        
+        // Piece dimensions and colors
+        const PIECE_DATA = {
+            'A': { width: 2, height: 2, color: 0x6366f1 },
+            'B': { width: 1, height: 2, color: 0x34d399 },
+            'C': { width: 1, height: 2, color: 0xf59e0b },
+            'D': { width: 1, height: 2, color: 0xff7236 },
+            'E': { width: 1, height: 2, color: 0x1eacf7 },
+            'F': { width: 2, height: 1, color: 0xb010d8 },
+            'G': { width: 1, height: 1, color: 0x4CAF50 },
+            'H': { width: 1, height: 1, color: 0xf44336 },
+            'I': { width: 1, height: 1, color: 0x2196F3 },
+            'J': { width: 1, height: 1, color: 0xFFEB3B },
+        };
+        
+        const pieceMeshes = [];
+        let scene, camera, renderer;
+        let raycaster, pointer, INTERSECTED;
+        let isDragging = false;
+        let isSolving = false;
+        let dragAxis = null;
+        let dragStartMousePos = new THREE.Vector2();
+
+        /**
+         * Initializes the Three.js scene, camera, and renderer.
+         */
+        function initThreeScene() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1f2937);
+
+            // Fix: Set the camera aspect ratio to match the board's aspect ratio (4:5)
+            // This prevents the board from being stretched by the window size.
+            camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
+            camera.position.set(0, 0, 400);
+            camera.lookAt(0, 0, 0);
+
+            // X軸の回転を微調整
+            camera.rotation.x = 5 * Math.PI / 180;
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('game-board-canvas'),
+                antialias: true
+            });
+            renderer.setSize(4 * squareSize, 5 * squareSize);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            raycaster = new THREE.Raycaster();
+            pointer = new THREE.Vector2();
+
+            addLights();
+            createBoard3D();
+            createPieces3D();
+            addEventListeners();
+            animate();
+        }
+
+        /**
+         * Adds lights to the scene for proper shading.
+         */
+        function addLights() {
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(500, 1000, 500);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -250;
+            directionalLight.shadow.camera.right = 250;
+            directionalLight.shadow.camera.top = 250;
+            directionalLight.shadow.camera.bottom = -250;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+        }
+
+        /**
+         * Creates the 3D board and goal area.
+         */
+        function createBoard3D() {
+            const boardGeometry = new THREE.BoxGeometry(WIDTH * squareSize, HEIGHT * squareSize, 10);
+            const boardMaterial = new THREE.MeshStandardMaterial({ color: 0xcbd5e0, roughness: 0.8, metalness: 0.1 });
+            const boardMesh = new THREE.Mesh(boardGeometry, boardMaterial);
+            boardMesh.receiveShadow = true;
+            boardMesh.position.set(0, 0, 0);
+            scene.add(boardMesh);
+
+            // Create goal area
+            const goalGeometry = new THREE.BoxGeometry(2 * squareSize, 1 * squareSize, 10);
+            const goalMaterial = new THREE.MeshStandardMaterial({ color: 0x4c51bf, transparent: true, opacity: 0.5 });
+            const goalMesh = new THREE.Mesh(goalGeometry, goalMaterial);
+            goalMesh.position.set(0, -135, 5);
+            scene.add(goalMesh);
+        }
+
+        /**
+         * Creates all 3D pieces based on the initial state.
+         */
+        function createPieces3D() {
+            const processedPieces = new Set();
+            for (let i = 0; i < INITIAL_STATE.length; i++) {
+                const char = INITIAL_STATE[i];
+                if (char !== '.' && !processedPieces.has(char)) {
+                    processedPieces.add(char);
+                    const pieceInfo = PIECE_DATA[char];
+                    if (pieceInfo) {
+                        const geometry = new THREE.BoxGeometry(pieceInfo.width * squareSize - 10, pieceInfo.height * squareSize - 10, 50);
+                        const material = new THREE.MeshStandardMaterial({ color: pieceInfo.color, roughness: 0.5, metalness: 0.1 });
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        
+                        // Store piece data on the mesh object
+                        mesh.userData = {
+                            char: char,
+                            width: pieceInfo.width,
+                            height: pieceInfo.height,
+                            x: i % WIDTH,
+                            y: Math.floor(i / WIDTH),
+                            initialPosition: new THREE.Vector3(
+                                (i % WIDTH - (WIDTH - pieceInfo.width) / 2) * squareSize,
+                                (Math.floor(i / WIDTH) - (HEIGHT - pieceInfo.height) / 2) * -squareSize,
+                                25
+                            )
+                        };
+
+                        mesh.position.copy(mesh.userData.initialPosition);
+                        scene.add(mesh);
+                        pieceMeshes.push(mesh);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Animates the scene.
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        /**
+         * Adds event listeners for user interaction.
+         */
+        function addEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('pointerdown', onPointerDown, false);
+            renderer.domElement.addEventListener('pointermove', onPointerMove, false);
+            renderer.domElement.addEventListener('pointerup', onPointerUp, false);
+            renderer.domElement.addEventListener('wheel', onMouseWheel, false);
+            solveButton.addEventListener('click', startSolving);
+        }
+
+        /**
+         * Handles window resize to maintain aspect ratio.
+         */
+        function onWindowResize() {
+            const gameBoardCanvas = document.getElementById('game-board-canvas');
+            const graphCanvas = document.getElementById('graph-canvas');
+            
+            // canvas-containerのサイズを取得
+            const containerWidth = gameBoardCanvas.parentElement.clientWidth;
+            const containerHeight = gameBoardCanvas.parentElement.clientHeight;
+
+            // rendererのサイズを更新
+            renderer.setSize(containerWidth, containerHeight);
+            
+            // カメラのアスペクト比を更新
+            camera.aspect = containerWidth / containerHeight;
+            camera.updateProjectionMatrix();
+
+            // graph-canvasのサイズを更新
+            graphCanvas.width = graphCanvas.clientWidth;
+            graphCanvas.height = graphCanvas.clientHeight;
+        }
+
+        /**
+         * Handles mouse wheel for zooming in and out.
+         */
+        function onMouseWheel(event) {
+            event.preventDefault(); // Prevents page scrolling
+            
+            const zoomDirection = event.deltaY > 0 ? 1 : -1;
+            camera.position.z += zoomDirection * ZOOM_SPEED;
+            
+            // Clamp the zoom level to a reasonable range
+            camera.position.z = Math.min(Math.max(camera.position.z, 150), 800);
+        }
+
+        /**
+         * Converts 2D screen coordinates to 3D world coordinates for raycasting.
+         */
+        function getPointerPosition(event) {
+            const canvas = renderer.domElement;
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+        }
+
+        /**
+         * Event handler for pointer down (drag start).
+         */
+        function onPointerDown(event) {
+            if (isSolving) return;
+            getPointerPosition(event);
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(pieceMeshes);
+            if (intersects.length > 0) {
+                INTERSECTED = intersects[0].object;
+                isDragging = true;
+                dragStartMousePos.set(event.clientX, event.clientY);
+                renderer.domElement.style.cursor = 'grabbing';
+            }
+        }
+
+        /**
+         * Event handler for pointer move (dragging).
+         */
+        function onPointerMove(event) {
+            if (!isDragging || !INTERSECTED || isSolving) return;
+
+            const currentMousePos = new THREE.Vector2(event.clientX, event.clientY);
+            const deltaX = currentMousePos.x - dragStartMousePos.x;
+            const deltaY = currentMousePos.y - dragStartMousePos.y;
+
+            if (Math.abs(deltaX) > DRAG_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal move
+                const direction = deltaX > 0 ? 1 : -1;
+                const newX = INTERSECTED.userData.x + direction;
+                const newY = INTERSECTED.userData.y;
+                if (isValidMove(INTERSECTED.userData.char, newX, newY)) {
+                    updatePiecePosition(INTERSECTED, newX, newY);
+                    dragStartMousePos.copy(currentMousePos); // Reset drag start position
+                }
+            } else if (Math.abs(deltaY) > DRAG_THRESHOLD && Math.abs(deltaY) > Math.abs(deltaX)) {
+                // Vertical move
+                const direction = deltaY > 0 ? 1 : -1;
+                // Vertical movement should ADD to the y-coordinate on the grid
+                const newX = INTERSECTED.userData.x;
+                const newY = INTERSECTED.userData.y + direction;
+                if (isValidMove(INTERSECTED.userData.char, newX, newY)) {
+                    updatePiecePosition(INTERSECTED, newX, newY);
+                    dragStartMousePos.copy(currentMousePos); // Reset drag start position
+                }
+            }
+        }
+
+        /**
+         * Updates the piece's grid position and animates its 3D position.
+         */
+        function updatePiecePosition(piece, newX, newY) {
+            piece.userData.x = newX;
+            piece.userData.y = newY;
+            gsap.to(piece.position, {
+                x: (newX - (WIDTH - piece.userData.width) / 2) * squareSize,
+                y: (newY - (HEIGHT - piece.userData.height) / 2) * -squareSize,
+                duration: animationSpeed
+            });
+        }
+
+        /**
+         * Event handler for pointer up (drag end).
+         */
+        function onPointerUp() {
+            if (isDragging) {
+                isDragging = false;
+                dragAxis = null;
+                INTERSECTED = null;
+                renderer.domElement.style.cursor = 'grab';
+                checkWinCondition();
+            }
+        }
+
+        /**
+         * Checks if a move is valid based on board boundaries and other pieces.
+         */
+        function isValidMove(char, targetX, targetY) {
+            const piece = pieceMeshes.find(p => p.userData.char === char);
+            if (!piece) return false;
+
+            const pieceWidth = piece.userData.width;
+            const pieceHeight = piece.userData.height;
+
+            // Check board boundaries
+            if (targetX < 0 || targetX + pieceWidth > WIDTH || targetY < 0 || targetY + pieceHeight > HEIGHT) {
+                return false;
+            }
+
+            // Check for collision with other pieces
+            const otherPieces = pieceMeshes.filter(p => p.userData.char !== char);
+            for (const other of otherPieces) {
+                const isOverlappingX = targetX < other.userData.x + other.userData.width && targetX + pieceWidth > other.userData.x;
+                const isOverlappingY = targetY < other.userData.y + other.userData.height && targetY + pieceHeight > other.userData.y;
+                if (isOverlappingX && isOverlappingY) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Checks if the game is won.
+         */
+        function checkWinCondition() {
+            const pieceA = pieceMeshes.find(p => p.userData.char === 'A');
+            if (pieceA && pieceA.userData.x === 1 && pieceA.userData.y === 3) {
+                isSolving = true;
+                displayMessage('ゴール！おめでとうございます！', true);
+                solveButton.disabled = true;
+            }
+        }
+            
+        /**
+         * Displays a message box.
+         */
+        function displayMessage(message, isWin = false) {
+            messageBox.textContent = message;
+            messageBox.classList.add('visible');
+            if (isWin) {
+                messageBox.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+            } else {
+                messageBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            }
+        }
+
+        /**
+         * Hides the message box.
+         */
+        function hideMessage() {
+            messageBox.classList.remove('visible');
+        }
+
+        /**
+         * Starts the solving process.
+         */
+        async function startSolving() {
+            if (isSolving) return;
+            isSolving = true;
+            solveButton.disabled = true;
+            displayMessage('解決策を検索中...');
+            
+            const currentStateString = getBoardStateString();
+            const solver = new Solver();
+            const solutionPath = await solver.solve(currentStateString);
+
+            hideMessage();
+            if (solutionPath) {
+                displayMessage('解決策が見つかりました！');
+                await executeMoves(solutionPath);
+            } else {
+                displayMessage('解決策が見つかりませんでした。', false);
+            }
+            isSolving = false;
+            solveButton.disabled = false;
+        }
+
+        /**
+         * Converts current piece positions to the solver's string format.
+         */
+        function getBoardStateString() {
+            const board = Array(WIDTH * HEIGHT).fill('.');
+            pieceMeshes.forEach(p => {
+                for (let y = 0; y < p.userData.height; y++) {
+                    for (let x = 0; x < p.userData.width; x++) {
+                        board[(p.userData.y + y) * WIDTH + (p.userData.x + x)] = p.userData.char;
+                    }
+                }
+            });
+            return board.join('');
+        }
+        
+        /**
+         * Executes the sequence of moves from the solver.
+         */
+        async function executeMoves(path) {
+            for (let i = 1; i < path.length; i++) {
+                const prevState = path[i-1];
+                const nextState = path[i];
+                
+                const pieceChar = findMovedPiece(prevState, nextState);
+                if (pieceChar) {
+                    const pieceToMove = pieceMeshes.find(p => p.userData.char === pieceChar);
+                    const newPos = findPiecePosition(nextState, pieceChar);
+                    if (pieceToMove && newPos) {
+                        updatePiecePosition(pieceToMove, newPos.x, newPos.y);
+                        await new Promise(resolve => setTimeout(resolve, animationSpeed * 1000));
+                    }
+                }
+            }
+            checkWinCondition();
+        }
+
+        /**
+         * Compares two board states and finds the single piece that moved.
+         */
+        function findMovedPiece(state1, state2) {
+            const pieceMovedFrom = new Set();
+            const pieceMovedTo = new Set();
+            
+            for (let i = 0; i < state1.length; i++) {
+                if (state1[i] !== state2[i]) {
+                    if (state1[i] !== '.') {
+                        pieceMovedFrom.add(state1[i]);
+                    }
+                    if (state2[i] !== '.') {
+                        pieceMovedTo.add(state2[i]);
+                    }
+                }
+            }
+            
+            for (const char of pieceMovedFrom) {
+                if (pieceMovedTo.has(char)) {
+                    return char;
+                }
+            }
+            
+            if (pieceMovedFrom.size === 1 && pieceMovedTo.size === 1) {
+                return pieceMovedTo.values().next().value;
+            }
+            
+            return null;
+        }
+
+        /**
+         * Finds the top-left position of a piece in a given state string.
+         */
+        function findPiecePosition(state, pieceChar) {
+            for (let i = 0; i < state.length; i++) {
+                if (state[i] === pieceChar) {
+                    return { x: i % WIDTH, y: Math.floor(i / WIDTH) };
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Solves the puzzle using Breadth-First Search (BFS).
+         */
+        class Solver {
+            constructor() {
+                this.GOAL_PIECE = 'A';
+                this.CHUNK_SIZE = 500;
+            }
+
+            getPossibleNextStates(state) {
+                const nextStates = new Set();
+                const processedPieces = new Set();
+                
+                for (let i = 0; i < state.length; i++) {
+                    const piece = state[i];
+                    if (piece !== '.' && !processedPieces.has(piece)) {
+                        processedPieces.add(piece);
+                        
+                        const positions = [];
+                        for (let j = 0; j < state.length; j++) {
+                            if (state[j] === piece) {
+                                positions.push({ x: j % WIDTH, y: Math.floor(j / WIDTH) });
+                            }
+                        }
+                        
+                        const directions = [
+                            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+                            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+                        ];
+                        
+                        for (const dir of directions) {
+                            if (this.canMove(state, positions, dir)) {
+                                nextStates.add(this.movePiece(state, positions, dir));
+                            }
+                        }
+                    }
+                }
+                return nextStates;
+            }
+
+            canMove(state, positions, dir) {
+                for (const pos of positions) {
+                    const nextX = pos.x + dir.dx;
+                    const nextY = pos.y + dir.dy;
+                    
+                    if (nextX < 0 || nextX >= WIDTH || nextY < 0 || nextY >= HEIGHT) return false;
+                    
+                    const targetCell = state[nextY * WIDTH + nextX];
+                    const isPartOfSelf = positions.some(p => p.x === nextX && p.y === nextY);
+                    
+                    if (targetCell !== '.' && !isPartOfSelf) return false;
+                }
+                return true;
+            }
+
+            movePiece(state, positions, dir) {
+                const newBoard = state.split('');
+                const pieceChar = state[positions[0].y * WIDTH + positions[0].x];
+                
+                for (const pos of positions) {
+                    newBoard[pos.y * WIDTH + pos.x] = '.';
+                }
+                
+                for (const pos of positions) {
+                    const newIndex = (pos.y + dir.dy) * WIDTH + (pos.x + dir.dx);
+                    newBoard[newIndex] = pieceChar;
+                }
+                
+                return newBoard.join('');
+            }
+            
+            isGoalState(state) {
+                return state[13] === this.GOAL_PIECE && state[14] === this.GOAL_PIECE &&
+                       state[17] === this.GOAL_PIECE && state[18] === this.GOAL_PIECE;
+            }
+
+            reconstructPath(parentMap, goalState) {
+                const path = [];
+                let current = goalState;
+                while (current !== null) {
+                    path.unshift(current);
+                    current = parentMap.get(current);
+                }
+                return path;
+            }
+            
+            async solve(initialState) {
+                const queue = [initialState];
+                const visited = new Set([initialState]);
+                const parentMap = new Map([[initialState, null]]);
+                
+                let head = 0;
+                let iterations = 0;
+
+                while (head < queue.length) {
+                    if (iterations % this.CHUNK_SIZE === 0) {
+                        progressDetailsDiv.textContent = `探索済みノード数: ${visited.size.toLocaleString()} | キューサイズ: ${(queue.length - head).toLocaleString()}`;
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                    iterations++;
+
+                    const currentState = queue[head++];
+                    if (this.isGoalState(currentState)) {
+                        return this.reconstructPath(parentMap, currentState);
+                    }
+
+                    const nextStates = this.getPossibleNextStates(currentState);
+                    for (const nextState of nextStates) {
+                        if (!visited.has(nextState)) {
+                            visited.add(nextState);
+                            parentMap.set(nextState, currentState);
+                            queue.push(nextState);
+                        }
+                    }
+                }
+                
+                progressDetailsDiv.textContent = '解決策が見つかりませんでした。';
+                return null;
+            }
+        }
+        
+        window.onload = () => {
+            initThreeScene();
+            // グラフキャンバスのサイズを設定
+            const graphCanvas = document.getElementById('graph-canvas');
+            const gameBoardCanvas = document.getElementById('game-board-canvas');
+
+            // game-board-canvasのサイズに合わせてgraph-canvasのサイズを設定
+            graphCanvas.width = gameBoardCanvas.clientWidth;
+            graphCanvas.height = gameBoardCanvas.clientHeight;
+        };
+    </script>
+</body>
+</html>

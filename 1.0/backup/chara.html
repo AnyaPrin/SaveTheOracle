@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>簡易アニメーション</title>
+    <style>
+      body {
+          background-color: #333;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+      }
+      canvas {
+          background-color: #000;
+          border: 2px solid #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const SPRITE_MAP = {                                    // スプライトシートの座標を配列で管理
+          'D': [0, 0, 200, 200],
+          'R': [200, 0, 200, 200],
+          'U': [400, 0, 200, 200],
+          'L': [600, 0, 200, 200],
+      };
+      const spriteSheet = new Image();                        // スプライトシートの画像
+      spriteSheet.src = 'img/imagesheet.png';                 //  画像のパスを適切に設定してください
+      const animKeys = ['D', 'R', 'U', 'L'];                  // アニメーションのキーを配列に格納
+      let currentFrameIndex = 0;
+      let lastUpdateTime = 0;
+      const frameInterval = 250;                              // フレーム切り替えの間隔（ミリ秒）
+      function animate(timestamp) {
+          if (timestamp - lastUpdateTime > frameInterval) {   // 前回の更新から一定時間が経過したら次のフレームへ
+              ctx.clearRect(0, 0, canvas.width, canvas.height);      // キャンバスをクリア
+              const currentKey = animKeys[currentFrameIndex]; // 現在のフレームのキーを取得
+              const coords = SPRITE_MAP[currentKey];
+              ctx.drawImage(                                  // スプライトシートから画像を切り出して描画
+                  spriteSheet,
+                  ...coords,                                  // スプレッド構文で座標を展開
+                  canvas.width / 2 - coords[2] / 2,           // 描画先のX座標（中央寄せ）
+                  canvas.height / 2 - coords[3] / 2,          // 描画先のY座標（中央寄せ）
+                  coords[2],                                  // 描画先の幅
+                  coords[3]                                   // 描画先の高さ
+              );
+              // インデックス更新（最後のフレームの次は最初のフレームに戻る）
+              currentFrameIndex = (currentFrameIndex + 1) % animKeys.length;
+              lastUpdateTime = timestamp;                 // 更新時間を記録
+          }
+          requestAnimationFrame(animate);            // 次の描画タイミングでアニメーション関数を呼び出す
+      }
+      spriteSheet.onload = () => {                   // 画像がロードされたらアニメーションを開始
+          requestAnimationFrame(animate);
+      };
+    </script>
+  </body>
+</html>

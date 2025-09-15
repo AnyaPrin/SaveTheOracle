@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>駒を動かすゲーム</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(5, 80px);
+            border: 4px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #e2e8e0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .square {
+            width: 80px;
+            height: 80px;
+        }
+        .light {
+            background-color: #f7fafc;
+        }
+        .dark {
+            background-color: #cbd5e0;
+        }
+        .piece {
+            border: 3px solid;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+            cursor: grab;
+            position: absolute;
+            z-index: 10;
+            transition: transform 0.1s ease-out;
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .piece-A {
+            background-color: #4c51bf;
+            border-color: #6366f1;
+        }
+        .piece-B {
+            background-color: #10b981;
+            border-color: #34d399;
+        }
+        .piece-C {
+            background-color: #d97706;
+            border-color: #f59e0b;
+        }
+        .piece-D {
+            background-color: #f55a1d;
+            border-color: #ff7236;
+        }
+        .piece-E {
+            background-color: #0b93d9;
+            border-color: #1eacf7;
+        }
+        .piece-F {
+            background-color: #8c00b3;
+            border-color: #b010d8;
+        }
+        .piece-G {
+            background-color: #2c7731;
+            border-color: #4CAF50;
+        }
+        .piece-H {
+            background-color: #d32f2f;
+            border-color: #f44336;
+        }
+        .piece-I {
+            background-color: #1976D2;
+            border-color: #2196F3;
+        }
+        .piece-J {
+            background-color: #FBC02D;
+            border-color: #FFEB3B;
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            z-index: 20;
+        }
+        #message-box.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        button:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        #progress-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-100 flex items-center justify-center p-4">
+
+    <div class="board-container bg-gray-700 p-8 rounded-lg shadow-2xl">
+        <h1 class="text-3xl font-bold mb-4 text-center">箱入り娘パズル</h1>
+        <div id="game-board"></div>
+        
+        <!-- Pieces are now dynamically created -->
+        
+        <div id="controls" class="flex flex-col gap-2 mt-4">
+            <button id="solve-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200">
+                自動で解く
+            </button>
+            <div id="progress-details" class="text-center text-sm text-gray-400"></div>
+            <div id="instructions" class="text-center text-sm text-gray-400">
+                駒をドラッグして動かしてください。
+            </div>
+        </div>
+    </div>
+    <div id="message-box"></div>
+
+    <script>
+        // DOM elements
+        const boardElement = document.getElementById('game-board');
+        const messageBox = document.getElementById('message-box');
+        const solveButton = document.getElementById('solve-button');
+        const progressDetailsDiv = document.getElementById('progress-details');
+
+        // Board dimensions
+        const WIDTH = 4;
+        const HEIGHT = 5;
+        const GOAL_PIECE = 'A';
+        const squareSize = 80;
+        const animationSpeed = 200; // milliseconds
+
+        // The initial state of the Klotski puzzle, represented as a string.
+        const INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
+
+        /**
+         * Represents a movable piece on the board.
+         */
+        class Piece {
+            constructor(char, element, width, height, x, y) {
+                this.char = char;
+                this.element = element;
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;
+
+                this.element.style.width = `${this.width * squareSize}px`;
+                this.element.style.height = `${this.height * squareSize}px`;
+            }
+
+            updatePosition(newX, newY) {
+                this.x = newX;
+                this.y = newY;
+                this.element.style.transform = `translate(${this.x * squareSize}px, ${this.y * squareSize}px)`;
+            }
+
+            checkCollision(otherPiece, newX, newY) {
+                if (this.char === otherPiece.char) {
+                    return false;
+                }
+                const isOverlappingX = newX < otherPiece.x + otherPiece.width && newX + this.width > otherPiece.x;
+                const isOverlappingY = newY < otherPiece.y + otherPiece.height && newY + this.height > otherPiece.y;
+                return isOverlappingX && isOverlappingY;
+            }
+        }
+
+        /**
+         * Manages the game board and all pieces.
+         */
+        class Board {
+            constructor(boardElement, piecesData, messageBox, solveButton) {
+                this.boardElement = boardElement;
+                this.pieces = [];
+                this.pieceData = piecesData;
+                this.activePiece = null;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.isGameWon = false;
+                this.isSolving = false;
+                this.messageBox = messageBox;
+                this.solveButton = solveButton;
+            }
+
+            init() {
+                this.createBoardSquares();
+                this.initPieces();
+                this.addEventListeners();
+            }
+
+            createBoardSquares() {
+                for (let y = 0; y < HEIGHT; y++) {
+                    for (let x = 0; x < WIDTH; x++) {
+                        const square = document.createElement('div');
+                        square.className = `square ${(x + y) % 2 === 0 ? 'light' : 'dark'}`;
+                        this.boardElement.appendChild(square);
+                    }
+                }
+            }
+
+            initPieces() {
+                const boardRect = this.boardElement.getBoundingClientRect();
+                const processedPieces = new Set();
+                
+                for (let y = 0; y < HEIGHT; y++) {
+                    for (let x = 0; x < WIDTH; x++) {
+                        const char = INITIAL_STATE[y * WIDTH + x];
+                        if (char !== '.' && !processedPieces.has(char)) {
+                            processedPieces.add(char);
+                            
+                            const pieceInfo = this.pieceData.find(p => p.char === char);
+                            if (pieceInfo) {
+                                const pieceElement = document.createElement('div');
+                                pieceElement.className = `piece piece-${char}`;
+                                pieceElement.textContent = char;
+                                boardElement.appendChild(pieceElement);
+                                
+                                const newPiece = new Piece(char, pieceElement, pieceInfo.width, pieceInfo.height, x, y);
+                                this.pieces.push(newPiece);
+                                
+                                pieceElement.style.left = `${boardRect.left}px`;
+                                pieceElement.style.top = `${boardRect.top}px`;
+                                newPiece.updatePosition(newPiece.x, newPiece.y);
+                            }
+                        }
+                    }
+                }
+            }
+
+            addEventListeners() {
+                this.pieces.forEach(piece => {
+                    piece.element.addEventListener('mousedown', this.dragStart.bind(this));
+                    piece.element.addEventListener('touchstart', this.dragStart.bind(this));
+                });
+                document.addEventListener('mousemove', this.dragMove.bind(this));
+                document.addEventListener('mouseup', this.dragEnd.bind(this));
+                document.addEventListener('touchmove', this.dragMove.bind(this));
+                document.addEventListener('touchend', this.dragEnd.bind(this));
+                this.solveButton.addEventListener('click', this.startSolving.bind(this));
+            }
+
+            dragStart(e) {
+                e.preventDefault();
+                if (this.isGameWon || this.isSolving) return;
+                this.activePiece = this.pieces.find(p => p.element === e.target);
+                if (!this.activePiece) return;
+
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                const rect = this.activePiece.element.getBoundingClientRect();
+                this.offsetX = clientX - rect.left;
+                this.offsetY = clientY - rect.top;
+
+                this.activePiece.element.style.cursor = 'grabbing';
+                this.activePiece.element.style.transition = 'none';
+            }
+
+            dragMove(e) {
+                if (!this.activePiece) return;
+
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                const boardRect = this.boardElement.getBoundingClientRect();
+
+                let newX = clientX - boardRect.left - this.offsetX;
+                let newY = clientY - boardRect.top - this.offsetY;
+
+                const snappedX = Math.max(0, Math.min(Math.round(newX / squareSize), WIDTH - this.activePiece.width));
+                const snappedY = Math.max(0, Math.min(Math.round(newY / squareSize), HEIGHT - this.activePiece.height));
+
+                const otherPieces = this.pieces.filter(p => p.char !== this.activePiece.char);
+                for (const piece of otherPieces) {
+                    if (this.activePiece.checkCollision(piece, snappedX, snappedY)) {
+                        return; // Collision detected, do not move
+                    }
+                }
+
+                this.activePiece.updatePosition(snappedX, snappedY);
+            }
+
+            dragEnd() {
+                if (!this.activePiece) return;
+                this.activePiece.element.style.cursor = 'grab';
+                this.activePiece.element.style.transition = 'transform 0.2s ease-out';
+                this.checkWinCondition();
+                this.activePiece = null;
+            }
+
+            checkWinCondition() {
+                const pieceA = this.pieces.find(p => p.char === 'A');
+                if (pieceA && pieceA.x === 1 && pieceA.y === 3) {
+                    this.isGameWon = true;
+                    this.displayMessage('ゴール！おめでとうございます！', true);
+                    this.solveButton.disabled = true;
+                }
+            }
+            
+            displayMessage(message, isWin = false) {
+                this.messageBox.textContent = message;
+                this.messageBox.classList.add('visible');
+                if (isWin) {
+                    this.messageBox.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+                } else {
+                    this.messageBox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                }
+            }
+
+            hideMessage() {
+                this.messageBox.classList.remove('visible');
+            }
+
+            async startSolving() {
+                if (this.isSolving || this.isGameWon) return;
+                this.isSolving = true;
+                this.solveButton.disabled = true;
+                this.displayMessage('解決策を検索中...');
+                
+                // Convert current visual state to string state for the solver
+                const currentStateString = this.getBoardStateString();
+                const solver = new Solver();
+                const solutionPath = await solver.solve(currentStateString);
+
+                this.hideMessage();
+                if (solutionPath) {
+                    this.displayMessage('解決策が見つかりました！');
+                    await this.executeMoves(solutionPath);
+                } else {
+                    this.displayMessage('解決策が見つかりませんでした。', false);
+                }
+                this.isSolving = false;
+                this.solveButton.disabled = false;
+            }
+
+            /**
+             * Converts the current piece positions to the solver's string format.
+             */
+            getBoardStateString() {
+                const board = Array(WIDTH * HEIGHT).fill('.');
+                this.pieces.forEach(p => {
+                    for (let y = 0; y < p.height; y++) {
+                        for (let x = 0; x < p.width; x++) {
+                            board[(p.y + y) * WIDTH + (p.x + x)] = p.char;
+                        }
+                    }
+                });
+                return board.join('');
+            }
+            
+            /**
+             * Executes the sequence of moves from the solver.
+             */
+            async executeMoves(path) {
+                this.pieces.forEach(p => p.element.style.transition = `transform ${animationSpeed / 1000}s ease-in-out`);
+
+                for (let i = 1; i < path.length; i++) {
+                    const prevState = path[i-1];
+                    const nextState = path[i];
+                    
+                    const pieceChar = this.findMovedPiece(prevState, nextState);
+                    if (pieceChar) {
+                        const pieceToMove = this.pieces.find(p => p.char === pieceChar);
+                        const newPos = this.findPiecePosition(nextState, pieceChar);
+                        if (pieceToMove && newPos) {
+                            pieceToMove.updatePosition(newPos.x, newPos.y);
+                            await new Promise(resolve => setTimeout(resolve, animationSpeed));
+                        }
+                    }
+                }
+                this.checkWinCondition();
+            }
+
+            /**
+             * Compares two board states and finds the single piece that moved.
+             * This version is more robust and correctly handles the state changes.
+             */
+            findMovedPiece(state1, state2) {
+                const pieceMovedFrom = new Set();
+                const pieceMovedTo = new Set();
+                
+                // Find all characters that have changed position
+                for (let i = 0; i < state1.length; i++) {
+                    if (state1[i] !== state2[i]) {
+                        if (state1[i] !== '.') {
+                            pieceMovedFrom.add(state1[i]);
+                        }
+                        if (state2[i] !== '.') {
+                            pieceMovedTo.add(state2[i]);
+                        }
+                    }
+                }
+                
+                // The moved piece is the one that is in both sets.
+                // Since only one piece moves at a time, this will be the one.
+                for (const char of pieceMovedFrom) {
+                    if (pieceMovedTo.has(char)) {
+                        return char;
+                    }
+                }
+
+                // Fallback for single-cell pieces that may not leave a '.', although the above logic should cover it.
+                if (pieceMovedFrom.size === 1 && pieceMovedTo.size === 1) {
+                    return pieceMovedTo.values().next().value;
+                }
+                
+                return null;
+            }
+
+            findPiecePosition(state, pieceChar) {
+                for (let i = 0; i < state.length; i++) {
+                    if (state[i] === pieceChar) {
+                        return { x: i % WIDTH, y: Math.floor(i / WIDTH) };
+                    }
+                }
+                return null;
+            }
+        }
+
+        /**
+         * Solves the puzzle using Breadth-First Search (BFS).
+         * This code is adapted from the user's provided solver.html file.
+         */
+        class Solver {
+            constructor() {
+                this.GOAL_PIECE = 'A';
+                this.CHUNK_SIZE = 500;
+            }
+
+            /**
+             * Generates all possible next states from a given state.
+             */
+            getPossibleNextStates(state) {
+                const nextStates = new Set();
+                const processedPieces = new Set();
+                
+                for (let i = 0; i < state.length; i++) {
+                    const piece = state[i];
+                    if (piece !== '.' && !processedPieces.has(piece)) {
+                        processedPieces.add(piece);
+                        
+                        const positions = [];
+                        for (let j = 0; j < state.length; j++) {
+                            if (state[j] === piece) {
+                                positions.push({ x: j % WIDTH, y: Math.floor(j / WIDTH) });
+                            }
+                        }
+                        
+                        const directions = [
+                            { dx: 0, dy: -1 }, { dx: 0, dy: 1 },
+                            { dx: -1, dy: 0 }, { dx: 1, dy: 0 }
+                        ];
+                        
+                        for (const dir of directions) {
+                            if (this.canMove(state, positions, dir)) {
+                                nextStates.add(this.movePiece(state, positions, dir));
+                            }
+                        }
+                    }
+                }
+                return nextStates;
+            }
+
+            /**
+             * Checks if a piece can be moved to a new position.
+             */
+            canMove(state, positions, dir) {
+                for (const pos of positions) {
+                    const nextX = pos.x + dir.dx;
+                    const nextY = pos.y + dir.dy;
+                    
+                    if (nextX < 0 || nextX >= WIDTH || nextY < 0 || nextY >= HEIGHT) return false;
+                    
+                    const targetCell = state[nextY * WIDTH + nextX];
+                    const isPartOfSelf = positions.some(p => p.x === nextX && p.y === nextY);
+                    
+                    if (targetCell !== '.' && !isPartOfSelf) return false;
+                }
+                return true;
+            }
+
+            /**
+     * Returns a new state after moving a piece.
+     */
+            movePiece(state, positions, dir) {
+                const newBoard = state.split('');
+                const pieceChar = state[positions[0].y * WIDTH + positions[0].x];
+                
+                for (const pos of positions) {
+                    newBoard[pos.y * WIDTH + pos.x] = '.';
+                }
+                
+                for (const pos of positions) {
+                    const newIndex = (pos.y + dir.dy) * WIDTH + (pos.x + dir.dx);
+                    newBoard[newIndex] = pieceChar;
+                }
+                
+                return newBoard.join('');
+            }
+            
+            isGoalState(state) {
+                // The goal is for piece 'A' (the 2x2 square) to be in the bottom-middle.
+                return state[13] === this.GOAL_PIECE && state[14] === this.GOAL_PIECE &&
+                       state[17] === this.GOAL_PIECE && state[18] === this.GOAL_PIECE;
+            }
+
+            /**
+             * Reconstruct the path from the goal state to the initial state.
+             */
+            reconstructPath(parentMap, goalState) {
+                const path = [];
+                let current = goalState;
+                while (current !== null) {
+                    path.unshift(current);
+                    current = parentMap.get(current);
+                }
+                return path;
+            }
+            
+            async solve(initialState) {
+                const queue = [initialState];
+                const visited = new Set([initialState]);
+                const parentMap = new Map([[initialState, null]]);
+                
+                let head = 0;
+                let iterations = 0;
+
+                while (head < queue.length) {
+                    // Yield to the event loop periodically to prevent UI freeze
+                    if (iterations % this.CHUNK_SIZE === 0) {
+                        progressDetailsDiv.textContent = `探索済みノード数: ${visited.size.toLocaleString()} | キューサイズ: ${(queue.length - head).toLocaleString()}`;
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                    iterations++;
+
+                    const currentState = queue[head++];
+                    if (this.isGoalState(currentState)) {
+                        return this.reconstructPath(parentMap, currentState);
+                    }
+
+                    const nextStates = this.getPossibleNextStates(currentState);
+                    for (const nextState of nextStates) {
+                        if (!visited.has(nextState)) {
+                            visited.add(nextState);
+                            parentMap.set(nextState, currentState);
+                            queue.push(nextState);
+                        }
+                    }
+                }
+                
+                progressDetailsDiv.textContent = '解決策が見つかりませんでした。';
+                return null;
+            }
+        }
+
+        // Initialize the game when the window loads
+        window.onload = () => {
+            const piecesData = [
+                { char: 'A', width: 2, height: 2 },
+                { char: 'B', width: 1, height: 2 },
+                { char: 'C', width: 1, height: 2 },
+                { char: 'D', width: 1, height: 2 },
+                { char: 'E', width: 1, height: 2 },
+                { char: 'F', width: 2, height: 1 },
+                { char: 'G', width: 1, height: 1 },
+                { char: 'H', width: 1, height: 1 },
+                { char: 'I', width: 1, height: 1 },
+                { char: 'J', width: 1, height: 1 },
+            ];
+            const gameBoard = new Board(boardElement, piecesData, messageBox, solveButton);
+            gameBoard.init();
+        };
+
+    </script>
+</body>
+</html>

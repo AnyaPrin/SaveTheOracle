@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2次元配列から文字列へ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+<div class="max-w-xl w-full bg-white rounded-xl shadow-lg p-8">
+    <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">2次元配列から文字列への変換</h1>
+    
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-gray-700">入力配列 (INIT_BRD)</h2>
+        <pre class="bg-gray-50 p-4 rounded-lg text-gray-600 overflow-auto text-sm border border-gray-200">
+const INIT_BRD = [
+    [2, 1,  1, 3],
+    [2, 1,  1, 3],
+    [4, 6,  6, 5],
+    [4, 9, 10, 5],
+    [7, 0,  0, 8]
+];</pre>
+    </div>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-gray-700">変換された文字列</h2>
+        <div id="output" class="bg-blue-50 p-4 rounded-lg text-blue-800 font-mono text-lg border border-blue-200"></div>
+    </div>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-gray-700">テスト結果</h2>
+        <div id="testResult" class="p-4 rounded-lg font-semibold"></div>
+    </div>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-gray-700">パフォーマンス比較 (1400万回)</h2>
+        <div id="performanceResults" class="bg-gray-50 p-4 rounded-lg text-gray-800 text-sm border border-gray-200">
+            <p id="resultWithCharCode"></p>
+            <p id="resultWithArray"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Converts a 2D array into a game state string using character code calculation for speed.
+     * Numbers 1-10 are converted to A-J, and 0 is converted to a period ".".
+     *
+     * @param {number[][]} board - The 2D array to convert.
+     * @returns {string} The converted string.
+     */
+    function convertWithCharCode(board) {
+        let result = '';
+        const charCodeA = 'A'.charCodeAt(0);
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[row].length; col++) {
+                const value = board[row][col];
+                if (value === 0) {
+                    result += '.';
+                } else if (value >= 1 && value <= 10) {
+                    // Calculate character code: 'A' + (value - 1)
+                    result += String.fromCharCode(charCodeA + value - 1);
+                } else {
+                    console.error(`Unknown value in board: ${value}`);
+                    // Fallback for unknown values
+                    result += '?';
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Converts a 2D array into a game state string using a fast array-based lookup.
+     * Numbers 1-10 are converted to A-J, and 0 is converted to a period ".".
+     *
+     * @param {number[][]} board - The 2D array to convert.
+     * @returns {string} The converted string.
+     */
+    function convertWithArray(board) {
+        let result = '';
+        // Use an array for faster index-based lookup
+        const mappingArray = ['.', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[row].length; col++) {
+                const value = board[row][col];
+                if (value >= 0 && value <= 10) {
+                    // Access the array directly by index
+                    result += mappingArray[value];
+                } else {
+                    console.error(`Unknown value in board: ${value}`);
+                    // Fallback for unknown values
+                    result += '?';
+                }
+            }
+        }
+        return result;
+    }
+
+    // Example array for conversion and testing
+    const INIT_BRD = [
+        [2, 1,  1, 3],
+        [2, 1,  1, 3],
+        [4, 6,  6, 5],
+        [4, 9, 10, 5],
+        [7, 0,  0, 8]
+    ];
+    const expectedResult = "BAACBAACDFFEDIJEG..H";
+
+    // Convert the array and display the result
+    const gamestatstr = convertWithArray(INIT_BRD);
+    document.getElementById('output').textContent = gamestatstr;
+
+    // Run a simple test and display the result
+    const testResultDiv = document.getElementById('testResult');
+    if (gamestatstr === expectedResult) {
+        testResultDiv.textContent = '✅ テスト成功: 出力は期待通りです。';
+        testResultDiv.classList.add('bg-green-100', 'text-green-800');
+    } else {
+        testResultDiv.textContent = `❌ テスト失敗: 期待される出力: "${expectedResult}"、実際の出力: "${gamestatstr}"`;
+        testResultDiv.classList.add('bg-red-100', 'text-red-800');
+    }
+
+    // --- パフォーマンスベンチマーク ---
+    const N_ITERATIONS = 14000000;
+    const testBoardFlat = [].concat(...INIT_BRD); // Flatten array for simpler benchmarking
+
+    // ベンチマーク関数
+    function runBenchmark(func, label, resultId) {
+        const start = performance.now();
+        for (let i = 0; i < N_ITERATIONS; i++) {
+            func(testBoardFlat);
+        }
+        const end = performance.now();
+        document.getElementById(resultId).textContent = `${label}: ${(end - start).toFixed(2)} ms`;
+    }
+
+    // 両方の関数をベンチマーク
+    window.onload = function() {
+        runBenchmark(convertWithCharCode, '文字コード計算', 'resultWithCharCode');
+        runBenchmark(convertWithArray, '配列ルックアップ', 'resultWithArray');
+    };
+</script>
+
+</body>
+</html>
