@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 node_module/ 
 work/
 *.blend
 *.blend1
 .xcf
+=======
+*.blend
+>>>>>>> 2fc7e1382f8290d13b98f7d94005ecf8e96dbcfc
