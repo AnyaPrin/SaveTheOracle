@@ -1,4 +1,4 @@
-// Minfilia JS version.1.3  SAVE THE ORACLE Web Edition
+// Minfilia JS version.1.5  SAVE THE ORACLE Web Edition
 const IS_DEBUG = false;
 
 const CELL = 100;
