@@ -154,7 +154,7 @@
 <body>
 
     <div class="container">
-        <h1>箱入り娘 解法探索</h1>
+        <h1>SAVE THE ORACLE SOLVER</h1>
         <div class="info">
             <p>「解を探索」ボタンを押すと、初期状態からゴールまでの最短手数を見つけます。</p>
             <p>アルゴリズムとして「幅優先探索（BFS）」と「A*探索」を選択できます。</p>
@@ -228,7 +228,11 @@
                     if (selectedAlgorithm === 'bfs') {
                         queue = [INITIAL_STATE];
                     } else { // astar
-                        const startNode = { state: INITIAL_STATE, g: 0, h: heuristic(INITIAL_STATE), f: heuristic(INITIAL_STATE) };
+                        const startNode = {
+			    state: INITIAL_STATE,
+			    g: 0,
+			    h: heuristic(INITIAL_STATE),
+			    f: heuristic(INITIAL_STATE) };
                         queue = [startNode];
                     }
                     
@@ -476,10 +480,10 @@
                     } else {
                         saveStatusDiv.textContent = `保存中にエラーが発生しました: ${e.message}`;
                     }
-                    console.error('Failed to save to localStorage:', e);
+        console.error('Failed to save to localStorage:', e);
+	
                 }
             }
-
 
             function getPossibleNextStates(state) {
                 const nextStates = new Set();

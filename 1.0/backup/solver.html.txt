@@ -200,6 +200,7 @@
             const saveStatusDiv = document.getElementById('save-status');
             const solutionPathDiv = document.getElementById('solution-path');
             const algorithmRadios = document.getElementsByName('algorithm');
+
             // --- Search variables ---
             let queue, visited, parentMap, head, selectedAlgorithm, currentDepthLimit;
             let foundSolution = false;

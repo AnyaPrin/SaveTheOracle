@@ -13,7 +13,6 @@ let canvas = document.getElementById('puzzlecanvas');
 let style = getComputedStyle(canvas);
 const SCRN_W = parseInt(style.width);//600
 const SCRN_H = parseInt(style.height);// 800
-
 console.log("w,h:",SCRN_W,SCRN_H)
 const BDOFFX = WALL + BLK_BRDR/2;
 const BDOFFY = WALL + BLK_BRDR/2 - CELL/2;
