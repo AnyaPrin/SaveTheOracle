@@ -99,11 +99,11 @@
         /* Icon-based UI styles */
         .action-buttons, .icon-group {
             display: flex;
+	    orientation:horizontal;
             justify-content: center;
             gap: 15px;
             align-items: center;
         }
-
         .action-buttons {
             margin-bottom: 20px;
         }
@@ -133,6 +133,7 @@
             user-select: none;
             margin: 0;
         }
+	
 
         .icon-btn:hover:not(:disabled) {
             background-color: #4a4a4a;
@@ -224,15 +225,14 @@
 
         /* The visible part of the icon button for radio/checkbox */
         .icon-label {
-            width: 64px;
-            height: 64px;
+	    display: absolute;
+	    width: 48px;
+	    height: 48px;
             background-color: #3a3a3a;
-            border: 2px solid #5a5a5a;
-            border-radius: 6px;
-            display: flex;
+            border: 0px solid #5a5a5a;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
+            justify-content: left;
+            font-size: 1em;
             font-weight: bold;
             color: var(--primary-text-color);
             cursor: pointer;
@@ -314,6 +314,14 @@
         #progress-details .num {
             font-variant-numeric: tabular-nums;
         }
+	input[type="radio"] {
+  position: absolute; /* 親要素を基準に配置 */
+  opacity: 0;       /* 透明にする */
+  width: 0;         /* 幅と高さをゼロにして、スペースをなくす */
+  height: 0;
+  pointer-events: none; /* マウスイベントを無効化 */
+}
+
     </style>
 </head>
 <body>
@@ -330,43 +338,47 @@
             </div>
             <div id="set-state-status"></div>
         </div>
-        
         <div class="algorithm-selection">
-            <p>探索アルゴリズムを選択:</p>
-            <div class="icon-group">
-                <label title="幅優先探索 (BFS)">
-                    <input type="radio" name="algorithm" value="bfs" checked>
-                    <span class="icon-label">BFS</span>
-                </label>
-                <label title="A*探索">
-                    <input type="radio" name="algorithm" value="astar">
-                    <span class="icon-label">A*</span>
-                </label>
-                <label title="反復深化A* (IDA*)">
-                    <input type="radio" name="algorithm" value="idastar">
-                    <span class="icon-label">IDA*</span>
-                </label>
+          <p>探索アルゴリズムを選択:</p>
+	  <div class="icon-group">
+	    <label title="BFS">
+              <input type="radio" name="algorithm" value="bfs" checked>
+              <span class="icon-label"><img src="../img/icon/bfs.png"></span>
+	    </label>
+	    <label title="A*">
+              <input type="radio" name="algorithm" value="astar">
+	      <span class="icon-label"><img src="../img/icon/astar.png"></span>
+	    </label>
+	    <label title="IDA*">
+              <input type="radio" name="algorithm" value="idastar">
+              <span class="icon-label"><img src="../img/icon/idastar.png"></span>	      
+	    </label>	    
             </div>
         </div>
 
         <div class="pruning-selection">
             <div class="icon-group">
-                <label title="最短解データによる枝刈りを有効にする">
-                    <input type="checkbox" id="pruning-enabled" disabled>
-                    <span class="icon-label">枝刈</span>
+                <label title="最短解データ枝刈り">
+                  <input type="checkbox" id="pruning-enabled" disabled>
+		  <span class="icon-label"><img src="../img/icon/prune.png"></span>
                 </label>
                 <label title="保存済み探索データを利用する">
-                    <input type="checkbox" id="use-local-visited-enabled" disabled>
-                    <span class="icon-label">保存</span>
+                  <input type="checkbox" id="use-local-visited-enabled" disabled>
+		  <span class="icon-label"><img src="../img/icon/usedata.png"></span>
                 </label>
             </div>
             <span id="pruning-status" style="font-size: 0.9em; color: #666;"></span>
         </div>
-
         <div class="action-buttons">
-            <button id="start-btn" class="icon-btn" title="解を探索">▶️</button>
-            <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>💾</button>
-            <button id="check-data-btn" class="icon-btn" title="データ整合性チェック">✔️</button>
+          <button id="start-btn" class="icon-btn" title="解を探索">
+	    <span class="icon-label"><img src="../img/icon/start.png"></span>
+	    ️</button>
+          <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
+	    <span class="icon-label"><img src="../img/icon/save.png"></span>	    
+	    </button>
+          <button id="check-data-btn" class="icon-btn" title="データ整合性チェック">
+	    <span class="icon-label"><img src="../img/icon/datacheck.png"></span>	    	    
+	    ️</button>
         </div>
         <div id="status"></div>
         <div id="progress-details"></div>
