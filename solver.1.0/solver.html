@@ -213,7 +213,7 @@
                 <input type="radio" name="algorithm" value="astar"> A*探索
             </label>
             <label>
-                <input type="radio" name="algorithm" value="idastar"> 反復深化A* (IDA*)
+                <input type="radio" name="algorithm" value="iddfs"> 反復深化深さ優先探索 (IDDFS)
             </label>
         </div>
 
@@ -221,15 +221,11 @@
             <label>
                 <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
             </label>
-            <label style="margin-left: 20px;">
-                <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データを利用する
-            </label>
             <span id="pruning-status" style="font-size: 0.9em; color: #666; margin-left: 10px;"></span>
         </div>
 
         <button id="start-btn">解を探索</button>
         <button id="save-btn" disabled>探索結果を保存</button>
-        <button id="check-data-btn">データ整合性チェック</button>
         <div id="status"></div>
         <div id="progress-details"></div>
         <div id="save-status"></div>
@@ -238,7 +234,7 @@
 
     </div>
     <script content-type="text/javascript" src="solvers/common.js"></script>
-    <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>    
+    <script content-type="text/javascript" src="solvers/iddfs_solver.js"></script>    
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>    
     <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
 

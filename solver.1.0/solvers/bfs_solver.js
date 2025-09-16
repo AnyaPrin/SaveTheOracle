@@ -12,12 +12,8 @@ class BfsSolver {
 
         this.CHUNK_SIZE = 500;
         this.queue = [this.initialState];
-
-        const initialNormalized = COMMON.normalizeState(this.initialState);
-        const preloadedVisited = options.preloadedVisited || new Set();
-        this.visited = new Set([...preloadedVisited, initialNormalized]);
-
-        this.parentMap = new Map([[initialNormalized, null]]);
+        this.visited = new Set([COMMON.normalizeState(this.initialState)]);
+        this.parentMap = new Map([[COMMON.normalizeState(this.initialState), null]]);
         this.head = 0;
         this.foundSolution = false;
     }
@@ -85,11 +81,25 @@ class BfsSolver {
 
         if (isStartOnOptimalPath) {
             if (!optimalPathSet.has(normalizedNextState)) return true; // 枝刈り
-        }
+        } else {
+            if (optimalPathSet.has(normalizedNextState)) {
+                this.parentMap.set(normalizedNextState, currentState);
+                const pathToJunction = this._reconstructPath(nextState);
 
-        // isStartOnOptimalPathがfalseの場合の「合流」ロジックは、最短性を破壊するバグがあったため削除。
-        // このロジックは、最初に見つかった合流点で探索を打ち切るが、その経路が最適である保証がないため、
-        // より手数の多い解を返してしまう可能性があった。
+                // 最適経路の中から、現在の局面と等価な局面（合流点）を探す
+                const junctionIndex = optimalPathArray.findIndex(state => COMMON.normalizeState(state) === normalizedNextState);
+
+                // 合流点が見つからなければ、この枝刈りロジックは適用しない
+                if (junctionIndex === -1) return false;
+
+                const pathFromJunction = optimalPathArray.slice(junctionIndex);
+                const finalPath = [...pathToJunction.slice(0, -1), ...pathFromJunction];
+
+                this.onSuccess({ path: finalPath, message: 'ゴールに到達しました！ (最適経路に合流)' });
+                this.foundSolution = true;
+                return true; // 探索を止める
+            }
+        }
         return false;
     }
 }

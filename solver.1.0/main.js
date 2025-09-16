@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
     let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
-    let localVisitedData = { set: null, status: '未読込' };
     let searchStartTime, timerInterval;
     let currentSolver = null;
 
@@ -18,8 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const setStateStatusDiv = document.getElementById('set-state-status');
     const pruningCheckbox = document.getElementById('pruning-enabled');
     const pruningStatus = document.getElementById('pruning-status');
-    const useLocalVisitedCheckbox = document.getElementById('use-local-visited-enabled');
-    const checkDataBtn = document.getElementById('check-data-btn');
 
     initialStateInput.value = INITIAL_STATE;
 
@@ -27,28 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', startSearch);
     setStateBtn.addEventListener('click', handleSetState);
     saveBtn.addEventListener('click', handleSave);
-    checkDataBtn.addEventListener('click', handleCheckData);
 
     // --- Functions ---
 
     function startSearch() {
         const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
         const usePruning = pruningCheckbox.checked && optimalPathData.normalizedSet !== null;
-        const useLocalVisited = useLocalVisitedCheckbox.checked && localVisitedData.set !== null;
-        const normalizedInitialState = COMMON.normalizeState(INITIAL_STATE);
 
-        let preloadedDataForSolver = null;
-        if (useLocalVisited) {
-            // 開始局面が保存済みデータに含まれている場合、そのデータを使うと探索が即失敗する可能性がある。
-            // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)
-            // この場合、安全策として保存済みデータの利用を一時的に無効にする。
-            if (localVisitedData.set.has(normalizedInitialState)) {
-                console.warn("初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。");
-                statusDiv.textContent = '情報: 初期盤面が保存済みデータに含まれていたため、保存データは利用されません。';
-            } else {
-                preloadedDataForSolver = localVisitedData.set;
-            }
-        }
+        // isStartOnOptimalPathの判定を、駒の名前に依存しない「正規化」状態で行う
+        const normalizedInitialState = COMMON.normalizeState(INITIAL_STATE);
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
 
         setUIState(true); // Disable UI for search
@@ -65,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
             onFailure: handleFailure,
             onProgress: handleProgress,
             onUpdateStatus: (text) => { statusDiv.textContent = text; },
-            preloadedVisited: preloadedDataForSolver,
         };
 
         switch (selectedAlgorithm) {
@@ -75,8 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'astar':
                 currentSolver = new AstarSolver(options);
                 break;
-            case 'idastar':
-                currentSolver = new IDAstarSolver(options);
+            case 'iddfs':
+                currentSolver = new IddfsSolver(options);
                 break;
         }
         currentSolver.start();
@@ -85,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSuccess(result) {
         const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
         const totalTime = (performance.now() - searchStartTime) / 1000;
-        displaySolution(result.path, selectedAlgorithm, result.message);
+        displaySolution(result.path, selectedAlgorithm);
         statusDiv.textContent = `${result.message} (${result.path.length - 1}手, ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
     }
@@ -121,11 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startBtn.disabled = isSearching;
         saveBtn.disabled = isSearching;
-        checkDataBtn.disabled = isSearching;
         setStateBtn.disabled = isSearching;
         initialStateInput.disabled = isSearching;
-        pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
-        useLocalVisitedCheckbox.disabled = isSearching || localVisitedData.status !== '読込完了';
+        pruningCheckbox.disabled = isSearching || !optimalPathData.set;
 
         if (isSearching) {
             saveStatusDiv.textContent = '';
@@ -134,13 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function displaySolution(path, algorithm, message) {
-        // 「合流」による解は最短性を保証しない
-        const isJunctionSolution = message && message.includes('合流');
-        // BFSとA*は常に最短を保証。IDA*は合流しない場合のみ最短を保証。
-        const isOptimal = (algorithm === 'bfs' || algorithm === 'astar') || (algorithm === 'idastar' && !isJunctionSolution);
-        
-        const title = isOptimal ? '最短手数' : '発見した手数 (最短ではない可能性あり)';
+    function displaySolution(path, algorithm) {
+        // BFSとA*(許容的ヒューリスティックを持つ場合)は最短を保証する
+        const isOptimal = (algorithm === 'bfs' || algorithm === 'astar');
+        const title = isOptimal ? '最短手数' : '発見した手数';
         let html = `<h2>${title}: ${path.length - 1}手</h2>`;
         path.forEach((state, index) => {
             let board = '';
@@ -188,19 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
-            // 既存のデータと新しいデータをマージする
-            const existingData = localVisitedData.set ? [...localVisitedData.set] : [];
-            const newData = [...currentSolver.visited];
-            const mergedSet = new Set([...existingData, ...newData]);
-
-            const visitedArray = Array.from(mergedSet);
+            const visitedArray = Array.from(currentSolver.visited);
             const visitedJson = JSON.stringify(visitedArray);
             localStorage.setItem('klotskiVisitedStates', visitedJson);
-
-            // 保存後、グローバル変数も更新
-            localVisitedData.set = mergedSet;
-            localVisitedData.status = '読込完了';
-            saveStatusDiv.textContent = `探索済みノードをlocalStorageに保存しました。(合計: ${mergedSet.size.toLocaleString()}件)`;
+            saveStatusDiv.textContent = `探索済みノード ${currentSolver.visited.size}個をlocalStorageに保存しました。`;
         } catch (e) {
             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
                 saveStatusDiv.textContent = 'エラー: localStorageの容量制限を超えました。';
@@ -208,58 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveStatusDiv.textContent = `保存中にエラーが発生しました: ${e.message}`;
             }
             console.error('Failed to save to localStorage:', e);
-        }
-    }
-
-    function handleCheckData() {
-        saveStatusDiv.textContent = 'データチェック中...';
-        saveStatusDiv.style.color = '#666';
-
-        // 以前のクリーンアップボタンが残っていれば削除
-        const oldCleanupBtn = document.getElementById('cleanup-btn');
-        if (oldCleanupBtn) oldCleanupBtn.parentElement.removeChild(oldCleanupBtn);
-
-        try {
-            const savedVisitedJson = localStorage.getItem('klotskiVisitedStates');
-            if (!savedVisitedJson) {
-                saveStatusDiv.textContent = 'チェックするlocalStorageデータがありません。';
-                return;
-            }
-
-            const savedVisitedArray = JSON.parse(savedVisitedJson);
-            const originalCount = savedVisitedArray.length;
-            const uniqueSet = new Set(savedVisitedArray);
-            const uniqueCount = uniqueSet.size;
-
-            if (originalCount === uniqueCount) {
-                saveStatusDiv.style.color = '#4CAF50';
-                saveStatusDiv.textContent = `データは正常です。重複するノードはありませんでした。(${originalCount.toLocaleString()}件)`;
-            } else {
-                const duplicateCount = originalCount - uniqueCount;
-                saveStatusDiv.style.color = '#d32f2f';
-                
-                const messageSpan = document.createElement('span');
-                messageSpan.textContent = `警告: ${duplicateCount.toLocaleString()}件の重複ノードが見つかりました。データをクリーンアップしますか？ `;
-                
-                const cleanupBtn = document.createElement('button');
-                cleanupBtn.id = 'cleanup-btn';
-                cleanupBtn.textContent = 'はい';
-                cleanupBtn.style.marginLeft = '10px';
-                cleanupBtn.style.padding = '2px 8px';
-                cleanupBtn.onclick = () => {
-                    localStorage.setItem('klotskiVisitedStates', JSON.stringify(Array.from(uniqueSet)));
-                    localVisitedData.set = uniqueSet; // メモリ上のデータも更新
-                    saveStatusDiv.style.color = '#4CAF50';
-                    saveStatusDiv.textContent = `データをクリーンアップしました。 (重複${duplicateCount.toLocaleString()}件を削除 → ${uniqueCount.toLocaleString()}件)`;
-                };
-                saveStatusDiv.textContent = '';
-                saveStatusDiv.appendChild(messageSpan);
-                saveStatusDiv.appendChild(cleanupBtn);
-            }
-        } catch (e) {
-            saveStatusDiv.style.color = '#d32f2f';
-            saveStatusDiv.textContent = `データチェック中にエラーが発生しました: ${e.message}`;
-            console.error('Error during data check:', e);
         }
     }
 
@@ -280,45 +197,5 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             pruningStatus.textContent = '(データ読込失敗)';
             console.error('Error loading optimal path data:', error);
-        });
-
-    // --- 共有＆ローカルの探索済みデータを読み込む ---
-    // 1. まず共有された探索済みデータ(shared_visited.json)を非同期で読み込む
-    fetch('shared_visited.json')
-        .then(response => {
-            // ファイルが存在し、レスポンスが正常ならJSONとして解析する
-            if (response.ok) return response.json();
-            // ファイルが存在しない等の場合は、空の配列として扱う
-            return [];
-        })
-        .catch(error => {
-            // ネットワークエラーなど、読み込み自体に失敗した場合
-            console.warn('shared_visited.jsonの読み込みに失敗しました。', error);
-            return [];
-        })
-        .then(sharedVisited => {
-            // 2. 次に個人のlocalStorageからデータを読み込む
-            let localVisited = [];
-            try {
-                const savedVisitedJson = localStorage.getItem('klotskiVisitedStates');
-                if (savedVisitedJson) {
-                    localVisited = JSON.parse(savedVisitedJson);
-                }
-            } catch (e) {
-                console.error('localStorageからのデータ読み込みに失敗しました。', e);
-            }
-
-            // 3. 共有データと個人データをマージして、ユニークなSetを作成する
-            const mergedSet = new Set([...sharedVisited, ...localVisited]);
-
-            if (mergedSet.size > 0) {
-                localVisitedData.set = mergedSet;
-                localVisitedData.status = '読込完了';
-                useLocalVisitedCheckbox.disabled = false;
-                // メッセージを追記して、マージ後の合計件数を表示
-                pruningStatus.textContent += ` | 保存済みデータ: ${mergedSet.size.toLocaleString()}件`;
-            } else {
-                localVisitedData.status = 'データなし';
-            }
         });
 });
