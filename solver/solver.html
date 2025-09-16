@@ -96,6 +96,74 @@
             transform: none;
         }
 
+        /* Icon-based UI styles */
+        .action-buttons, .icon-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .action-buttons {
+            margin-bottom: 20px;
+        }
+
+        .icon-btn {
+            /* Reset default button styles */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: none;
+            padding: 0;
+            font-family: inherit;
+            color: inherit;
+
+            /* Icon styles */
+            width: 64px;
+            height: 64px;
+            background-color: #3a3a3a;
+            border: 2px solid #5a5a5a;
+            border-radius: 6px;
+            display: inline-flex; /* Use flex to center content */
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            margin: 0;
+        }
+
+        .icon-btn:hover:not(:disabled) {
+            background-color: #4a4a4a;
+            border-color: var(--primary-accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .icon-btn:disabled {
+            background-color: #2a2a2a;
+            border-color: #424242;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* For radio/checkbox icons */
+        .icon-group label {
+            position: relative;
+            display: block;
+        }
+
+        /* Hide the actual radio/checkbox input */
+        .icon-group input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
         #status {
             font-size: 1.2em;
             font-weight: bold;
@@ -153,6 +221,29 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        /* The visible part of the icon button for radio/checkbox */
+        .icon-label {
+            width: 64px;
+            height: 64px;
+            background-color: #3a3a3a;
+            border: 2px solid #5a5a5a;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary-text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .icon-group label:hover .icon-label {
+            background-color: #4a4a4a;
+            border-color: var(--primary-accent-color);
+        }
+
         .algorithm-selection {
             margin: 20px 0;
             text-align: center;
@@ -162,11 +253,23 @@
             font-weight: bold;
             color: var(--primary-accent-color);
         }
-        .algorithm-selection label {
-            margin: 0 15px;
-            font-size: 1em;
-            cursor: pointer;
+
+        /* Style for when the hidden input is checked */
+        .icon-group input:checked + .icon-label {
+            background-color: var(--secondary-accent-color);
+            border-color: var(--primary-accent-color);
+            box-shadow: 0 0 10px var(--primary-accent-color);
         }
+
+        /* Style for when the hidden input is disabled */
+        .icon-group input:disabled + .icon-label {
+            background-color: #2a2a2a;
+            border-color: #424242;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
         .board-input-container {
             display: flex;
             align-items: center;
@@ -199,11 +302,10 @@
         }
         .pruning-selection {
             margin-bottom: 20px;
-            text-align: center;
-        }
-        .pruning-selection label {
-            font-size: 1em;
-            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
         #pruning-status {
             color: var(--secondary-text-color);
@@ -230,30 +332,41 @@
         
         <div class="algorithm-selection">
             <p>探索アルゴリズムを選択:</p>
-            <label>
-                <input type="radio" name="algorithm" value="bfs" checked> 幅優先探索 (BFS)
-            </label>
-            <label>
-                <input type="radio" name="algorithm" value="astar"> A*探索
-            </label>
-            <label>
-                <input type="radio" name="algorithm" value="idastar"> 反復深化A* (IDA*)
-            </label>
+            <div class="icon-group">
+                <label title="幅優先探索 (BFS)">
+                    <input type="radio" name="algorithm" value="bfs" checked>
+                    <span class="icon-label">BFS</span>
+                </label>
+                <label title="A*探索">
+                    <input type="radio" name="algorithm" value="astar">
+                    <span class="icon-label">A*</span>
+                </label>
+                <label title="反復深化A* (IDA*)">
+                    <input type="radio" name="algorithm" value="idastar">
+                    <span class="icon-label">IDA*</span>
+                </label>
+            </div>
         </div>
 
         <div class="pruning-selection">
-            <label>
-                <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
-            </label>
-            <label style="margin-left: 20px;">
-                <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データを利用する
-            </label>
-            <span id="pruning-status" style="font-size: 0.9em; color: #666; margin-left: 10px;"></span>
+            <div class="icon-group">
+                <label title="最短解データによる枝刈りを有効にする">
+                    <input type="checkbox" id="pruning-enabled" disabled>
+                    <span class="icon-label">枝刈</span>
+                </label>
+                <label title="保存済み探索データを利用する">
+                    <input type="checkbox" id="use-local-visited-enabled" disabled>
+                    <span class="icon-label">保存</span>
+                </label>
+            </div>
+            <span id="pruning-status" style="font-size: 0.9em; color: #666;"></span>
         </div>
 
-        <button id="start-btn">解を探索</button>
-        <button id="save-btn" disabled>探索結果を保存</button>
-        <button id="check-data-btn">データ整合性チェック</button>
+        <div class="action-buttons">
+            <button id="start-btn" class="icon-btn" title="解を探索">▶️</button>
+            <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>💾</button>
+            <button id="check-data-btn" class="icon-btn" title="データ整合性チェック">✔️</button>
+        </div>
         <div id="status"></div>
         <div id="progress-details"></div>
         <div id="save-status"></div>
