@@ -1,9 +1,20 @@
-<<<<<<< HEAD
-node_module/ 
-work/
+# Dependencies
+/node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor directories and files
+.vscode/
+*~
+
+# Project specific
+**/work/
 *.blend
 *.blend1
-.xcf
-=======
-*.blend
->>>>>>> 2fc7e1382f8290d13b98f7d94005ecf8e96dbcfc
+*.xcf
+
+# Log files
+*.log
