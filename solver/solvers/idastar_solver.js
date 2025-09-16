@@ -9,6 +9,7 @@ class IDAstarSolver {
 
         this.CHUNK_SIZE = 500;
         this.foundSolution = false;
+        this.stopped = false;
 
         // IDA*用のプロパティ
         this.costLimit = 0; // 現在のf(n) = g(n) + h(n) の上限値
@@ -50,8 +51,12 @@ class IDAstarSolver {
         return manhattanDistance + penalty;
     }
 
+    stop() {
+        this.stopped = true;
+    }
+
     start() {
-        if (this.foundSolution) return;
+        if (this.foundSolution || this.stopped) return;
 
         this.costLimit = (this.costLimit === 0) ? this._heuristic(this.initialState) : this.nextCostLimit;
         this.nextCostLimit = Infinity;
@@ -74,6 +79,8 @@ class IDAstarSolver {
     }
 
     processChunk() {
+        if (this.stopped) return;
+
         let processedInChunk = 0;
         while (this.queue.length > 0 && processedInChunk < this.CHUNK_SIZE) {
             const { state: currentState, path: currentPath, gScore, visitedInPath } = this.queue.pop();
@@ -123,14 +130,14 @@ class IDAstarSolver {
 
         this.onProgress({ visited: this.visited, queue: this.queue, head: 0, algorithm: 'idastar' });
 
-        if (this.foundSolution) return;
+        if (this.foundSolution || this.stopped) return;
 
         if (this.queue.length > 0) {
             setTimeout(() => this.processChunk(), 0);
         } else {
             // このコスト上限では解が見つからなかった。次のイテレーションを開始する。
             if (this.nextCostLimit === Infinity) {
-                this.onFailure(); // 解が存在しない
+                if (!this.stopped) this.onFailure(); // 解が存在しない
             } else {
                 setTimeout(() => this.start(), 0);
             }

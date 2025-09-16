@@ -93,6 +93,7 @@ class AstarSolver {
 
         this.CHUNK_SIZE = 250; // A*はノード毎の処理が重いので、チャンクサイズを少し小さめに
         this.foundSolution = false;
+        this.stopped = false;
     }
 
     /**
@@ -150,12 +151,18 @@ class AstarSolver {
         return path;
     }
 
+    stop() {
+        this.stopped = true;
+    }
+
     start() {
         this.onProgress({ visited: this.closedSet, queue: this.openSet, head: 0, algorithm: 'astar' });
         setTimeout(() => this.processChunk(), 0);
     }
 
     processChunk() {
+        if (this.stopped) return;
+
         let processedInChunk = 0;
         while (!this.openSet.isEmpty() && processedInChunk < this.CHUNK_SIZE) {
             // 優先度付きキューからfScoreが最小の盤面を効率的に取り出す
@@ -201,9 +208,12 @@ class AstarSolver {
 
         this.onProgress({ visited: this.closedSet, queue: this.openSet, head: 0, algorithm: 'astar' });
 
-        if (!this.openSet.isEmpty() && !this.foundSolution) {
+        // 探索が終了（成功 or 停止）していれば、次のチャンクは実行しない
+        if (this.foundSolution || this.stopped) return;
+
+        if (!this.openSet.isEmpty()) {
             setTimeout(() => this.processChunk(), 0);
-        } else if (!this.foundSolution) {
+        } else {
             this.onFailure();
         }
     }

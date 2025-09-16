@@ -195,21 +195,24 @@
         #solution-path {
             margin-top: 30px;
             text-align: left;
+            /* Flexbox for horizontal layout */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: flex-start;
         }
 
-        #solution-path h2 {
-            /* text-align: center; */
+        #solution-path h4 {
+            /* Make the title take up the full width to force a line break */
+            flex-basis: 100%;
+            margin-bottom: 0; /* The 'gap' property handles spacing */
             color: var(--primary-text-color);
         }
 
-        .step {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        .step { }
 
         .step-number {
-            font-size: 1.5em;
+            font-size: 1em;
             font-weight: bold;
             margin-right: 20px;
             color: var(--error-color);

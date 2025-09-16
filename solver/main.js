@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOptimal = (algorithm === 'bfs' || algorithm === 'astar') || (algorithm === 'idastar' && !isJunctionSolution);
         
         const title = isOptimal ? '最短手数' : '発見した手数 (最短ではない可能性あり)';
-        let html = `<h2>${title}: ${path.length - 1}手</h2>`;
+        let html = `<h4>${title}: ${path.length - 1}手</h4>`;
 
         function findMovedPiece(prev, curr) {
             if (!prev) return null;

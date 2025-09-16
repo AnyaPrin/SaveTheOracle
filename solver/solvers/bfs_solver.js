@@ -20,6 +20,7 @@ class BfsSolver {
         this.parentMap = new Map([[initialNormalized, null]]);
         this.head = 0;
         this.foundSolution = false;
+        this.stopped = false;
     }
 
     _reconstructPath(goalState) {
@@ -35,12 +36,18 @@ class BfsSolver {
         return path;
     }
 
+    stop() {
+        this.stopped = true;
+    }
+
     start() {
         this.onProgress({ visited: this.visited, queue: this.queue, head: this.head, algorithm: 'bfs' });
         setTimeout(() => this.processChunk(), 0);
     }
 
     processChunk() {
+        if (this.stopped) return;
+
         let processedInChunk = 0;
         while (this.head < this.queue.length && processedInChunk < this.CHUNK_SIZE) {
             const currentState = this.queue[this.head++];
@@ -70,9 +77,12 @@ class BfsSolver {
 
         this.onProgress({ visited: this.visited, queue: this.queue, head: this.head, algorithm: 'bfs' });
 
-        if (this.head < this.queue.length && !this.foundSolution) {
+        // 探索が終了（成功 or 停止）していれば、次のチャンクは実行しない
+        if (this.foundSolution || this.stopped) return;
+
+        if (this.head < this.queue.length) {
             setTimeout(() => this.processChunk(), 0);
-        } else if (!this.foundSolution) {
+        } else {
             this.onFailure();
         }
     }
