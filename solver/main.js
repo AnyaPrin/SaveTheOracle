@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
     const progressDetailsDiv = document.getElementById('progress-details');
     const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
     const saveBtn = document.getElementById('save-btn');
     const saveStatusDiv = document.getElementById('save-status');
     const solutionPathDiv = document.getElementById('solution-path');
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     startBtn.addEventListener('click', startSearch);
+    stopBtn.addEventListener('click', handleStop);
     setStateBtn.addEventListener('click', handleSetState);
     saveBtn.addEventListener('click', handleSave);
     checkDataBtn.addEventListener('click', handleCheckData);
@@ -82,18 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSolver.start();
     }
 
+    function handleStop() {
+        if (currentSolver) {
+            currentSolver.stop();
+            currentSolver = null;
+        }
+        setUIState(false);
+        statusDiv.textContent = '探索を停止しました。';
+    }
+
     function handleSuccess(result) {
         const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
         const totalTime = (performance.now() - searchStartTime) / 1000;
         displaySolution(result.path, selectedAlgorithm, result.message);
         statusDiv.textContent = `${result.message} (${result.path.length - 1}手, ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
+        currentSolver = null;
     }
 
     function handleFailure() {
         const totalTime = (performance.now() - searchStartTime) / 1000;
         statusDiv.textContent = `解が見つかりませんでした。 (探索時間: ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
+        currentSolver = null;
     }
 
     function handleProgress(progress) {
@@ -116,16 +129,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerInterval) clearInterval(timerInterval);
             // Progress is updated via onProgress callback
         } else {
+            if (timerInterval) clearInterval(timerInterval);
             clearInterval(timerInterval);
+            searchStartTime = null;
         }
 
         startBtn.disabled = isSearching;
+        stopBtn.disabled = !isSearching;
         saveBtn.disabled = isSearching;
         checkDataBtn.disabled = isSearching;
         setStateBtn.disabled = isSearching;
         initialStateInput.disabled = isSearching;
         pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
         useLocalVisitedCheckbox.disabled = isSearching || localVisitedData.status !== '読込完了';
+        algorithmRadios.forEach(radio => {
+            radio.closest('label').style.pointerEvents = isSearching ? 'none' : 'auto';
+            radio.disabled = isSearching;
+        });
 
         if (isSearching) {
             saveStatusDiv.textContent = '';

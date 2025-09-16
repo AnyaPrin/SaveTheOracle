@@ -34,7 +34,7 @@
             background-color: var(--surface-color);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            text-align: center;
+            text-align: left;
         }
 
         h1 {
@@ -96,12 +96,16 @@
             transform: none;
         }
 
+        .icon-btn img {
+            width: 64px;
+            height: 64px;
+        }
+
         /* Icon-based UI styles */
         .action-buttons, .icon-group {
             display: flex;
-	    orientation:horizontal;
-            justify-content: center;
-            gap: 15px;
+            justify-content: flex-start;
+            gap: 2px;
             align-items: center;
         }
         .action-buttons {
@@ -127,6 +131,7 @@
             display: inline-flex; /* Use flex to center content */
             align-items: center;
             justify-content: center;
+            
             font-size: 2em;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -193,7 +198,7 @@
         }
 
         #solution-path h2 {
-            text-align: center;
+            /* text-align: center; */
             color: var(--primary-text-color);
         }
 
@@ -225,13 +230,13 @@
 
         /* The visible part of the icon button for radio/checkbox */
         .icon-label {
-	    display: absolute;
-	    width: 48px;
-	    height: 48px;
+            display: flex;
+            width: 48px;
+            height: 48px;
             background-color: #3a3a3a;
             border: 0px solid #5a5a5a;
             align-items: center;
-            justify-content: left;
+            justify-content: center;
             font-size: 1em;
             font-weight: bold;
             color: var(--primary-text-color);
@@ -247,10 +252,11 @@
 
         .algorithm-selection {
             margin: 20px 0;
-            text-align: center;
+            display: flex;
+            align-items: center;
         }
         .algorithm-selection p {
-            margin-bottom: 10px;
+            margin: 0 10px 0 0;
             font-weight: bold;
             color: var(--primary-text-color);
         }
@@ -303,24 +309,18 @@
         }
         .pruning-selection {
             margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            /* text-align: center; */
+        }
+        .pruning-selection label {
+            margin: 0 10px;
+            font-size: 1em;
+            cursor: pointer;
         }
         #pruning-status {
             color: var(--secondary-text-color);
+            margin-left: 10px;
+            font-size: 0.9em;
         }
-        #progress-details .num {
-            font-variant-numeric: tabular-nums;
-        }
-	input[type="radio"] {
-  position: absolute; /* 親要素を基準に配置 */
-  opacity: 0;       /* 透明にする */
-  width: 0;         /* 幅と高さをゼロにして、スペースをなくす */
-  height: 0;
-  pointer-events: none; /* マウスイベントを無効化 */
-}
 
     </style>
 </head>
@@ -338,7 +338,7 @@
             </div>
             <div id="set-state-status"></div>
         </div>
-        <div class="algorithm-selection">
+      <div class="algorithm-selection">
           <p>探索アルゴリズムを選択:</p>
 	  <div class="icon-group">
 	    <label title="BFS">
@@ -356,29 +356,22 @@
             </div>
         </div>
 
-        <div class="pruning-selection">
-            <div class="icon-group">
-                <label title="最短解データ枝刈り">
-                  <input type="checkbox" id="pruning-enabled" disabled>
-		  <span class="icon-label"><img src="../img/icon/prune.png"></span>
-                </label>
-                <label title="保存済み探索データを利用する">
-                  <input type="checkbox" id="use-local-visited-enabled" disabled>
-		  <span class="icon-label"><img src="../img/icon/usedata.png"></span>
-                </label>
-            </div>
-            <span id="pruning-status" style="font-size: 0.9em; color: #666;"></span>
+        <div class="pruning-selection" style="text-align: left">
+            <label >
+                <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
+            </label><br>
+            <label >
+                <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データを利用する
+            </label>
+            <span id="pruning-status"></span>
         </div>
         <div class="action-buttons">
-          <button id="start-btn" class="icon-btn" title="解を探索">
-	    <span class="icon-label"><img src="../img/icon/start.png"></span>
-	    ️</button>
-          <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
-	    <span class="icon-label"><img src="../img/icon/save.png"></span>	    
-	    </button>
-          <button id="check-data-btn" class="icon-btn" title="データ整合性チェック">
-	    <span class="icon-label"><img src="../img/icon/check.png"></span>	    	    
-	    ️</button>
+            <button id="start-btn" class="icon-btn" title="解を探索"><img src="../img/icon/start.png" alt="Start"></button>
+            <button id="stop-btn" class="icon-btn" title="探索を停止" disabled><img src="../img/icon/stop.png" alt="Stop"></button>
+            <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
+                <img src="../img/icon/save.png" alt="Save">
+            </button>
+            <button id="check-data-btn" class="icon-btn" title="データ整合性チェック"><img src="../img/icon/check.png" alt="Check"></button>
         </div>
         <div id="status"></div>
         <div id="progress-details"></div>
