@@ -8,6 +8,8 @@
         :root {
             --bg-color: #1a1a1a;
             --surface-color: #2c2c2c;
+            --button-color: #3c3c3c;
+            --button-accent-color: #8e8c8e;
             --primary-text-color: #e0e0e0;
             --secondary-text-color: #a0a0a0;
             --primary-accent-color: #8c9eff;
@@ -17,29 +19,68 @@
             --border-color: #424242;
         }
 
+        html {
+            height: 100%;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans",
 			 "Noto Sans CJK JP", "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 20px 0;
+            padding-left: 20px;
+            margin-left: 20px;
+            display: flex;
+            min-width: 900px;
+            min-height: 100vh;
+            flex-direction: column;
             background-color: var(--bg-color);
             color: var(--primary-text-color);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .top-panel {
+            padding-top: 10px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        .bottom-panel {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 20px;
         }
 
         .container {
-            width: 90%;
+            background-image: url(bg_solver.jpg);
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: left;
+            justify-content: left;
             max-width: 800px;
-            margin: 20px auto;
-            padding: 25px;
+            width:60%;
+            margin: 0 20px 0;
+            padding: 14px 25px 0; /* 上、左右、下 */
             background-color: var(--surface-color);
-            border-radius: 8px;
+            border-radius: 18px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             text-align: left;
         }
 
+
+        .bottom-panel .container {
+            padding-left: 0;
+            background: none;
+            background-color: none;
+            background-image: none;
+            border-radius: 8px;
+            box-shadow: none;
+            margin-top: 20px;
+        }
+
         h1 {
             color: var(--primary-text-color);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .info {
@@ -65,7 +106,7 @@
             text-align: left;
             border: 2px solid var(--border-color);
             display: inline-block;
-            padding: 5px;
+            padding: 4px;
             border-radius: 4px;
             background-color: var(--bg-color);
         }
@@ -97,19 +138,19 @@
         }
 
         .icon-btn img {
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
         }
 
         /* Icon-based UI styles */
         .action-buttons, .icon-group {
             display: flex;
             justify-content: flex-start;
-            gap: 2px;
+            gap: 0;
             align-items: center;
         }
         .action-buttons {
-            margin-bottom: 20px;
+            margin-bottom: 10px; /* ボタン下のマージン */
         }
 
         .icon-btn {
@@ -123,8 +164,8 @@
             color: inherit;
 
             /* Icon styles */
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             background-color: #3a3a3a;
             border: 2px solid #5a5a5a;
             border-radius: 6px;
@@ -171,15 +212,23 @@
         }
 
         #status {
-            font-size: 1.2em;
+            font-size: 1em;
             font-weight: bold;
             color: var(--primary-accent-color);
         }
         
+        #search-summary {
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
         #progress-details {
-            font-size: 0.9em;
+            font-size: 0.7em;
             color: var(--secondary-text-color);
-            margin-top: 10px;
+            margin-top: 0;
         }
         
         #save-status {
@@ -193,43 +242,36 @@
         }
         
         #solution-path {
-            margin-top: 30px;
+            margin-top: 0;
             text-align: left;
-            /* Flexbox for horizontal layout */
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 2px;
+        }
+
+        .step {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: flex-start;
-        }
-
-        #solution-path h4 {
-            /* Make the title take up the full width to force a line break */
-            flex-basis: 100%;
-            margin-bottom: 0; /* The 'gap' property handles spacing */
-            color: var(--primary-text-color);
-        }
-
-        .step { 
-            color: white; /* to avoid empty problem*/
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
 
         .step-number {
-            font-size: 1em;
+            font-size: 0.8em;
             font-weight: bold;
-            margin-right: 20px;
-            color: var(--error-color);
+            color: var(--secondary-text-color)
         }
 	
 
         .step-board {
             border: 1px solid var(--border-color);
-            padding: 10px;
+            padding: 5px;
             border-radius: 4px;
             background-color: var(--bg-color);
             white-space: pre;
             font-family: monospace;
             line-height: 1.1;
-            font-size: 1.2em;
+            font-size: 1em;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
@@ -248,8 +290,8 @@
         /* The visible part of the icon button for radio/checkbox */
         .icon-label {
             display: flex;
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             background-color: #3a3a3a;
             border: 0px solid #5a5a5a;
             align-items: center;
@@ -260,6 +302,11 @@
             cursor: pointer;
             transition: all 0.2s ease;
             user-select: none;
+        }
+
+        .icon-label img {
+            width: 42px;
+            height: 42px;
         }
 
         .icon-group label:hover .icon-label {
@@ -298,21 +345,24 @@
             display: flex;
             align-items: center;
             gap: 10px;
+
         }
+
         #initial-state-input {
-            flex-grow: 1;
+            /* flex-grow: 1; */
             font-family: monospace;
-            font-size: 1.1em;
-            padding: 8px;
+            width: 22ch; /* 20文字とパディング分を考慮 */
+            font-size: 1em;
+            padding: 7px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             background-color: var(--bg-color);
             color: var(--primary-text-color);
         }
         #set-state-btn {
-            /* 既存のbuttonスタイルを継承しつつ、微調整 */
-            padding: 8px 15px;
+            padding: 4px 35px ;
             margin: 0;
+            border: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         #set-state-status {
@@ -342,60 +392,65 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>SAVE THE ORACLE SOLVER</h1>
-        <div class="info">
-            <p>「解を探索」ボタンを押すと、初期状態からゴールまでの最短手数を見つけます。</p>
-            <p>アルゴリズムとして「幅優先探索（BFS）」と「A*探索」を選択できます。</p>
-            <p style="margin-top: 15px; margin-bottom: 5px;"><strong>初期盤面の設定:</strong></p>
-            <div class="board-input-container">
-              <input type="text" id="initial-state-input" maxlength="20" minlength="20"
-		     title="20文字の盤面状態 (A-Z, .)">
-                <button id="set-state-btn">設定</button>
-            </div>
-            <div id="set-state-status"></div>
+    <div class="top-panel">
+        <div class="container">
+            <h1>SAVE THE ORACLE SOLVER</h1>
+                        <div class="board-input-container">
+                <strong>初期盤面:</strong>
+                    <input type="text" id="initial-state-input" maxlength="20" minlength="20" title="20文字の盤面状態 (A-Z, .)">
+                    <button id="set-state-btn">OK </button> <div id="set-state-status"></div>
+                </div>
+
+            <div class="algorithm-selection">
+                <strong>探索アルゴリズム: 　 </strong>
+              <div class="icon-group">
+                <label title="BFS">
+                    <input type="radio" name="algorithm" value="bfs" checked>
+                    <span class="icon-label"><img src="../img/icon/bfs.png"></span>
+                </label>
+                <label title="A*">
+                    <input type="radio" name="algorithm" value="astar">
+                    <span class="icon-label"><img src="../img/icon/astar.png"></span>
+                </label>
+                <label title="IDA*">
+                    <input type="radio" name="algorithm" value="idastar">
+                    <span class="icon-label"><img src="../img/icon/idastar.png"></span>	      
+                </label>
         </div>
-      <div class="algorithm-selection">
-          <p>探索アルゴリズムを選択:</p>
-	  <div class="icon-group">
-	    <label title="BFS">
-              <input type="radio" name="algorithm" value="bfs" checked>
-              <span class="icon-label"><img src="../img/icon/bfs.png"></span>
-	    </label>
-	    <label title="A*">
-              <input type="radio" name="algorithm" value="astar">
-	      <span class="icon-label"><img src="../img/icon/astar.png"></span>
-	    </label>
-	    <label title="IDA*">
-              <input type="radio" name="algorithm" value="idastar">
-              <span class="icon-label"><img src="../img/icon/idastar.png"></span>	      
-	    </label>	    
+
+                
             </div>
-        </div>
 
         <div class="pruning-selection" style="text-align: left">
-            <label >
-                <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
-            </label><br>
-            <label >
-                <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データを利用する
-            </label>
-            <span id="pruning-status"></span>
-        </div>
-        <div class="action-buttons">
-            <button id="start-btn" class="icon-btn" title="解を探索"><img src="../img/icon/start.png" alt="Start"></button>
-            <button id="stop-btn" class="icon-btn" title="探索を停止" disabled><img src="../img/icon/stop.png" alt="Stop"></button>
-            <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
-                <img src="../img/icon/save.png" alt="Save">
-            </button>
-            <button id="check-data-btn" class="icon-btn" title="データ整合性チェック"><img src="../img/icon/check.png" alt="Check"></button>
-        </div>
-        <div id="status"></div>
-        <div id="progress-details"></div>
-        <div id="save-status"></div>
+                <label>
+                    <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
+                </label><br>
+                <label >
+                    <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データを利用する
+                </label><br>
+                                <span id="pruning-status"></span>
 
-        <div id="solution-path"></div>
+            </div>
 
+            <div class="action-buttons">
+                <button id="start-btn" class="icon-btn" title="解を探索"><img src="../img/icon/start.png" alt="Start"></button>
+                <button id="stop-btn" class="icon-btn" title="探索を停止" disabled><img src="../img/icon/stop.png" alt="Stop"></button>
+                <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
+                    <img src="../img/icon/save.png" alt="Save">
+                </button>
+                <button id="check-data-btn" class="icon-btn" title="データ整合性チェック"><img src="../img/icon/check.png" alt="Check"></button>
+            </div>
+            <div id="save-status"></div>
+        </div>
+    </div>
+    <div class="bottom-panel">
+        <div class="container">
+            <div id="search-summary" hidden>
+                <div id="status"></div>
+                <div id="progress-details"></div>
+            </div>
+            <div id="solution-path"></div>
+        </div>
     </div>
     <script content-type="text/javascript" src="solvers/common.js"></script>
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>    

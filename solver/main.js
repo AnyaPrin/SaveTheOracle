@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSolver = null;
 
     const statusDiv = document.getElementById('status');
+    const searchSummaryDiv = document.getElementById('search-summary');
     const progressDetailsDiv = document.getElementById('progress-details');
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
@@ -108,8 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSuccess(result) {
         const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
         const totalTime = (performance.now() - searchStartTime) / 1000;
-        displaySolution(result.path, selectedAlgorithm, result.message);
-        statusDiv.textContent = `${result.message} (${result.path.length - 1}手, ${totalTime.toFixed(2)}秒)`;
+
+        // 解の性質（最短かどうか）を判定し、サマリーメッセージを作成
+        const isJunctionSolution = result.message && result.message.includes('合流');
+        const isOptimal = (selectedAlgorithm === 'bfs' || selectedAlgorithm === 'astar') || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
+        const title = isOptimal ? '最短手数' : '発見した手数';
+
+        displaySolution(result.path);
+        statusDiv.textContent = `${result.message} 　 ${title}: ${result.path.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
         setUIState(false);
         currentSolver = null;
     }
@@ -160,20 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (isSearching) {
+            searchSummaryDiv.hidden = false;
             saveStatusDiv.textContent = '';
             statusDiv.textContent = '探索中...';
             solutionPathDiv.innerHTML = '';
         }
     }
 
-    function displaySolution(path, algorithm, message) {
-        // 「合流」による解は最短性を保証しない
-        const isJunctionSolution = message && message.includes('合流');
-        // BFSとA*は常に最短を保証。IDA*は合流しない場合のみ最短を保証。
-        const isOptimal = (algorithm === 'bfs' || algorithm === 'astar') || (algorithm === 'idastar' && !isJunctionSolution);
-        
-        const title = isOptimal ? '最短手数' : '発見した手数 (最短ではない可能性あり)';
-        let html = `<h4>${title}: ${path.length - 1}手</h4>`;
+    function displaySolution(path) {
+        let html = '';
 
         function findMovedPiece(prev, curr) {
             if (!prev) return null;
