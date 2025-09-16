@@ -228,6 +228,18 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        .step-board.clickable-board {
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+        .step-board.clickable-board:hover {
+            border-color: var(--primary-accent-color);
+        }
+        .moved-piece {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
         /* The visible part of the icon button for radio/checkbox */
         .icon-label {
             display: flex;

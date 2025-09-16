@@ -30,6 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setStateBtn.addEventListener('click', handleSetState);
     saveBtn.addEventListener('click', handleSave);
     checkDataBtn.addEventListener('click', handleCheckData);
+    solutionPathDiv.addEventListener('click', (e) => {
+        const boardDiv = e.target.closest('.clickable-board');
+        if (boardDiv) {
+            const state = boardDiv.dataset.state;
+            if (state) {
+                initialStateInput.value = state;
+                handleSetState();
+                // ユーザーが新しい盤面を設定したことを分かりやすくするため、ページ上部にスクロールする
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
 
     // --- Functions ---
 
@@ -162,12 +174,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const title = isOptimal ? '最短手数' : '発見した手数 (最短ではない可能性あり)';
         let html = `<h2>${title}: ${path.length - 1}手</h2>`;
-        path.forEach((state, index) => {
-            let board = '';
-            for (let i = 0; i < COMMON.HEIGHT; i++) {
-                board += state.substring(i * COMMON.WIDTH, (i + 1) * COMMON.WIDTH) + '\n';
+
+        function findMovedPiece(prev, curr) {
+            if (!prev) return null;
+            for (let i = 0; i < prev.length; i++) {
+                // 以前は駒があったが、今は空白になっている場所を探す
+                if (prev[i] !== curr[i] && prev[i] !== '.') {
+                    return prev[i]; // 動いた駒の文字を返す
+                }
             }
-            html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board">${board.trim()}</div></div>`;
+            return null;
+        }
+
+        path.forEach((state, index) => {
+            const prevState = path[index - 1] || null;
+            const movedPiece = findMovedPiece(prevState, state);
+
+            let boardHtml = '';
+            for (let i = 0; i < state.length; i++) {
+                const char = state[i];
+                boardHtml += (movedPiece && char === movedPiece)
+                    ? `<span class="moved-piece">${char}</span>`
+                    : char;
+                if ((i + 1) % COMMON.WIDTH === 0) boardHtml += '\n';
+            }
+            html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board clickable-board" data-state="${state}">${boardHtml.trim()}</div></div>`;
         });
         solutionPathDiv.innerHTML = html;
     }
