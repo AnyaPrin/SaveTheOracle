@@ -306,7 +306,8 @@ function drawBlocks() {
 	pctx.lineWidth = BLK_BRDR;
 	pctx.strokeStyle = Selected == bid ? SELECTEDCOL : TRANSPARENT;
 	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);	
-	cursorRect=[BDOFFX+bx*CELL,BDOFFY+by*CELL, CELL, CELL];
+	if (Selected == bid)
+	    drImg('cursor', ...rect);
     }
 }
 

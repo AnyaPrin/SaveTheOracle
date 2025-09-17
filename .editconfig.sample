@@ -1,0 +1,36 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true					# 最上位の EditorConfig ファイルであることを保証し、
+     						# 親ディレクトリからの上書きを防ぎます。
+
+# General settings for all files		
+[*]
+charset = utf-8					# エンコードを標準化します。VSCode と
+	  					# Emacs の両方で適切に処理されます。
+end_of_line = lf				# Unix 形式の行末 (\n) を強制します。
+	      					# これは Emacs や最近のプロジェクトで一般的です。
+insert_final_newline = true 			# ファイルの末尾に改行を追加します。
+		       				# これは Emacs やほとんどのコーディングスタイルで標準的な方法です。
+trim_trailing_whitespace = true			# 末尾の空白を削除します。これは Emacs の
+			   			# delete-trailing-whitespace コマンドと一致します。
+indent_style = space				# インデントにスペースを使用します。これはほとんどの Emacs 設定
+	       					#  (特に Python などの言語) のデフォルトです。
+
+# Settings for specific file types
+[*.{js,html,css}]				# *.{js,html,css}: 4スペースのインデント。
+indent_size = 4					
+	      					
+
+[*.py]
+indent_size = 4					# *.py: 4スペースのインデント（PythonのPEP 8に準拠）。
+
+[*.json]
+indent_size = 2					# *.json: 2スペースのインデント。
+
+# Markdown files can have intentional
+# trailing whitespace				
+[*.md]
+trim_trailing_whitespace = false		# *.md: Markdownに適した末尾の空白のトリミングを無効にします。
+
+
