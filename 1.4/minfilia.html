@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="minfilia.css" >
+    <style>
+      :root {
+	  --link: #92b2c8;
+	  --menu: #92b2c8;	  
+	  --bg-color: #012345;
+	  --text-color: #f0f0f0;
+	  --panel: rgba(255,255,255,0.05);
+	  --panela: rgba(0,0,0,0.15);
+	  --acc-b: #2f81f7;
+	  --acc-g: #2d333b;
+	  --border: #444c56;
+	  --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
+      }
+      #puzzlecanvas {
+	  display:block;	  
+	  position:fixed;
+	  top: 60px;
+	  left: 30px;
+	  width:600px; 
+	  height:800px;
+	  background:black;
+	  z-index:1;
+      }
+      #info{
+	  display:block;
+	  position:fixed;
+	  top: 64px;
+	  left: 644px;
+	  width:440px;
+	  height:320px;
+	  background:var(--panel);
+	  font-size:10pt;
+	  z-index:100;
+    	  font-family: 'Nimbus Mono','IPAゴシック','courier','Ariel';
+      }
+      #graphcanvas {
+	  position:fixed;
+	  top: 60px;
+	  left: 640px; 
+	  width:1024px;
+	  height:800px;
+	  background:black;
+	  z-index:1;    
+      }
+      /* 新しいモーダルスタイル */
+      #modal {
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          transition: left 0.5s ease-in-out; /* アニメーションを追加 */
+          z-index: 200;
+          pointer-events: none; /* 初期状態ではクリックを無効化 */
+      }
+      #modal.is-active {
+          left: 0; /* アクティブなときに表示する */
+	  pointer-events: auto; /* アクティブなときにクリックを有効化 */
+      }
+      .modal-content {
+      background-color: var(--panel);
+      padding: 2em;
+      border-radius: 16px;
+      color: var(--text-color);
+      box-shadow: var(--shadow);
+      max-width: 400px;
+      height: 100%;
+      transform: translateX(-100%);
+      transition: transform 0.5s ease-in-out;
+      }
+      #modal.is-active .modal-content {
+      transform: translateX(0);
+      }
+      #close-modal {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 1.5em;
+      color: var(--text-color);
+      background: none;
+      border: none;
+      cursor: pointer;
+      }      
+    </style>
+    <link rel="stylesheet" href="minfilia.css">
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    <title>Save The Oracle WEB 1.3</title>
+  </head>
+  <body>
+    <div><canvas id="graphcanvas"></canvas></div>    
+    <header>
+      <span style="font-size:16pt">Save The Oracle</span>
+    </header>
+    <div id="info"> Info.</div>
+    <div id="modal">
+      <div class="modal-content">
+	<h2>Menu</h2>
+	<p>ここにメニュー項目を追加します。</p>
+	<button id="close-modal">閉じる</button>
+      </div>
+    </div>
+    <main>
+      <div><canvas id="puzzlecanvas"></canvas></div>
+
+    </main>
+    <footer>
+      <hr>
+      画像はFINAL FANTASY XIV ゲーム内で撮影、３Dモデルはミニオン[マメット・
+      リーン]を見ながら blenderで自作しました。ⒸSQUARE ENIX <br>
+      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+	mifilia.js v.1.3 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+      <span style="position:fixed;right:20px;">
+	<a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+	  <img width="20" src="img/github-mark-white.png"> GitHub </a> </span>
+    </footer>
+  </body>
+  <script src="puzzle.js"></script>  
+  <script src="graph1.js"></script>        
+</html>

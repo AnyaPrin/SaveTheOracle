@@ -67,10 +67,7 @@ loader.load(
 
     // for progress
     function (xhr) { 
-	
 	console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-	
-	
     }, 
     function (error) { console.error('An error happened:', error);}
 );

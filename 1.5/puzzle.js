@@ -14,11 +14,6 @@ let style = getComputedStyle(canvas);
 const SCRN_W = parseInt(style.width);//600
 const SCRN_H = parseInt(style.height);// 800
 console.log("w,h:",SCRN_W,SCRN_H)
-const BDOFFX = WALL + BLK_BRDR/2;
-const BDOFFY = WALL + BLK_BRDR/2 - CELL/2;
-const BDRECT = [0, 0, SCRN_W, SCRN_H];
-const BBRECT = [WALL/6, SCRN_H-WALL*2.5, WALL*2.7, WALL];
-const ULRECT = [0, SCRN_H-CELL*2, CELL*2, CELL*2];
 
 const SELECTEDCOL = "rgba(215,225,2,0.5)"; 
 const TRANSPARENT = "rgba(0,0,0,0)";
@@ -35,7 +30,7 @@ const CLR_TXT_COL = TXT_LIGHT;
 
 const DRAG_THLD = CELL * 0.5; // mouse drag sensibility 0<fast<->slow >1
 
-const SPRITE = "img/imagesheet.png" // sprites sheet
+const SPRITE = "../img/imagesheet.png" // sprites sheet
 const SPRITE_MAP = { 
     'ryneD': [   0,    0,  199,  199 ], 
     'ryneR': [ 200,    0,  199,  199 ],  
@@ -59,10 +54,15 @@ const SPRITE_MAP = {
     'auto':  [ 600,  600,  100,  100 ],
     'grph':  [ 700,  600,  100,  100 ],
     'quit':  [ 700,  700,  100,  100 ],
-    'bble':  [ 600,  900,  200,  100 ],        
-    'urianger':  [ 600, 1000,  200,  200 ],
-    'cursor':  [ 700, 400,  100,  100 ],        
+    'bble':  [ 600,  965,  200,  48 ],        
+    'urianger':  [ 600, 1014,  200,  200 ],
+    'cursor':  [ 600, 700,  200,  250],        
 };
+const BDOFFX = WALL + BLK_BRDR/2;
+const BDOFFY = WALL + BLK_BRDR/2 - CELL/2;
+const BDRECT = [0, 0, SCRN_W, SCRN_H];
+const BBRECT = [10, SCRN_H-210, 200, 48];
+const ULRECT = [0, 620, 200, 200];
 
 const SND_SEL = 'snd/select.wav'
 const SND_MOV = 'snd/move.wav'
@@ -183,6 +183,35 @@ function drImg(key,x,y,w,h){
     pctx.drawImage(imgSheet, ...m, x, y, w, h);
 }
 
+function drImgLight(key, x, y, w, h) {
+    let m = SPRITE_MAP[key];
+    pctx.save(); // 現在の描画状態を保存
+    // スプライト描画
+    pctx.drawImage(imgSheet, ...m, x, y, w, h);
+    // 光の設定
+    pctx.shadowColor = "rgba(255, 255, 0, 1)";
+    pctx.shadowBlur = 4;
+    pctx.shadowOffsetX = 14;
+    pctx.shadowOffsetY = 14;
+    pctx.restore(); // 描画状態を元に戻す
+}
+
+function drImgShadow(key, x, y, w, h) {
+    let m = SPRITE_MAP[key];
+    
+    pctx.save(); // 現在の状態を保存
+    
+    pctx.shadowColor = "rgba(0, 0, 0, 1)";
+    pctx.shadowBlur = 14;
+    pctx.shadowOffsetX = 14;
+    pctx.shadowOffsetY = 14;
+    
+    pctx.drawImage(imgSheet, ...m, x, y, w, h);
+    
+    pctx.restore(); // 状態を元に戻す
+}
+
+
 const ldSprite = (path) => {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -287,8 +316,7 @@ function drawBlocks() {
 		    y = 5 * CELL + BDOFFY;
 		}
 		AniIdx[1] = OrclIdx["down"] || 0;
-		
-		pctx.strokeStyle = TRANSPARENT;
+//		pctx.strokeStyle = TRANSPARENT; 
 	    } else if (MrflshAniAct && MrflshPh == 1) {        // rotation of miracle flash
 		let elapsed = performance.now() - MrflshPhST;
 		let num_frames = 4;
@@ -296,17 +324,17 @@ function drawBlocks() {
 		let idx = Math.floor((elapsed / frame_duration) % num_frames);
 		let keys = ["up", "left", "down", "right"];
 		AniIdx[1] = OrclIdx[keys[idx]] || 0;
-		pctx.strokeStyle = TRANSPARENT;
+//		pctx.strokeStyle = TRANSPARENT;
 	    } 
 	    drImg(AniIdx[1], ...rect);
 	} else {
 	    drImg(`b${bid}`, ...rect);
 	}
-	pctx.lineWidth = BLK_BRDR;
-	pctx.strokeStyle = Selected == bid ? SELECTEDCOL : TRANSPARENT;
-	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);	
+//	pctx.lineWidth = BLK_BRDR;
+//	pctx.strokeStyle = Selected == bid ? SELECTEDCOL : TRANSPARENT;
+//	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);	
 	if (Selected == bid) {
-	    drImg('cursor', ...rect);
+	    drImgShadow('cursor', ...rect);
 	}
     }
 }
@@ -390,15 +418,13 @@ function freedom() {
 
 function speakUrianger(str){
     const bblewidth = str.length * 9;
-
     drImg("bble", BBRECT[0],BBRECT[1], bblewidth, BBRECT[3]);
     pctx.textAlign = "left";    
     pctx.font = "14px IPAGothic";
     pctx.fillStyle = TXT_DARK;
-    pctx.fillText(str, ULRECT[0]+34,ULRECT[1]+14);
+    pctx.fillText(str, ULRECT[0]+34,ULRECT[1]-5);
     drImg("urianger", ...ULRECT);            
 }
-
 
 function drawAll() {
     pctx.fillStyle = FLR_COL;
