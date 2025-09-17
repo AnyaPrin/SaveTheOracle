@@ -12,6 +12,7 @@ desktop.ini
 
 # Project specific
 **/work/
+backup/
 *.blend
 *.blend1
 *.xcf

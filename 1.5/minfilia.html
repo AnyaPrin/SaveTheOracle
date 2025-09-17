@@ -29,7 +29,6 @@
 	  font-size:10pt;
 	  z-index:100;
       }
-      
       #offhcanvas {
 	  background:black;
 	  z-index:200;
@@ -48,7 +47,6 @@
 	  z-index: 200;
 	  /*          pointer-events: none; 初期状態ではクリックを無効化 */
       }
-
       #modal.is-active {
 	  left: 0; /* アクティブなときに表示する */
 	  pointer-events: auto; /* アクティブなときにクリックを有効化 */
@@ -77,14 +75,11 @@
 	  border: none;
 	  cursor: pointer;
       }
-
-      
       /* switch */
       .canvas-container {
 	  position: relative;
 	  display: inline-block;
       }
-
       /* Canvas本体 */
       #graphcanvas {
 	  position:fixed;
@@ -157,11 +152,7 @@
       input:checked + .slider-vertical:before {
 	  transform: translateY(18px);
       }
-      
-      
-      
     </style>
-    <link rel="stylesheet" href="minfilia.css">
     <script src="lib/three.min.js"></script>
     <script src="lib/GLTFLoader.js"></script>
     <script src="lib/OrbitControls.js"></script>
