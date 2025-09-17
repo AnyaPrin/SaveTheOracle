@@ -25,7 +25,7 @@
       }
       .game-canvas-container {
           position: fixed;
-          top: 100px;
+          top: 100px;	  
           left: 0;
           width: 600px;
           height: 800px;
@@ -46,65 +46,50 @@
       <h1 class="text-3xl text-gray-700">パズルゲームのメイン画面 (600x800)</h1>
     </div>
     <!-- 情報パネル -->
-    <div id="info-panel" class="info-panel side-panel" title="クリックで開閉">
+    <div id="info-panel" class="info-panel">
+      <button class="panel-close-btn">&times;</button>
       <h2>情報表示</h2>
       <p>ここにゲームに関する情報が入ります。</p>
       <p>キーボードの 'I' キーで表示/非表示</p>
     </div>
     <!-- ソルバーパネル -->
-    <div id="solver-panel" class="solver-panel side-panel" title="クリックで開閉">
+    <div id="solver-panel" class="solver-panel">
+      <button class="panel-close-btn">&times;</button>
       <h2>ソルバー機能</h2>
       <p>ここにソルバーのコンテンツが入ります。</p>
       <p>キーボードの 'S' キーで表示/非表示</p>
     </div>
 
     <script>
-      const panels = {
-          's': document.getElementById('solver-panel'),
-          'i': document.getElementById('info-panel')
-      };
-      const panelElements = Object.values(panels);
-
-      // 指定されたパネルを開き、他を閉じる
-      function openPanel(targetPanel) {
-          panelElements.forEach(p => {
-              if (p !== targetPanel) {
-                  p.classList.remove('active');
-              }
-          });
-          targetPanel.classList.add('active');
-      }
-
-      // 指定されたパネルを閉じる
-      function closePanel(targetPanel) {
-          targetPanel.classList.remove('active');
-      }
-
-      // 指定されたパネルの表示/非表示を切り替える
-      function togglePanel(targetPanel) {
-          if (targetPanel.classList.contains('active')) {
-              closePanel(targetPanel);
-          } else {
-              openPanel(targetPanel);
-          }
-      }
-
-      // キーボード操作
       document.addEventListener('keydown', (event) => {
+          const panels = {
+              's': document.getElementById('solver-panel'),
+              'g': document.getElementById('graph-panel'),
+              'i': document.getElementById('info-panel')
+          };
+
           const key = event.key.toLowerCase();
           if (panels[key]) {
-              togglePanel(panels[key]);
+              const targetPanel = panels[key];
+              const isActive = targetPanel.classList.contains('active');
+              
+              Object.values(panels).forEach(panel => {
+                  if (panel !== targetPanel) {
+                      panel.classList.remove('active');
+                  }
+              });
+              
+              if (isActive) {
+                  targetPanel.classList.remove('active');
+              } else {
+                  targetPanel.classList.add('active');
+              }
           }
       });
 
-      // パネルのはみ出し部分やパネル自体をクリックしたときの操作
-      panelElements.forEach(panel => {
-          panel.addEventListener('click', (event) => {
-              // パネル内の子要素（p, h2など）がクリックされた場合は何もしない
-              if (event.target !== panel) {
-                  return;
-              }
-              togglePanel(panel);
+      document.querySelectorAll('.panel-close-btn').forEach(button => {
+          button.addEventListener('click', (event) => {
+              event.target.closest('.side-panel').classList.remove('active');
           });
       });
     </script>

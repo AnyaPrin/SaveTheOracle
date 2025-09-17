@@ -1,12 +1,13 @@
-const graphCanvas = document.getElementById('graphcanvas');
+//const graphCanvas = document.getElementById('graphcanvas');
+const offCanvas = document.getElementById('offcanvas');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 600/700, 0.1, 1000);
 camera.position.z = 0.351;
 camera.rotation.y = 1;
 camera.rotation.x = 2;
 
-const renderer = new THREE.WebGLRenderer({ canvas: graphCanvas });
-style = getComputedStyle(graphCanvas);
+const renderer = new THREE.WebGLRenderer({ canvas: offCanvas });
+style = getComputedStyle(offCanvas);
 const GRAF_W = parseInt(style.width);
 const GRAF_H = parseInt(style.height);
 renderer.setSize(GRAF_W, GRAF_H);
@@ -78,10 +79,10 @@ loader.load(
 );
 
 window.addEventListener('resize', () => {
-    const graphCanvas = document.getElementById('graphcanvas');
-    camera.aspect = graphCanvas.clientWidth / graphCanvas.clientHeight;
+    const offCanvas = document.getElementById('offcanvas');
+    camera.aspect = offCanvas.clientWidth / offCanvas.clientHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(graphCanvas.clientWidth, graphCanvas.clientHeight);
+    renderer.setSize(offCanvas.clientWidth, offCanvas.clientHeight);
 });
 
 function animate() {                         

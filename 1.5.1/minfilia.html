@@ -50,7 +50,6 @@
           z-index: 200;
 	  /*          pointer-events: none; 初期状態ではクリックを無効化 */
       }
-      
       #modal.is-active {
 	  left: 0; /* アクティブなときに表示する */
           pointer-events: auto; /* アクティブなときにクリックを有効化 */
@@ -98,7 +97,6 @@
     <script src="lib/GLTFLoader.js"></script>
     <script src="lib/OrbitControls.js"></script>
     <title>Save The Oracle WEB 1.3</title>
-    
   </head>
   <body>
     <header>
@@ -110,10 +108,11 @@
 	<div class="modal-content" id="info">
 	  <button id="close-modal">x</button>	  
 	  <h2>Info.</h2>
-	  <h2>Sover.</h2>
+	  <h2>Solver.</h2>
 	</div>
       </div>
-      <div><canvas id="graphcanvas"></canvas></div> 
+      <canvas id="offcanvas" width="1200" height="800" style="display:none;"></canvas>
+      <div><canvas id="graphcanvas" width="1200" height="800" ></canvas></div> 
       <div><canvas id="puzzlecanvas"></canvas></div>
     </main>
     <footer>
@@ -127,6 +126,21 @@
 	  <img width="20" src="img/github-mark-white.png"> GitHub </a> </span>
     </footer>
   </body>
+  <script>
+    function openModal() {
+	const offscreen = document.getElementById("offscreenCanvas");
+	const onscreen = document.getElementById("graphcanvas");
+	const offCtx = offscreen.getContext("2d");
+	const onCtx = onscreen.getContext("2d");
+
+	// モーダル表示
+	document.getElementById("modal").classList.add("is-active");
+
+	// 内容コピー
+	onCtx.clearRect(0, 0, onscreen.width, onscreen.height);
+	onCtx.drawImage(offscreen, 0, 0);
+    }
+  </script>
   <script src="puzzle.js"></script>  
   <script src="graph1.js"></script>        
 </html>
