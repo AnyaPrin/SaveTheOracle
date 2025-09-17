@@ -1,0 +1,50 @@
+      .info-panel {
+          position: fixed;
+          top: 120px;	 /* キャンバスに合わせる */ 
+          left: 20px; /* パネルの非表示位置 端だけ見えるように調整*/
+          width: 600px; /* キャンバスの幅に合わせる */
+          height: 100px; 
+          color: white;
+          padding: 24px;
+          transition: left 0.3s ease-in-out;
+          border-radius: 0 12px 12px 0;
+          border-right: 11px solid #3a3a3a;
+          box-sizing: border-box; /* パディングを含めて幅を計算 */
+          box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);	  
+	  background-color: #010101;
+          border-right: 21px solid #013a1a;
+	  z-index: 300;	  
+      }
+      .info-panel.active {
+          left: 600px; /* パネルの表示位置 */
+      }
+      .solver-panel {
+          position: fixed;
+          top: 210px;	 /* タブを少し重ねる */ 
+          left: 20px; /* パネルの非表示位置 端だけ見えるように調整*/
+          width: 600px; /* キャンバスの幅に合わせる */
+          height: 100px; 
+          color: white;
+          padding: 24px;
+          box-shadow: 4px 0 10px rgba(0, 0, 25, 0.2);
+          transition: left 0.3s ease-in-out;
+          border-radius: 0 12px 12px 0;
+          box-sizing: border-box; /* パディングを含めて幅を計算 */
+	  background-color: #000000;
+          border-right: 21px solid #113388;
+	  z-index: 200;
+      }
+      .solver-panel.active {
+          left: 600px; /* パネルの表示位置 */
+      }
+      .panel-close-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: none;
+          border: none;
+          color: white;
+          font-size: 1.5rem;
+          cursor: pointer;
+          line-height: 1;
+      }
