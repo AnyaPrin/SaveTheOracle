@@ -63,7 +63,6 @@ const BDOFFY = WALL + BLK_BRDR/2 - CELL/2;
 const BDRECT = [0, 0, SCRN_W, SCRN_H];
 const BBRECT = [10, SCRN_H-210, 200, 48];
 const ULRECT = [0, 620, 200, 200];
-
 const SND_SEL = '../snd/select.wav'
 const SND_MOV = '../snd/move.wav'
 const SND_MIR = '../snd/miracle.wav'
@@ -72,7 +71,6 @@ const SND_SEL_VOL = 1
 const SND_MOV_VOL = 1
 const SND_MIR_VOL = 1
 const SND_CLR_VOL = 0.8
-
 const MRFLSH_ROT_DUR = 500; // Miracle Flash
 const MRFLSH_BUST_DELAY = 200;
 const FLSH_EFF_DUR = 20;
@@ -209,7 +207,6 @@ function drImgShadow(key, x, y, w, h, shadow="rgba(0, 0, 0, 1)", blur=14) {
     pctx.drawImage(imgSheet, ...m, x, y, w, h);
     pctx.restore(); // 状態を元に戻す
 }
-
 
 const ldSprite = (path) => {
     return new Promise((resolve, reject) => {
@@ -540,7 +537,6 @@ function drText(str,x,y,px) {
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, x, y);
 }
-
 
 function drawMessage() {
     pctx.font = "32px sans-serif";
