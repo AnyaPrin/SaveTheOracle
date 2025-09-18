@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgImageUrls = {
         bfs: 'bg_bfs.jpg',
         astar: 'bg_astar.jpg',
-        idastar: 'bg_cid.jpg'
+        idastar: 'bg_idastar.jpg'
     };
 
     function setContainerBackground(algo) {
