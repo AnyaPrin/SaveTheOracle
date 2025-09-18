@@ -651,6 +651,7 @@ function blkBuster(bid) {
     FlshEffST = performance.now();
     return true;
 }
+
 function activateMiracleFlsh() {
     if (MrflshAniAct) return;
     Mrbtn_used = true;
@@ -710,7 +711,6 @@ async function statStrClipboard() {
         console.error('Failed to copy statStr:', err);
     }
 }
-
 
 const onMouseDown = (e) => {
     let rect = puzzleCanvas.getBoundingClientRect();
