@@ -20,8 +20,8 @@ const TRANSPARENT = "rgba(0,0,0,0)";
 
 const GOAL_COL = "#00FF00";
 const BLK_COL = "#1564C8";
-
-const WALL_COL = "#C8C8C8";
+const BLK_BRDR_COL = "#281818";
+const WALL_COL = "#282801";
 const FLR_COL = "#0A0A0A";  // floor
 const ORCL_COL = "#C8C8B4";
 const TXT_DARK = "#002828";
@@ -330,11 +330,35 @@ function drawBlocks() {
 	} else {
 	    drImg(`b${bid}`, ...rect);
 	}
-//	pctx.lineWidth = BLK_BRDR;
-//	pctx.strokeStyle = Selected == bid ? SELECTEDCOL : TRANSPARENT;
-//	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);
+
+	// 主役(bid=1)以外のブロックに枠線を描画
+	if (bid != 1) {
+	    const borderWidth = 4;
+	    const borderRadius = 8;
+	    const borderColor = "rgba(255, 255, 224, 0.7)"; // 光をイメージした淡い黄色
+
+	    pctx.save();
+	    pctx.strokeStyle = borderColor;
+	    pctx.lineWidth = borderWidth;
+	    pctx.shadowColor = "rgba(255, 255, 224, 0.5)"; // 枠線にグロー効果を追加
+	    pctx.shadowBlur = 8;
+	    pctx.beginPath();
+	    pctx.roundRect(
+		x + borderWidth / 2, y + borderWidth / 2,
+		bw * CELL - borderWidth, bh * CELL - borderWidth,
+		borderRadius
+	    );
+	    pctx.stroke();
+	    pctx.restore();
+	}
+
 	if (Selected == bid) {
-	    drImgShadow('cursor', ...rect);
+	    // 主人公選択時は「闇」の紫色のオーラ、敵選択時は「光」の黄色のオーラ
+	    if (bid == 1) {
+		drImgShadow('cursor', ...rect, "rgba(150, 100, 255, 0.9)", 20);
+	    } else {
+		drImgShadow('cursor', ...rect, "rgba(255, 255, 0, 0.9)", 20);
+	    }
 	}
     }
 }
@@ -425,10 +449,32 @@ function speakUrianger(str){
     drImg("urianger", ...ULRECT);
 }
 
+function drawCanvasBorder() {
+    const borderWidth = 8;
+    const borderRadius = 10;
+    const borderColor = WALL_COL; // #281800
+
+    pctx.save();
+    pctx.strokeStyle = borderColor;
+    pctx.lineWidth = borderWidth;
+    pctx.beginPath();
+    // 角丸の四角形を描画
+    pctx.roundRect(
+        borderWidth / 2,
+        borderWidth / 2,
+        SCRN_W - borderWidth,
+        SCRN_H - borderWidth,
+        borderRadius
+    );
+    pctx.stroke();
+    pctx.restore();
+}
+
 function drawAll() {
     pctx.fillStyle = FLR_COL;
     drImg("wall", ...BDRECT);
 
+    drawCanvasBorder();
     drawBlocks();
     drawButtons();
     drawEffects();
