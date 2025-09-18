@@ -129,34 +129,35 @@ let gameTurns = 0;
 let gameHistory = [];
 let cursor=false;
 
-/**
- * Converts a 2D array into a game state string using character code
- * calculation for speed.
- * Numbers 1-10 are converted to A-J, and 0 is converted to a period ".".
- *
- * @param {number[][]} board - The 2D array to convert.
- * @returns {string} The converted string.
- */
-function convertWithCharCode(board) {
-    let result = '';
-    const charCodeA = 'A'.charCodeAt(0);
-    for (let row = 0; row < board.length; row++) {
-        for (let col = 0; col < board[row].length; col++) {
-            const value = board[row][col];
-            if (value === 0) {
-                result += '.';
-            } else if (value >= 1 && value <= 10) {
-                // Calculate character code: 'A' + (value - 1)
-                result += String.fromCharCode(charCodeA + value - 1);
-            } else {
-                console.error(`Unknown value in board: ${value}`);
-                // Fallback for unknown values
-                result += '?';
-            }
-        }
-    }
-    return result;
-}
+// /**
+//  * Converts a 2D array into a game state string using character code
+//  * calculation for speed.
+//  * Numbers 1-10 are converted to A-J, and 0 is converted to a period ".".
+//  *
+//  * @param {number[][]} board - The 2D array to convert.
+//  * @returns {string} The converted string.
+//  *
+// function convertWithCharCode(board) {
+//     let result = '';
+//     const charCodeA = 'A'.charCodeAt(0);
+//     for (let row = 0; row < board.length; row++) {
+//         for (let col = 0; col < board[row].length; col++) {
+//             const value = board[row][col];
+//             if (value === 0) {
+//                 result += '.';
+//             } else if (value >= 1 && value <= 10) {
+//                 // Calculate character code: 'A' + (value - 1)
+//                 result += String.fromCharCode(charCodeA + value - 1);
+//             } else {
+//                 console.error(`Unknown value in board: ${value}`);
+//                 // Fallback for unknown values
+//                 result += '?';
+//             }
+//         }
+//     }
+//     return result;
+// }
+// */
 
 let OrclIdx = {
     "down":  "ryneD",
@@ -332,7 +333,7 @@ function drawBlocks() {
 	const BLKBDR_W = 6; //  block border width
 	const BLKBDR_COL = "#1c1c1c"; // block border color
 	const BLKBDR_R = 8; // block border radius
-	
+
 	pctx.save();
 	pctx.strokeStyle = BLKBDR_COL;
 	pctx.lineWidth = BLKBDR_W;
@@ -491,7 +492,7 @@ function drawAll() {
     infoStr += `cursor   : ${cursor}\n`;
     drInfo (infoStr);
 
-    
+
 }
 
 function drInfo(str) {
@@ -590,33 +591,63 @@ function canMove(bid,mv) {
 
 function move(bid,mv) {
     gameTurns++;
-    let [bx, by] = Blks[bid].pos;
-    let [bw, bh] = Blks[bid].size;
-    for (let y=0; y<bh; ++y)
-	for (let x=0; x<bw; ++x)
-	    Brd[by+y][bx+x] = 0;
-    let [dx, dy] = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]}[mv];
-    let nx = bx + dx, ny = by + dy;
+    const [bx, by] = Blks[bid].pos;
+    const [bw, bh] = Blks[bid].size;
+    const [dx, dy] = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]}[mv];
+    const nx = bx + dx;
+    const ny = by + dy;
+
+    // --- 状態更新ロジック ---
+    // Brd, Blks, statStr を一括で更新する
+    const newChars = statStr.split('');
+    const pieceCode = Blks[bid].code;
+
+    for (let y = 0; y < bh; ++y) {
+        for (let x = 0; x < bw; ++x) {
+            // 古い位置をクリア
+            Brd[by + y][bx + x] = 0;
+            newChars[(by + y) * W + (bx + x)] = '.';
+        }
+    }
+
     Blks[bid].pos = [nx, ny];
-    for (let y=0; y<bh; ++y)
-	for (let x=0; x<bw; ++x)
-	    Brd[ny+y][nx+x] = parseInt(bid);
+
+    for (let y = 0; y < bh; ++y) {
+        for (let x = 0; x < bw; ++x) {
+            // 新しい位置に設定
+            Brd[ny + y][nx + x] = parseInt(bid);
+            newChars[(ny + y) * W + (nx + x)] = pieceCode;
+        }
+    }
+    statStr = newChars.join('');
+    // --- 状態更新ロジックここまで ---
+
     if (bid == 1 && mv in OrclIdx) {
 	AniIdx[1] = OrclIdx[mv];
 	if(IS_DEBUG) console.log(AniIdx[1]);
     }
     if (snd_move)
 	snd_move.currentTime = 0, snd_move.play();
-    statStr = convertWithCharCode(Brd);
+
 }
 
 function blkBuster(bid) {
     if (!(bid in Blks) || bid == 1 || bid == 7)
 	return false;
-    let [bx, by] = Blks[bid].pos, [bw, bh] = Blks[bid].size;
-    for (let y=0; y<bh; ++y) for (let x=0; x<bw; ++x)
-        if (0 <= by+y && by+y < H && 0 <= bx+x && bx+x < W && Brd[by+y][bx+x] == bid)
-	    Brd[by+y][bx+x] = 0;
+    const [bx, by] = Blks[bid].pos;
+    const [bw, bh] = Blks[bid].size;
+    const newChars = statStr.split('');
+
+    for (let y = 0; y < bh; ++y) {
+        for (let x = 0; x < bw; ++x) {
+            if (0 <= by + y && by + y < H && 0 <= bx + x && bx + x < W && Brd[by + y][bx + x] == bid) {
+                Brd[by + y][bx + x] = 0;
+                newChars[(by + y) * W + (bx + x)] = '.';
+            }
+        }
+    }
+    statStr = newChars.join('');
+
     delete Blks[bid];
     delete AniIdx[bid];
     if (snd_select) snd_select.currentTime = 0, snd_select.play();
@@ -799,7 +830,7 @@ window.onload = async function() {
         }
     });
 
-    
+
     const windowsClipboard = document.getElementById('clipboard');
     if (windowsClipboard) {
         windowsClipboard.addEventListener('click', statStrClipboard);
