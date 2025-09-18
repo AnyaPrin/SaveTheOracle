@@ -43,7 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     topContainer.addEventListener('click', (e) => {
-        const button = e.target.closest('button');
+        // イベント委譲(Event Delegation)パターン:
+        // 個々のボタンにイベントリスナーを設定する代わりに、親要素(topContainer)でイベントを一度に受け取る。
+        // これにより、動的にボタンが変化（探索→停止）しても、イベント処理が正しく機能する。
+        const button = e.target.closest('button'); // クリックされた要素、またはその親からボタンを探す
         if (!button || button.disabled) return;
 
         // Handle set state button
@@ -76,12 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function setContainerBackground(algo) {
-        if (lockedBgUrl) return; // Don't change if a search is running
+        // lockedBgUrlが設定されている（＝探索中）場合は、ホバーによる背景変更を無視する
+        if (lockedBgUrl) return;
 
         if (algo && bgImageUrls[algo]) {
+            // CSS変数(--after-bg-image)を動的に設定し、CSS側で::after擬似要素の背景画像として利用する。
+            // これにより、opacityを使った滑らかなフェードイン・アウトが可能になる。
             topContainer.style.setProperty('--after-bg-image', `url(${bgImageUrls[algo]})`);
             topContainer.classList.add('bg-active');
         } else {
+            // マウスが離れた場合(algoがnull)は、デフォルトの背景に戻す
             topContainer.classList.remove('bg-active');
         }
     }
@@ -91,47 +98,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const tooltip = label.querySelector('.tooltip-text');
         const startBtn = label.querySelector('.start-algorithm-btn');
 
-        const arrowMargin = 12; // 矢印の高さ(5px) + α
+        const arrowMargin = 12; // 矢印の高さ(5px) + アイコンとの隙間
 
         label.addEventListener('mouseenter', () => {
             if (startBtn) {
                 setContainerBackground(startBtn.value);
             }
             if (tooltip) {
-                // ツールチップを表示状態にしてから位置を計算
+                // ツールチップの位置を動的に計算し、画面からはみ出さないように調整する。
+                // CSSの:hoverだけでは実現が難しいため、JavaScriptで位置を計算する。
+
+                // 1. ツールチップを一旦表示状態にして、そのサイズ(tooltipRect)を取得する
                 tooltip.classList.add('visible');
                 tooltip.classList.remove('arrow-up', 'arrow-down'); // 向きをリセット
 
                 const iconRect = label.getBoundingClientRect();
                 const tooltipRect = tooltip.getBoundingClientRect();
                 const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
 
                 let top, left;
 
-                // 1. 上下に表示するか決定
+                // 2. 画面上部にはみ出すかチェックし、ツールチップをアイコンの上か下に表示するか決定
                 if (iconRect.top - tooltipRect.height - arrowMargin > 0) {
-                    // 上に表示
+                    // 上に表示するスペースがある場合
                     top = iconRect.top - tooltipRect.height - arrowMargin;
-                    tooltip.classList.add('arrow-down');
+                    tooltip.classList.add('arrow-down'); // 下向きの矢印を表示
                 } else {
-                    // 下に表示
+                    // 上にスペースがない場合は下に表示
                     top = iconRect.bottom + arrowMargin;
-                    tooltip.classList.add('arrow-up');
+                    tooltip.classList.add('arrow-up'); // 上向きの矢印を表示
                 }
 
-                // 2. 左右の位置を決定 (中央揃え)
+                // 3. 左右の位置をアイコン基準で中央揃えに計算
                 left = iconRect.left + (iconRect.width / 2) - (tooltipRect.width / 2);
 
-                // 3. 左右のはみ出しを補正
+                // 4. 画面の左右にはみ出さないように位置を補正
                 if (left < 5) { left = 5; }
                 if (left + tooltipRect.width > viewportWidth - 5) { left = viewportWidth - tooltipRect.width - 5; }
 
-                // 4. 矢印の位置をアイコンの中央に合わせる
+                // 5. 矢印の位置を、補正後のツールチップ位置に合わせて再計算し、アイコンの中央を指すように調整
                 const arrowLeft = iconRect.left + (iconRect.width / 2) - left;
                 tooltip.style.setProperty('--arrow-left', `${arrowLeft}px`);
 
-                // 5. スタイルを適用
+                // 6. 計算した最終的な位置をスタイルとして適用
                 tooltip.style.top = `${top}px`;
                 tooltip.style.left = `${left}px`;
             }
@@ -157,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let preloadedDataForSolver = null;
         if (useLocalVisited) {
-            // 開始局面が保存済みデータに含まれている場合、そのデータを使うと探索が即失敗する可能性がある。
+            // 開始局面が保存済みデータに含まれている場合、そのデータを使うと探索が即座に終了してしまう可能性がある。
             // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)
             // この場合、安全策として保存済みデータの利用を一時的に無効にする。
             if (localVisitedData.set.has(normalizedInitialState)) {
@@ -169,9 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
 
-        setUIState(true, selectedAlgorithm); // Disable UI for search
+        setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
 
-        // Lock the background image
+        // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
         topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
         topContainer.classList.add('bg-active');
@@ -256,38 +265,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSearching) {
             searchStartTime = performance.now();
             if (timerInterval) clearInterval(timerInterval);
-            // Progress is updated via onProgress callback
+            // 探索中の経過時間は onProgress コールバック内で更新される
         } else {
             if (timerInterval) clearInterval(timerInterval);
             searchStartTime = null;
-            // Unlock and revert background when search is over
+            // 探索終了後、背景画像のロックを解除し、デフォルトに戻す
             lockedBgUrl = null;
             setContainerBackground(null);
         }
 
+        // 'searching'クラスを親要素に付け外しすることで、CSS側でまとめてスタイルを制御する
         actionButtonsDiv.classList.toggle('searching', isSearching);
 
         if (isSearching) {
-            const algo = algorithm;
+            // --- 探索開始時のUI変更 ---
+            const algo = algorithm; // startSearchから渡されたアルゴリズム名
             const activeBtn = document.querySelector(`.start-algorithm-btn[value="${algo}"]`);
             if (activeBtn) {
+                // 押されたボタンを特定し、目印となるクラスを付与
                 activeBtn.parentElement.classList.add('active-search');
-                // Change to stop button
+                // 役割を「探索開始」から「停止」に変更
                 activeBtn.classList.replace('start-algorithm-btn', 'stop-btn');
+                // アイコン画像を「停止」アイコンに差し替える
                 activeBtn.querySelector('img').src = '../img/icon/stop.png';
             }
         } else { // Reverting
             const stopBtn = document.querySelector('.stop-btn');
             if (stopBtn) {
-                const algo = stopBtn.value; // The value attribute is still there
+                const algo = stopBtn.value; // ボタンのvalue属性から元のアルゴリズム名を取得
                 stopBtn.parentElement.classList.remove('active-search');
-                // Revert to start button
+                // 役割を「停止」から「探索開始」に戻す
                 stopBtn.classList.replace('stop-btn', 'start-algorithm-btn');
+                // アイコン画像を元のアルゴリズムのアイコンに戻す
                 const originalIconSrc = `../img/icon/${algo}.png`;
                 stopBtn.querySelector('img').src = originalIconSrc;
             }
         }
 
+        // 他のボタンの有効/無効状態を切り替える
         saveBtn.disabled = isSearching;
         checkDataBtn.disabled = isSearching;
         setStateBtn.disabled = isSearching;
