@@ -91,8 +91,14 @@
 	  z-index:1;
 	  border-radius: 14px;
       }
-      #graphcanvas.fade { opacity:0;  transition: opacity 0.8s ease-in-out;      }
+
+      #graphcanvas.fade {
+        opacity:0;
+        transition: opacity 0.8s ease-in-out;
+      }
+
       #graphcanvas.fade.visible {  opacity:1;      }
+
       #puzzlecanvas {
 	  display:block;
 	  position:fixed;
@@ -120,11 +126,13 @@
 	  align-items: center;
 	  justify-content: center;
       }
+
       .switch-vertical input {
 	  opacity: 0;
 	  width: 0;
 	  height: 0;
       }
+
       .slider-vertical {
 	  position: absolute;
 	  cursor: pointer;
@@ -137,6 +145,7 @@
 	  transition: 0.4s;
 	  border-radius: 8px;*/
       }
+
       .slider-vertical:before {
 	  position: absolute;
 	  content: "";
@@ -197,5 +206,6 @@
 	const canvas = document.getElementById("graphcanvas");
 	canvas.classList.toggle("visible");
     }
+
   </script>
 </html>
