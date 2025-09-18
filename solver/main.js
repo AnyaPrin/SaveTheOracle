@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
 
-    setStateBtn.addEventListener('click', handleSetState);
     solutionPathDiv.addEventListener('click', (e) => {
         const boardDiv = e.target.closest('.clickable-board');
         if (boardDiv) {
@@ -43,19 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    actionButtonsDiv.addEventListener('click', (e) => {
-        const button = e.target.closest('button.icon-btn');
+    topContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('button');
         if (!button || button.disabled) return;
 
-        if (button.classList.contains('start-algorithm-btn')) {
-            if (currentSolver) return; // A search is already running
-            startSearch(button.value);
-        } else if (button.classList.contains('stop-btn')) {
-            handleStop();
-        } else if (button.id === 'save-btn') {
-            handleSave();
-        } else if (button.id === 'check-data-btn') {
-            handleCheckData();
+        // Handle set state button
+        if (button.id === 'set-state-btn') {
+            handleSetState();
+            return;
+        }
+
+        // Handle action buttons
+        if (button.closest('.action-buttons')) {
+            if (button.classList.contains('start-algorithm-btn')) {
+                if (currentSolver) return; // A search is already running
+                startSearch(button.value);
+            } else if (button.classList.contains('stop-btn')) {
+                handleStop();
+            } else if (button.id === 'save-btn') {
+                handleSave();
+            } else if (button.id === 'check-data-btn') {
+                handleCheckData();
+            }
         }
     });
 
