@@ -29,6 +29,18 @@
 	  font-size:10pt;
 	  z-index:100;
       }
+      #solver{
+	  display:block;
+    	  font-family: 'Nimbus Mono','IPAゴシック','courier','Ariel';
+	  position:fixed;
+	  top: 64px;
+	  left: 644px;
+	  width:440px;
+	  height:320px;
+	  background:var(--panel);
+	  font-size:10pt;
+	  z-index:100;
+      }
       #offhcanvas {
 	  background:black;
 	  z-index:200;
@@ -47,6 +59,7 @@
 	  z-index: 200;
 	  /*          pointer-events: none; 初期状態ではクリックを無効化 */
       }
+      
       #modal.is-active {
 	  left: 0; /* アクティブなときに表示する */
 	  pointer-events: auto; /* アクティブなときにクリックを有効化 */
@@ -182,8 +195,7 @@
       <div class="modal-content" id="info">
 	<button id="close-modal">x</button>
 	<h2>Info.</h2>
-	<h2>Solver.</h2>
-      </div>
+	<h2>Solver.</h2>	
       </div>
       <label class="switch-vertical">
 	<input type="checkbox" id="lightSwitch" onchange="toggleFade()">
