@@ -196,18 +196,16 @@ function drImgLight(key, x, y, w, h) {
     pctx.restore(); // 描画状態を元に戻す
 }
 
-function drImgShadow(key, x, y, w, h) {
+function drImgShadow(key, x, y, w, h, shadow="rgba(0, 0, 0, 1)", blur=14) {
     let m = SPRITE_MAP[key];
 
     pctx.save(); // 現在の状態を保存
 
-    pctx.shadowColor = "rgba(0, 0, 0, 1)";
-    pctx.shadowBlur = 14;
+    pctx.shadowColor = shadow;
+    pctx.shadowBlur = blur;
     pctx.shadowOffsetX = 14;
     pctx.shadowOffsetY = 14;
-
     pctx.drawImage(imgSheet, ...m, x, y, w, h);
-
     pctx.restore(); // 状態を元に戻す
 }
 
@@ -331,34 +329,24 @@ function drawBlocks() {
 	    drImg(`b${bid}`, ...rect);
 	}
 
-	// 主役(bid=1)以外のブロックに枠線を描画
-	if (bid != 1) {
-	    const borderWidth = 4;
-	    const borderRadius = 8;
-	    const borderColor = "rgba(255, 255, 224, 0.7)"; // 光をイメージした淡い黄色
-
-	    pctx.save();
-	    pctx.strokeStyle = borderColor;
-	    pctx.lineWidth = borderWidth;
-	    pctx.shadowColor = "rgba(255, 255, 224, 0.5)"; // 枠線にグロー効果を追加
-	    pctx.shadowBlur = 8;
-	    pctx.beginPath();
-	    pctx.roundRect(
-		x + borderWidth / 2, y + borderWidth / 2,
-		bw * CELL - borderWidth, bh * CELL - borderWidth,
-		borderRadius
-	    );
-	    pctx.stroke();
-	    pctx.restore();
-	}
-
+	const BLKBDR_W = 6; //  block border width
+	const BLKBDR_COL = "#1c1c1c"; // block border color
+	const BLKBDR_R = 8; // block border radius
+	
+	pctx.save();
+	pctx.strokeStyle = BLKBDR_COL;
+	pctx.lineWidth = BLKBDR_W;
+	pctx.shadowColor = "rgba(255, 255, 224, 0.5)"; // 枠線にグロー効果を追加
+	pctx.shadowBlur = 8;
+	pctx.beginPath();
+	pctx.roundRect(
+	    x + BLKBDR_W / 2, y + BLKBDR_W / 2,
+	    bw * CELL - BLKBDR_W -1 , bh * CELL - BLKBDR_W -1 , BLKBDR_R
+	);
+	pctx.stroke();
+	pctx.restore();
 	if (Selected == bid) {
-	    // 主人公選択時は「闇」の紫色のオーラ、敵選択時は「光」の黄色のオーラ
-	    if (bid == 1) {
-		drImgShadow('cursor', ...rect, "rgba(150, 100, 255, 0.9)", 20);
-	    } else {
-		drImgShadow('cursor', ...rect, "rgba(255, 255, 0, 0.9)", 20);
-	    }
+	    drImgShadow('cursor', ...rect);
 	}
     }
 }
