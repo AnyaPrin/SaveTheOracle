@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
     let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
     let localVisitedData = { set: null, status: '未読込' };
-    let searchStartTime, timerInterval;
+    let searchStartTime, timerInterval, idaStarSpeechTimeout = null;
     let currentSolver = null;
 
     const topContainer = document.querySelector('.top-panel .container');
@@ -180,6 +180,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
 
+        // IDA*が選択された場合、30秒後にミコトさんの熱弁を表示するタイマーをセット
+        if (selectedAlgorithm === 'idastar') {
+            idaStarSpeechTimeout = setTimeout(() => {
+                alert("（ミコトが駆け寄ってくる）\n\n" +
+                    "「ちょ、ちょっと待ってください！ 聞こえましたよ！\n" +
+                    "社長のアルゴリズムが、このパズルと相性が悪かっただけなんです！ あれは『適材適所』の典型例で、社長の設計が劣っているなんてことは、断じて、断じてありませんっ！」\n\n" +
+                    "「いいですか？ A*やBFSといったアルゴリズムは、一度通った道を忘れないように、全部ノートに書き写しながら進むんです。だから、このパズルのように同じ場所を何度も通るような狭い迷宮だと、すぐにノートが真っ黒に…いえ、メモリがパンクしちゃうんです！\n\n" +
+                    "でも！ 社長の『Ironworks Designed Astar』、IDA*は違うんです！\n" +
+                    "ノートなんてほとんど使わないで、自分の足と頭、そして『これ以上進んだら無駄足だ』っていうコスト上限だけを頼りに進むんです！ だから、どんなに広大な迷宮…いえ、状態空間でも、メモリ不足の心配がないんですよ！\n\n" +
+                    "例えば、あの…ルービックキューブってありますよね？ あの組み合わせの数、4325京通り以上もあるんです！ 普通のアルゴリズムじゃ、探索を始めた瞬間にメモリが足りなくなって計算機が止まっちゃいます！\n\n" +
+                    "でも、IDA*なら…！ IDA*だけが、そんな天文学的な組み合わせの中から、最短手数解を見つけられる、事実上唯一の、本当に唯一の希望なんです！ これって、すごいことなんですよ！\n\n" +
+                    "…はっ、すみません、つい熱くなってしまいました。\n" +
+                    "とにかく、社長のアルゴリズムは、メモリという限られたリソースで最大の結果を出す、本当にすごい発明なんですっ！」");
+            }, 30000); // 30秒
+        }
+
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
         topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
@@ -216,6 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleStop() {
+        // 探索が停止されたら、ミコトさんの熱弁タイマーを解除
+        if (idaStarSpeechTimeout) {
+            clearTimeout(idaStarSpeechTimeout);
+            idaStarSpeechTimeout = null;
+        }
         if (currentSolver) {
             currentSolver.stop();
             currentSolver = null;
@@ -225,6 +246,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSuccess(result) {
+        // 探索が成功したら、ミコトさんの熱弁タイマーを解除
+        if (idaStarSpeechTimeout) {
+            clearTimeout(idaStarSpeechTimeout);
+            idaStarSpeechTimeout = null;
+        }
         const selectedAlgorithm = currentSolver.algorithm;
         const totalTime = (performance.now() - searchStartTime) / 1000;
 
@@ -241,6 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFailure() {
+        // 探索が失敗したら、ミコトさんの熱弁タイマーを解除
+        if (idaStarSpeechTimeout) {
+            clearTimeout(idaStarSpeechTimeout);
+            idaStarSpeechTimeout = null;
+        }
         const totalTime = (performance.now() - searchStartTime) / 1000;
         statusDiv.textContent = `解が見つかりませんでした。 (探索時間: ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
