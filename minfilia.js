@@ -45,7 +45,7 @@ const INIT_BOARD = [
     [7, 0, 0, 8]
 ];
 // block ID : size and position
-const INIT_BLKS = { 
+const INIT_BLKS = {
     1: {size: [2,2], pos: [1,0]},
     2: {size: [1,2], pos: [0,0]},
     3: {size: [1,2], pos: [3,0]},
@@ -75,13 +75,13 @@ function loadImage(src) {
         const img = new window.Image();
         img.onload = () => resolve(img);
         img.onerror = () => resolve(null);
-        img.src = "images/" + src;
+        img.src = "img/" + src;
     });
 }
 
 // サウンドロード
 function loadSound(src) {
-    const audio = new window.Audio("sounds/" + src);
+    const audio = new window.Audio("snd/" + src);
     return audio;
 }
 
@@ -469,7 +469,9 @@ document.addEventListener("DOMContentLoaded", function () {
     ctx.closePath();
     ctx.stroke();
     initGameState();
-    wait loadAllResources();
+});
+
+    await loadAllResources();
 
     const outputDiv = document.getElementById("output");
     if (outputDiv) {
@@ -477,6 +479,3 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         console.error("Output div not found!");
     }
-});
-
-

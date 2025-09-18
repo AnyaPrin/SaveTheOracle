@@ -15,60 +15,60 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(0, 1, 1);
 scene.add(directionalLight);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; 
+controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.screenSpacePanning = true;
-controls.minDistance = 0.1; 
+controls.minDistance = 0.1;
 controls.maxDistance = 10;
 
 const loader = new THREE.GLTFLoader();
-loader.load(                           
-    'obj/gaia_node.glb',               
-    function (gltf) {                  
+loader.load(
+    '../obj/gaia_node.glb',
+    function (gltf) {
         const model = gltf.scene;
         scene.add(model);
-        model.scale.set(1, 1, 1);      
+        model.scale.set(1, 1, 1);
         model.position.set(0, -2, 0);
         const pMat = new THREE.PointsMaterial({     // Define the material for the points (nodes)
-	    map: new THREE.TextureLoader().load('img/node.png'),
+	    map: new THREE.TextureLoader().load('../img/node.png'),
 	    color: 0x808040,
             size: 0.005,
-            sizeAttenuation: true,                // 
+            sizeAttenuation: true,                //
 	    transparent: true,
 	    opacity: 0.5,
         });
-        const meshs = [];	                   // This array will hold all 
+        const meshs = [];	                   // This array will hold all
         model.traverse(node => {                   // the mesh parts from the loaded model
             if (node.isMesh) {
                 meshs.push(node);
             }
         });
-        meshs.forEach(m => {                       // Ensure the mesh's world matrix 
+        meshs.forEach(m => {                       // Ensure the mesh's world matrix
             m.updateWorldMatrix(true, false);      // is up-to-date before we use it
-	    const mat = new THREE.PointsMaterial({ // Create the points object 
+	    const mat = new THREE.PointsMaterial({ // Create the points object
 		color: 0x00ff00,                   // from the mesh's geometry
 		size: 0.1,
 		transparent: true,
-		map: new THREE.TextureLoader().load('img/node.png'),
+		map: new THREE.TextureLoader().load('../img/node.png'),
 		alphaTest: 0.5
-	    });    
+	    });
 	    const p=new THREE.Points(m.geometry,pMat); // CRITICAL STEP: Apply the mesh's
                                                        // exact world transformation to the points.
-            p.applyMatrix4(m.matrixWorld);             // This ensures the points have the same position, 
+            p.applyMatrix4(m.matrixWorld);             // This ensures the points have the same position,
             scene.add(p);                              // rotation, and scale as the wireframe part.
-            m.material = new THREE.MeshBasicMaterial({ // Add the correctly transformed points 
-                color: 0x1238ff,                       // to the scene 
+            m.material = new THREE.MeshBasicMaterial({ // Add the correctly transformed points
+                color: 0x1238ff,                       // to the scene
                 wireframe: true,                       // Change the original mesh's material to a wireframe
-		transparent:true,                      
+		transparent:true,
 		opacity:0.5
             });
         });
     },
 
     // for progress
-    function (xhr) { 
+    function (xhr) {
 	console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    }, 
+    },
     function (error) { console.error('An error happened:', error);}
 );
 
@@ -79,9 +79,9 @@ window.addEventListener('resize', () => {
     renderer.setSize(graphCanvas.clientWidth, graphCanvas.clientHeight);
 });
 
-function animate() {                         
+function animate() {
     requestAnimationFrame(animate);
-    controls.update();                       
+    controls.update();
     if (scene.children.length > 0) {
         scene.children[1].rotation.x += 0.005;
         scene.children[1].rotation.y += 0.005;

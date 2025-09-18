@@ -84,12 +84,12 @@
       #graphcanvas {
 	  position:fixed;
 	  top: 60px;
-	  left: 640px; 
+	  left: 640px;
 	  width:1024px;
 	  height:800px;
 	  background:black;
 	  z-index:1;
-	  border-radius: 14px;	  	  
+	  border-radius: 14px;
       }
       #graphcanvas.fade { opacity:0;  transition: opacity 0.8s ease-in-out;      }
       #graphcanvas.fade.visible {  opacity:1;      }
@@ -102,9 +102,9 @@
 	  height:800px;
 	  background:black;
 	  z-index:1200;
-	  border-radius: 14px;	  
+	  border-radius: 14px;
       }
-      
+
       /* スイッチ配置 */
       .switch-vertical {
 	  position: fixed;
@@ -118,7 +118,7 @@
 	  box-shadow: inset 0 0 5px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.3);
 	  display: flex;
 	  align-items: center;
-	  justify-content: center;	  
+	  justify-content: center;
       }
       .switch-vertical input {
 	  opacity: 0;
@@ -129,8 +129,8 @@
 	  position: absolute;
 	  cursor: pointer;
 	  background: radial-gradient(circle at 30% 30%, #000, #012158);
-	  box-shadow: 1px 1px 1px rgba(24,20,84,0.4); 
-	  border: 2px solid #032389;	  
+	  box-shadow: 1px 1px 1px rgba(24,20,84,0.4);
+	  border: 2px solid #032389;
 	  top: 0; left: 0;
 	  right: 0; bottom: 0;
 	  background-color: #032359;
@@ -142,7 +142,7 @@
 	  content: "";
 	  width: 17px; height: 18px;
 	  left: 0px; top: 0.5px;
-	  background: radial-gradient(circle at 30% 30%, #697952, #1a238c);	  
+	  background: radial-gradient(circle at 30% 30%, #697952, #1a238c);
 	  transition: 0.5s;
 	  border-radius: 8px;
       }
@@ -153,11 +153,11 @@
 	  transform: translateY(18px);
       }
     </style>
-    <script src="lib/three.min.js"></script>
-    <script src="lib/GLTFLoader.js"></script>
-    <script src="lib/OrbitControls.js"></script>
-    <script src="lib/common.js"></script>        
-    <title>Save The Oracle WEB v1.5</title>
+    <script src="../lib/three.min.js"></script>
+    <script src="../lib/GLTFLoader.js"></script>
+    <script src="../lib/OrbitControls.js"></script>
+    <script src="../lib/common.js"></script>
+    <title>Save The Oracle WEB v1.6</title>
   </head>
   <body>
     <header>
@@ -167,11 +167,11 @@
     <main>
       <canvas id="puzzlecanvas" class="fade"></canvas>
       <canvas id="graphcanvas" class="fade"></canvas>
-      <div id="modal">      
+      <div id="modal">
       <div class="modal-content" id="info">
 	<button id="close-modal">x</button>
 	<h2>Info.</h2>
-	<h2>Sover.</h2>
+	<h2>Solver.</h2>
       </div>
       </div>
       <label class="switch-vertical">

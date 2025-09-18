@@ -15,7 +15,7 @@ const SCRN_W = parseInt(style.width);//600
 const SCRN_H = parseInt(style.height);// 800
 console.log("w,h:",SCRN_W,SCRN_H)
 
-const SELECTEDCOL = "rgba(215,225,2,0.5)"; 
+const SELECTEDCOL = "rgba(215,225,2,0.5)";
 const TRANSPARENT = "rgba(0,0,0,0)";
 
 const GOAL_COL = "#00FF00";
@@ -31,22 +31,22 @@ const CLR_TXT_COL = TXT_LIGHT;
 const DRAG_THLD = CELL * 0.5; // mouse drag sensibility 0<fast<->slow >1
 
 const SPRITE = "../img/imagesheet.png" // sprites sheet
-const SPRITE_MAP = { 
-    'ryneD': [   0,    0,  199,  199 ], 
-    'ryneR': [ 200,    0,  199,  199 ],  
+const SPRITE_MAP = {
+    'ryneD': [   0,    0,  199,  199 ],
+    'ryneR': [ 200,    0,  199,  199 ],
     'ryneU': [ 400,    0,  199,  199 ],
     'ryneL': [ 600,    0,  199,  199 ],
-    'b1':    [   0,    0,  200,  200 ],     
+    'b1':    [   0,    0,  200,  200 ],
     'b2':    [   0,  200,  100,  200 ],
     'b3':    [ 100,  200,  100,  200 ],
-    'b4':    [ 200,  200,  100,  200 ],        
+    'b4':    [ 200,  200,  100,  200 ],
     'b5':    [ 300,  200,  100,  200 ],
     'b6':    [ 400,  200,  200,  100 ],
     'b7':    [ 600,  300,  100,  100 ],
     'b8':    [ 700,  300,  100,  100 ],
     'b9':    [ 600,  200,  100,  100 ],
     'b10':   [ 700,  200,  100,  100 ],
-    'hint':  [ 600,  600,  100,  100 ],    
+    'hint':  [ 600,  600,  100,  100 ],
     'rtry':  [ 700,  600,  100,  100 ],
     'mrcl':  [ 600,  500,  100,  100 ],
     'mrcl2': [ 700,  500,  100,  100 ],
@@ -54,9 +54,9 @@ const SPRITE_MAP = {
     'auto':  [ 600,  600,  100,  100 ],
     'grph':  [ 700,  600,  100,  100 ],
     'quit':  [ 700,  700,  100,  100 ],
-    'bble':  [ 600,  965,  200,  48 ],        
+    'bble':  [ 600,  965,  200,  48 ],
     'urianger':  [ 600, 1014,  200,  200 ],
-    'cursor':  [ 600, 700,  200,  250],        
+    'cursor':  [ 600, 700,  200,  250],
 };
 const BDOFFX = WALL + BLK_BRDR/2;
 const BDOFFY = WALL + BLK_BRDR/2 - CELL/2;
@@ -64,10 +64,10 @@ const BDRECT = [0, 0, SCRN_W, SCRN_H];
 const BBRECT = [10, SCRN_H-210, 200, 48];
 const ULRECT = [0, 620, 200, 200];
 
-const SND_SEL = 'snd/select.wav'
-const SND_MOV = 'snd/move.wav'
-const SND_MIR = 'snd/miracle.wav' 
-const SND_CLR = 'snd/clear.wav'
+const SND_SEL = '../snd/select.wav'
+const SND_MOV = '../snd/move.wav'
+const SND_MIR = '../snd/miracle.wav'
+const SND_CLR = '../snd/clear.wav'
 const SND_SEL_VOL = 1
 const SND_MOV_VOL = 1
 const SND_MIR_VOL = 1
@@ -85,18 +85,18 @@ const INIT_BRD = [
     [2, 1,   1, 3],
     [2, 1,   1, 3],
     [4, 6,   6, 5],
-    [4, 9,  10, 5], 
-    [7, 0, 0, 8]    
-]; 
+    [4, 9,  10, 5],
+    [7, 0, 0, 8]
+];
 // 同じ数字は同じ駒で一つのブロック(ひとかたまりで動く)。しかし、
 // 0 は穴を現している。0が並んでいてもひとつのブロック（ひとかたまり）ではないことに注意
 // ２つの穴は、それぞれ場所を変えうる。
 
 const INIT_BLKS = {
-    1:  {size: [2,2], pos: [1,0], code: 'A', }, 
+    1:  {size: [2,2], pos: [1,0], code: 'A', },
     2:  {size: [1,2], pos: [0,0], code: 'B', },
-    3:  {size: [1,2], pos: [3,0], code: 'C', }, 
-    4:  {size: [1,2], pos: [0,2], code: 'D', }, 
+    3:  {size: [1,2], pos: [3,0], code: 'C', },
+    4:  {size: [1,2], pos: [0,2], code: 'D', },
     5:  {size: [1,2], pos: [3,2], code: 'E', },
     6:  {size: [2,1], pos: [1,2], code: 'F', },
     7:  {size: [1,1], pos: [0,4], code: 'G', },
@@ -198,16 +198,16 @@ function drImgLight(key, x, y, w, h) {
 
 function drImgShadow(key, x, y, w, h) {
     let m = SPRITE_MAP[key];
-    
+
     pctx.save(); // 現在の状態を保存
-    
+
     pctx.shadowColor = "rgba(0, 0, 0, 1)";
     pctx.shadowBlur = 14;
     pctx.shadowOffsetX = 14;
     pctx.shadowOffsetY = 14;
-    
+
     pctx.drawImage(imgSheet, ...m, x, y, w, h);
-    
+
     pctx.restore(); // 状態を元に戻す
 }
 
@@ -223,14 +223,14 @@ const ldSprite = (path) => {
 
 const ldSound = (path) => {
     return new Promise((resolve, reject) => {
-        const audio = new window.Audio(path); 
+        const audio = new window.Audio(path);
         audio.addEventListener('canplaythrough', () => {
             resolve(audio);
         });
         audio.addEventListener('error', (e) => {
             reject(new Error(`Failed to load audio from ${path}`));
         });
-        audio.load();   
+        audio.load();
     });
 };
 async function loadAllResources () {
@@ -266,19 +266,19 @@ function initGameState() {
 
     Selected = Brd[0][4] || 7;    // when game start cursor set Suncred
     cursorRect = [BDOFFX, BDOFFY+CELL*4, CELL, CELL];
-    
-    clr = false;           // game clear flag  
+
+    clr = false;           // game clear flag
     PClr = false;          // pre game clear flag
-    clrAni = false;        // clear animation flag 
-    clrAniSTM = 0;         // 
+    clrAni = false;        // clear animation flag
+    clrAniSTM = 0;         //
     isDrag = false;
-    DSMP = [0,0];    
+    DSMP = [0,0];
     blkPos = [0,0];        // block position
     Mrbtn_used = false;    // Miracle Flash button flag
-    MrflshAniAct = false;  
+    MrflshAniAct = false;
     MrflshPh = 0;
     MrflshPhST = 0;
-    MrflshBlkBust = [];    
+    MrflshBlkBust = [];
     FlshEffAct = false;
     FlshEffST = 0;
     clr_Mrplayed = false;
@@ -302,7 +302,7 @@ function drawBlocks() {
 	let y = by * CELL + BDOFFY;
 	const rect = [x, y, bw*CELL, bh*CELL];
 	cursor = true;
-	
+
 	if (bid==1 && AniIdx[1]) {
 	    cursor = false;
 	    if (clrAni) {
@@ -316,7 +316,7 @@ function drawBlocks() {
 		    y = 5 * CELL + BDOFFY;
 		}
 		AniIdx[1] = OrclIdx["down"] || 0;
-//		pctx.strokeStyle = TRANSPARENT; 
+//		pctx.strokeStyle = TRANSPARENT;
 	    } else if (MrflshAniAct && MrflshPh == 1) {        // rotation of miracle flash
 		let elapsed = performance.now() - MrflshPhST;
 		let num_frames = 4;
@@ -325,14 +325,14 @@ function drawBlocks() {
 		let keys = ["up", "left", "down", "right"];
 		AniIdx[1] = OrclIdx[keys[idx]] || 0;
 //		pctx.strokeStyle = TRANSPARENT;
-	    } 
+	    }
 	    drImg(AniIdx[1], ...rect);
 	} else {
 	    drImg(`b${bid}`, ...rect);
 	}
 //	pctx.lineWidth = BLK_BRDR;
 //	pctx.strokeStyle = Selected == bid ? SELECTEDCOL : TRANSPARENT;
-//	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);	
+//	pctx.strokeRect(x+BLK_BRDR/2, y+BLK_BRDR/2, bw*CELL-BLK_BRDR, bh*CELL-BLK_BRDR);
 	if (Selected == bid) {
 	    drImgShadow('cursor', ...rect);
 	}
@@ -351,7 +351,7 @@ let mkStatStr = (character) => {
 }
 
 let infoBm,infoShift,infoC,infoHall;
-const UP =    0b11110000000000000000; 
+const UP =    0b11110000000000000000;
 const DOWN =  0b00000000000000001111;
 const LEFT =  0b10001000100010001000;
 const RIGHT = 0b00010001000100010001;
@@ -359,7 +359,7 @@ function freedom() {
     const block = 'ABCDEFGHIJ';
     let bm,shift;
     let res=0;
-    // WALL    
+    // WALL
     /** 1. make void position bitmask(bm) from statStr (ex. bmv=0b0000 0000 0000 0000 0110) */
     const hallbm = mkStatStr('.');
     infoHall=hallbm;
@@ -375,15 +375,15 @@ function freedom() {
 	// UP
 	if((bm & UP) === 0) { // その駒は最上段にいない。
 	    shift = bm<<4;
-	    infoShift=shift;	
+	    infoShift=shift;
     	    if ((shift & hallbm) === shift ) {
 		res++;
 	    }
 	}
     	// DOWN
-	if((bm & DOWN) === 0) { 
+	if((bm & DOWN) === 0) {
 	    shift = bm>>>4;
-    	    if ((shift & hallbm) === shift ) { 
+    	    if ((shift & hallbm) === shift ) {
 		res++;
 	    }
 	}
@@ -418,11 +418,11 @@ function freedom() {
 function speakUrianger(str){
     const bblewidth = str.length * 9;
     drImg("bble", BBRECT[0],BBRECT[1], bblewidth, BBRECT[3]);
-    pctx.textAlign = "left";    
+    pctx.textAlign = "left";
     pctx.font = "14px IPAGothic";
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, ULRECT[0]+34,ULRECT[1]-5);
-    drImg("urianger", ...ULRECT);            
+    drImg("urianger", ...ULRECT);
 }
 
 function drawAll() {
@@ -434,7 +434,7 @@ function drawAll() {
     drawEffects();
     drawMessage();
     let str,x,y;
-    
+
     // Draw thus speaks Urianger
 
     Freedom = freedom();
@@ -442,10 +442,10 @@ function drawAll() {
     str="Goodspeed Sancred ...";
     speakUrianger(str);
 
-    
+
     // 追加するデバッグ情報
     let infoStr	= `Infomation\n`;
-    infoStr += `Game Turns k   : ${gameTurns}\n`;                    
+    infoStr += `Game Turns k   : ${gameTurns}\n`;
     infoStr += `Miracle Used   : ${Mrbtn_used ? 'Yes' : 'No'}\n`;
     infoStr += `Freedom Degree : ${Freedom}\n`;
     infoStr += `Selected Block : ${Selected} ${".ABCDEFGHIJ"[Selected]}\n`;
@@ -455,8 +455,8 @@ function drawAll() {
     infoStr += `Block bitmap   : ${infoBm.toString(2).padStart(20,"0")}\n`;
     infoStr += `Hall bitmask   : ${infoHall.toString(2).padStart(20,"0")}\n`;
     infoStr += `blkPos   : ${blkPos}\n`;
-    infoStr += `cursor   : ${cursor}\n`;            
-    drInfo (infoStr);    
+    infoStr += `cursor   : ${cursor}\n`;
+    drInfo (infoStr);
 }
 
 function drInfo(str) {
@@ -479,27 +479,27 @@ const drawEffects = () => {
 	    pctx.fillRect(...BDRECT);
         }
     }
-} 
+}
 function drText(str,x,y,px) {
     const dw=1;
-    pctx.textAlign = "left";    
+    pctx.textAlign = "left";
     pctx.font = px+"px sans-serif";
 //    pctx.fillStyle = "rgba(0,0,0,1)";      // shadow
 //    pctx.fillText(str, x + dw, y + dw);
 //    pctx.fillStyle = "rgba(28,28,28,1)";     // pseudo3D-text
-//    pctx.fillText(str, x + dw, y + dw); 
+//    pctx.fillText(str, x + dw, y + dw);
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, x, y);
 }
 
 function drText(str,x,y,px) {
     const dw=1;
-    pctx.textAlign = "left";    
+    pctx.textAlign = "left";
     pctx.font = px+"px sans-serif";
 //    pctx.fillStyle = "rgba(0,0,0,1)";      // shadow
 //    pctx.fillText(str, x + dw, y + dw);
 //    pctx.fillStyle = "rgba(28,28,28,1)";     // pseudo3D-text
-//    pctx.fillText(str, x + dw, y + dw); 
+//    pctx.fillText(str, x + dw, y + dw);
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, x, y);
 }
@@ -520,7 +520,7 @@ function canMove(bid,mv) {
     const blockChar = Blks[bid].code;          // 1. 駒のビットマップと、ボード全体の空白マスビットマップを取得
     const blockBm = mkStatStr(blockChar);
     const hallBm = mkStatStr('.') | mkStatStr(blockChar); // 自分自身との衝突を防ぐため一時的に空白とする
-    
+
     let shiftedBlockBm;                        // 2. 移動方向に応じたシフトと、ボードの境界チェック
     switch (mv) {
     case "up":
@@ -530,8 +530,8 @@ function canMove(bid,mv) {
     case "down":
         if ((blockBm & DOWN) !== 0) return false;
         shiftedBlockBm = blockBm >>> 4;
-	
-	
+
+
 	if (bid==5){
 	    console.log(`shiftedBlockBm:${shiftedBlockBm.toString(2).padStart(20,"-")}`);
 	}
@@ -547,12 +547,12 @@ function canMove(bid,mv) {
     default:
         return false;
     }
-    
+
     const a = (shiftedBlockBm & hallBm);
     const b =  a === shiftedBlockBm;
 
-    
-    return b;// 3. 移動後の位置がすべて空白マスであるか判定		
+
+    return b;// 3. 移動後の位置がすべて空白マスであるか判定
 }
 
 function move(bid,mv) {
@@ -595,7 +595,7 @@ function blkBuster(bid) {
 function activateMiracleFlsh() {
     if (MrflshAniAct) return;
     Mrbtn_used = true;
-    MrflshAniAct = true; 
+    MrflshAniAct = true;
     MrflshPh = 1;
     MrflshPhST = performance.now();
     let obid = 1;
@@ -621,7 +621,7 @@ const onMouseMove = (e) => {
     let rect = puzzleCanvas.getBoundingClientRect();
     let x = e.clientX - rect.left;
     let y = e.clientY - rect.top;
-    let [sx, sy] = DSMP;    
+    let [sx, sy] = DSMP;
     let dx = x - sx;
     let dy = y - sy;
     let mv;
@@ -633,10 +633,10 @@ const onMouseMove = (e) => {
 	    startClrAni();
         } else if ( canMove(Selected,mv) ) {
 	    move(Selected, mv);
-	    DSMP = [x, y];                   //  Selected position	    
+	    DSMP = [x, y];                   //  Selected position
 	    blkPos = [...Blks[Selected].pos];  //  Selected block position
         } else {
-	    DSMP = [x, y];                   //  Selected position	    
+	    DSMP = [x, y];                   //  Selected position
 	    blkPos = [...Blks[Selected].pos];  //
         }
     }
@@ -650,7 +650,7 @@ const onMouseDown = (e) => {
     let grid_x=gx;
     let grid_y=gy;
     if (x >= rtryRect[0] && x <= rtryRect[0]+CELL && y >= rtryRect[1] && y <= rtryRect[1]+CELL) {
-        loadAllResources().then(drawAll);	
+        loadAllResources().then(drawAll);
         initGameState();
         return;
     }
@@ -662,7 +662,7 @@ const onMouseDown = (e) => {
                 if (Selected != clicked_bid && snd_select) snd_select.currentTime = 0, snd_select.play();
                 Selected = clicked_bid;
                 isDrag = true;
-                DSMP = [x, y];		
+                DSMP = [x, y];
                 blkPos = [...Blks[Selected].pos];
 	    }
         }
@@ -670,7 +670,7 @@ const onMouseDown = (e) => {
         if (x >= mrclRect[0] && x <= mrclRect[0]+CELL && y >= mrclRect[1] && y <= mrclRect[1]+CELL) {
 	    activateMiracleFlsh();
         }
-	
+
     }
 }
 
@@ -686,7 +686,7 @@ function updateGameState() {
 	    clr = true;
         }
     }
-    // Miracle Flsh 
+    // Miracle Flsh
     if (MrflshAniAct) {
         let elapsed = now - MrflshPhST;
         if (MrflshPh == 1 && elapsed >= MRFLSH_ROT_DUR) {
@@ -743,7 +743,7 @@ window.onload = async function() {
     puzzleCanvas.width  = SCRN_W;
     puzzleCanvas.height = SCRN_H;
     initGameState();
-    
+
     await loadAllResources();
 
     puzzleCanvas.addEventListener("mouseenter", () => isMouseOverCanvas = true);
@@ -755,7 +755,7 @@ window.onload = async function() {
             modal.classList.toggle('is-active');
         }
     });
-    
+
     puzzleCanvas.addEventListener("mousedown", onMouseDown);
     puzzleCanvas.addEventListener("mousemove", onMouseMove);
     puzzleCanvas.addEventListener("mouseup", onMouseUp);
