@@ -64,6 +64,7 @@
 	  left: 0; /* アクティブなときに表示する */
 	  pointer-events: auto; /* アクティブなときにクリックを有効化 */
       }
+      
       .modal-content {
 	  background-color: var(--panel);
 	  padding: 2em;
@@ -176,12 +177,29 @@
       input:checked + .slider-vertical:before {
 	  transform: translateY(18px);
       }
+      
+      .icon-btn img {
+          width: 24px;
+          height: 24px;
+      }
+      #clipboard {
+	  position:fixed;
+	  top:10px;
+	  right:50px;
+	  width:0;
+	  height:0;
+	  diplay: none;
+	  z-index:2000;
+      }
     </style>
     <script src="../lib/three.min.js"></script>
     <script src="../lib/GLTFLoader.js"></script>
     <script src="../lib/OrbitControls.js"></script>
     <script src="../lib/common.js"></script>
     <title>Save The Oracle WEB v1.6</title>
+      <button id="clipboard" class="icon-btn" >
+	<img src="../img/icon/clipboard.png" alt="statStr copy to Clipboard">
+      </button>      
   </head>
   <body>
     <header>
@@ -202,8 +220,10 @@
 	<span class="slider-vertical"></span>
 	<div class="switch-label">nodes</div>
       </label>
+      
     </main>
     <footer>
+
       <hr>
       画像:FINAL FANTASY XIV ⒸSQUARE ENIX <br>
       効果音: windows10 microsoft<br>
@@ -216,7 +236,7 @@
   </body>
   <script src="puzzle.js"></script>
   <script src="graph.js"></script>
-  <script >
+  <script>
     function toggleFade() {
 	const canvas = document.getElementById("graphcanvas");
 	canvas.classList.toggle("visible");

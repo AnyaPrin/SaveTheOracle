@@ -77,7 +77,6 @@ const MRFLSH_ROT_DUR = 500; // Miracle Flash
 const MRFLSH_BUST_DELAY = 200;
 const FLSH_EFF_DUR = 20;
 const FLSH_COL = "rgba(255,255,200,";
-
 const initStr="BAACBAACDFFEDIJEG..H";
 let statStr=initStr;
 
@@ -127,6 +126,7 @@ let Mrbtn_used, MrflashAniAct, MrflshPh, MrflshPhST, MrflshBlkBust;
 let FlshEffAct, FlshEffST, clr_Mrplayed;
 let Freedom = 0;
 let gameTurns = 0;
+let gameHistory = [];
 let cursor=false;
 
 /**
@@ -476,7 +476,6 @@ function drawAll() {
     str="Goodspeed Sancred ...";
     speakUrianger(str);
 
-
     // 追加するデバッグ情報
     let infoStr	= `Infomation\n`;
     infoStr += `Game Turns k   : ${gameTurns}\n`;
@@ -491,6 +490,8 @@ function drawAll() {
     infoStr += `blkPos   : ${blkPos}\n`;
     infoStr += `cursor   : ${cursor}\n`;
     drInfo (infoStr);
+
+    
 }
 
 function drInfo(str) {
@@ -514,6 +515,7 @@ const drawEffects = () => {
         }
     }
 }
+
 function drText(str,x,y,px) {
     const dw=1;
     pctx.textAlign = "left";
@@ -554,7 +556,6 @@ function canMove(bid,mv) {
     const blockChar = Blks[bid].code;          // 1. 駒のビットマップと、ボード全体の空白マスビットマップを取得
     const blockBm = mkStatStr(blockChar);
     const hallBm = mkStatStr('.') | mkStatStr(blockChar); // 自分自身との衝突を防ぐため一時的に空白とする
-
     let shiftedBlockBm;                        // 2. 移動方向に応じたシフトと、ボードの境界チェック
     switch (mv) {
     case "up":
@@ -564,8 +565,6 @@ function canMove(bid,mv) {
     case "down":
         if ((blockBm & DOWN) !== 0) return false;
         shiftedBlockBm = blockBm >>> 4;
-
-
 	if (bid==5){
 	    console.log(`shiftedBlockBm:${shiftedBlockBm.toString(2).padStart(20,"-")}`);
 	}
@@ -610,7 +609,6 @@ function move(bid,mv) {
 	snd_move.currentTime = 0, snd_move.play();
     statStr = convertWithCharCode(Brd);
 }
-
 
 function blkBuster(bid) {
     if (!(bid in Blks) || bid == 1 || bid == 7)
@@ -675,6 +673,17 @@ const onMouseMove = (e) => {
         }
     }
 }
+
+// save statStr in windows clipboard
+async function statStrClipboard() {
+    try {
+        await navigator.clipboard.writeText(statStr);
+        console.log('statStr copied to windows clipboard successfully!');
+    } catch (err) {
+        console.error('Failed to copy statStr:', err);
+    }
+}
+
 
 const onMouseDown = (e) => {
     let rect = puzzleCanvas.getBoundingClientRect();
@@ -789,6 +798,12 @@ window.onload = async function() {
             modal.classList.toggle('is-active');
         }
     });
+
+    
+    const windowsClipboard = document.getElementById('clipboard');
+    if (windowsClipboard) {
+        windowsClipboard.addEventListener('click', statStrClipboard);
+    }
 
     puzzleCanvas.addEventListener("mousedown", onMouseDown);
     puzzleCanvas.addEventListener("mousemove", onMouseMove);
