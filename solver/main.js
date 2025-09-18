@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
 
-        setUIState(true); // Disable UI for search
+        setUIState(true, selectedAlgorithm); // Disable UI for search
 
         // Lock the background image
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressDetailsDiv.innerHTML = html;
     }
 
-    function setUIState(isSearching) {
+    function setUIState(isSearching, algorithm = null) {
         if (isSearching) {
             searchStartTime = performance.now();
             if (timerInterval) clearInterval(timerInterval);
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actionButtonsDiv.classList.toggle('searching', isSearching);
 
         if (isSearching) {
-            const algo = currentSolver.algorithm;
+            const algo = algorithm;
             const activeBtn = document.querySelector(`.start-algorithm-btn[value="${algo}"]`);
             if (activeBtn) {
                 activeBtn.parentElement.classList.add('active-search');
