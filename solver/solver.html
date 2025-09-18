@@ -52,7 +52,8 @@
       }
 
       .container {
-          background-image: url(bg_solver.jpg);
+          position: relative;
+          z-index: 1;
           background-size: cover;
           background-repeat: no-repeat;
           background-position: left;
@@ -61,12 +62,36 @@
           width:60%;
           margin: 0 20px 0;
           padding: 14px 25px 0; /* 上、左右、下 */
-          background-color: var(--surface-color);
+          background-color: rgba(44, 44, 44, 0.85); /* 背景画像が見えるように半透明のオーバーレイに変更 */
           border-radius: 18px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
           text-align: left;
       }
 
+      .container::before, .container::after {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-position: left;
+          border-radius: 18px; /* Match container's border-radius */
+          z-index: -1;
+      }
+
+      .container::before {
+          background-image: url(bg_solver.jpg);
+      }
+
+      .container::after {
+          background-image: var(--after-bg-image, none);
+          opacity: 0;
+          transition: opacity 0.4s ease-in-out;
+      }
+
+      .container.bg-active::after {
+          opacity: 1;
+      }
 
       .bottom-panel .container {
           padding-left: 0;
@@ -137,10 +162,9 @@
           transform: none;
       }
       .icon-btn img {
-          width: 52px;
-          height: 52px;
+          width: 58px;
+          height: 58px;
       }
-
       /* Icon-based UI styles */
       .action-buttons, .icon-group {
           display: flex;
@@ -196,12 +220,6 @@
           box-shadow: none;
       }
 
-      /* For radio/checkbox icons */
-      .icon-group label {
-          position: relative;
-          display: block;
-      }
-
       /* Hide the actual radio/checkbox input */
       .icon-group input {
           position: absolute;
@@ -217,11 +235,14 @@
       }
 
       #search-summary {
-          background-color: var(--surface-color);
+          background-color: rgba(44, 44, 44, 0.5); /* 半透明の背景 */
+          backdrop-filter: blur(4px); /* すりガラス効果 */
+          -webkit-backdrop-filter: blur(4px); /* Safari用 */
           border-radius: 8px;
           padding: 15px 25px;
           margin-bottom: 20px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.1); /* 境界線を少し見せる */
       }
 
       #progress-details {
@@ -274,63 +295,6 @@
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
-      .step-board.clickable-board {
-          cursor: pointer;
-          transition: border-color 0.2s ease;
-      }
-      .step-board.clickable-board:hover {
-          border-color: var(--primary-accent-color);
-      }
-      .moved-piece {
-          color: var(--success-color);
-          font-weight: bold;
-      }
-
-      /* The visible part of the icon button for radio/checkbox */
-      .icon-label {
-          display: flex;
-          width: 40px;
-          height: 40px;
-          background-color: #3a3a3a;
-          border: 0px solid #5a5a5a;
-          align-items: center;
-          justify-content: center;
-          font-size: 1em;
-          font-weight: bold;
-          color: var(--primary-text-color);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          user-select: none;
-      }
-
-      .icon-label img {
-          width: 42px;
-          height: 42px;
-      }
-
-      .icon-group label:hover .icon-label {
-          background-color: #4a4a4a;
-          border-color: var(--primary-accent-color);
-      }
-
-      .algorithm-selection {
-          margin: 20px 0;
-          display: flex;
-          align-items: center;
-      }
-      .algorithm-selection p {
-          margin: 0 10px 0 0;
-          font-weight: bold;
-          color: var(--primary-text-color);
-      }
-
-      /* Style for when the hidden input is checked */
-      .icon-group input:checked + .icon-label {
-          background-color: var(--secondary-accent-color);
-          border-color: var(--primary-accent-color);
-          box-shadow: 0 0 10px var(--primary-accent-color);
-      }
-
       /* Style for when the hidden input is disabled */
       .icon-group input:disabled + .icon-label {
           background-color: #2a2a2a;
@@ -339,6 +303,21 @@
           cursor: not-allowed;
           box-shadow: none;
       }
+
+    .step-board.clickable-board {
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+    }
+    .step-board.clickable-board:hover {
+        border-color: var(--primary-accent-color);
+    }
+    .moved-piece {
+        color: var(--success-color);
+        font-weight: bold;
+    }
+
+
+
 
       .board-input-container {
           display: flex;
@@ -392,41 +371,57 @@
           margin-left: 20px; /* IDA*を他のアイコンから離す */
       }
 
+      .icon-btn-label {
+          position: relative;
+          display: inline-block;
+      }
+
 
        /* --- Tooltip Styles --- */
-       .icon-group label .tooltip-text {
+       .tooltip-text {
            visibility: hidden;
            width: 280px; /* ツールチップの幅 */
-           background-color: #333;
+           background-color: rgba(44, 44, 44, 0.1); /* 半透明の背景 */
+           backdrop-filter: blur(4px); /* すりガラス効果 */
+           -webkit-backdrop-filter: blur(4px); /* Safari用 */
            color: var(--primary-text-color);
            text-align: left;
            border-radius: 6px;
            padding: 10px 15px;
-           position: absolute;
-           z-index: 10;
-           bottom: 120%; /* アイコンの上に表示 */
-           left: 50%;
-           transform: translateX(-50%);
+           position: fixed; /* JSでビューポート基準の位置を計算するため */
+           z-index: 1000;
            opacity: 0;
            transition: opacity 0.3s ease;
            font-size: 0.9em;
            line-height: 1.5;
            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
            pointer-events: none; /* ツールチップ自体がマウスイベントを妨げないようにする */
+           --arrow-left: 50%; /* JSから矢印の位置を動的に設定するためのCSS変数 */
        }
        /* ツールチップの矢印 */
-       .icon-group label .tooltip-text::after {
+       .tooltip-text::after {
            content: "";
            position: absolute;
-           top: 100%;
-           left: 50%;
-           margin-left: -5px;
+           left: var(--arrow-left);
+           transform: translateX(-50%);
            border-width: 5px;
            border-style: solid;
-           border-color: #333 transparent transparent transparent;
        }
+
+       /* 上に表示する場合の矢印（下向き） */
+       .tooltip-text.arrow-down::after {
+           top: 100%;
+           border-color:rgba(44, 44, 44, 0.85) transparent transparent transparent;
+       }
+
+       /* 下に表示する場合の矢印（上向き） */
+       .tooltip-text.arrow-up::after {
+           bottom: 100%;
+           border-color: transparent transparent rgba(44, 44, 44, 0.85) transparent;
+       }
+
        /* ホバー時にツールチップを表示 */
-       .icon-group label:hover .tooltip-text {
+       .tooltip-text.visible {
            visibility: visible;
            opacity: 1;
        }
@@ -447,39 +442,6 @@
 		 title="20文字の盤面状態 (A-Z, .)">
           <button id="set-state-btn">OK </button> <div id="set-state-status"></div>
         </div>
-        <div class="algorithm-selection">
-          <strong>探索アルゴリズム: 　 </strong>
-          <div class="icon-group">
-            <label>
-              <input type="radio" name="algorithm" value="bfs" checked>
-              <span class="icon-label"><img src="../img/icon/bfs.png"></span>
-              <span class="tooltip-text">
-                <strong>Brave Forwards Search (BFS)</strong><br>
-                アルフィノが開発したとされる最も基本的な探索アルゴリズム。
-		            スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
-              </span>
-            </label>
-            <label>
-              <input type="radio" name="algorithm" value="astar">
-              <span class="icon-label"><img src="../img/icon/astar.png"></span>
-              <span class="tooltip-text">
-                <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
-                ネロが開発したとされるアラグの超技術。ゴールまでの推定コスト（ヒューリスティック）を利用して探索を効率化します。
-		            BFSと同様に最短手数解を保証しつつ、より高速に解を見つけることができます。
-              </span>
-            </label>
-
-            <label class="separated-icon-label">
-              <input type="radio" name="algorithm" value="idastar">
-              <span class="icon-label"><img src="../img/icon/idastar.png"></span>
-              <span class="tooltip-text">
-                <strong>Ironworks Designed Astar (IDA*)</strong><br>
-                シドが開発したA*探索の改良版。メモリ使用量を抑えられますが、
-		            このパズルのように同じ状態に何度も到達する問題では探索効率が著しく低下する場合があります。(試験的実装)
-              </span>
-            </label>
-          </div>
-        </div>
         <div class="pruning-selection" style="text-align: left">
           <label>
             <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈りを有効にする
@@ -492,15 +454,63 @@
         </div>
 
         <div class="action-buttons">
-          <button id="start-btn" class="icon-btn" title="解を探索">
-	    <img src="../img/icon/start.png" alt="Start"></button>
-          <button id="stop-btn" class="icon-btn" title="探索を停止" disabled>
-	    <img src="../img/icon/stop.png" alt="Stop"></button>
-          <button id="save-btn" class="icon-btn" title="探索結果を保存" disabled>
-            <img src="../img/icon/save.png" alt="Save">
-          </button>
-          <button id="check-data-btn" class="icon-btn" title="データ整合性チェック">
-	    <img src="../img/icon/check.png" alt="Check"></button>
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="bfs">
+              <img src="../img/icon/bfs.png" alt="BFS">
+            </button>
+            <span class="tooltip-text">
+              <strong>Brave Forwards Search (BFS)</strong><br>
+              アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="astar">
+              <img src="../img/icon/astar.png" alt="A*">
+            </button>
+            <span class="tooltip-text">
+              <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
+              ネロがアラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつ、より高速に解を見つけることができます。
+            </span>
+          </label>
+          <label class="icon-btn-label separated-icon-label">
+            <button class="icon-btn start-algorithm-btn" value="idastar">
+              <img src="../img/icon/idastar.png" alt="IDA*">
+            </button>
+            <span class="tooltip-text">
+              <strong>Ironworks Designed Astar (IDA*)</strong><br>
+              シドが開発したかもしれないA*探索の改良版。メモリ使用量を抑えられますが、このパズルのように同じ状態に何度も到達する問題では探索効率が著しく低下する場合があります。(試験的実装)
+            </span>
+          </label>
+
+          <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
+
+          <label class="icon-btn-label">
+            <button id="stop-btn" class="icon-btn" disabled>
+              <img src="../img/icon/stop.png" alt="Stop">
+            </button>
+            <span class="tooltip-text">
+              <strong>探索を停止</strong><br>
+              現在進行中の探索を強制的に停止します。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button id="save-btn" class="icon-btn" disabled>
+              <img src="../img/icon/save.png" alt="Save">
+            </button>
+            <span class="tooltip-text">
+              <strong>探索結果を保存</strong><br>
+              今回の探索で訪れた盤面（探索済みノード）をブラウザに保存します。次回以降の探索で再利用できます。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button id="check-data-btn" class="icon-btn">
+              <img src="../img/icon/check.png" alt="Check">
+            </button>
+            <span class="tooltip-text">
+              <strong>データ整合性チェック</strong><br>
+              ブラウザに保存された探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
+            </span>
+          </label>
         </div>
         <div id="save-status"></div>
       </div>

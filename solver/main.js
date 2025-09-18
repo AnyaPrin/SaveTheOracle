@@ -6,15 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchStartTime, timerInterval;
     let currentSolver = null;
 
+    const topContainer = document.querySelector('.top-panel .container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
     const progressDetailsDiv = document.getElementById('progress-details');
-    const startBtn = document.getElementById('start-btn');
+
     const stopBtn = document.getElementById('stop-btn');
     const saveBtn = document.getElementById('save-btn');
     const saveStatusDiv = document.getElementById('save-status');
     const solutionPathDiv = document.getElementById('solution-path');
-    const algorithmRadios = document.getElementsByName('algorithm');
+
     const initialStateInput = document.getElementById('initial-state-input');
     const setStateBtn = document.getElementById('set-state-btn');
     const setStateStatusDiv = document.getElementById('set-state-status');
@@ -25,8 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initialStateInput.value = INITIAL_STATE;
 
+
     // --- Event Listeners ---
-    startBtn.addEventListener('click', startSearch);
+
     stopBtn.addEventListener('click', handleStop);
     setStateBtn.addEventListener('click', handleSetState);
     saveBtn.addEventListener('click', handleSave);
@@ -44,10 +46,96 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.querySelectorAll('.start-algorithm-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            startSearch(btn.value);
+        });
+    });
+
+    // --- Background Image Handling ---
+    let lockedBgUrl = null;
+    const bgImageUrls = {
+        bfs: 'bg_bfs.jpg',
+        astar: 'bg_astar.jpg',
+        idastar: 'bg_idastar.jpg'
+    };
+
+    function setContainerBackground(algo) {
+        if (lockedBgUrl) return; // Don't change if a search is running
+
+        if (algo && bgImageUrls[algo]) {
+            topContainer.style.setProperty('--after-bg-image', `url(${bgImageUrls[algo]})`);
+            topContainer.classList.add('bg-active');
+        } else {
+            topContainer.classList.remove('bg-active');
+        }
+    }
+
+    // --- Tooltip Handling ---
+    document.querySelectorAll('.icon-btn-label').forEach(label => {
+        const tooltip = label.querySelector('.tooltip-text');
+        const startBtn = label.querySelector('.start-algorithm-btn');
+
+        const arrowMargin = 12; // 矢印の高さ(5px) + α
+
+        label.addEventListener('mouseenter', () => {
+            if (startBtn) {
+                setContainerBackground(startBtn.value);
+            }
+            if (tooltip) {
+                // ツールチップを表示状態にしてから位置を計算
+                tooltip.classList.add('visible');
+                tooltip.classList.remove('arrow-up', 'arrow-down'); // 向きをリセット
+
+                const iconRect = label.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                let top, left;
+
+                // 1. 上下に表示するか決定
+                if (iconRect.top - tooltipRect.height - arrowMargin > 0) {
+                    // 上に表示
+                    top = iconRect.top - tooltipRect.height - arrowMargin;
+                    tooltip.classList.add('arrow-down');
+                } else {
+                    // 下に表示
+                    top = iconRect.bottom + arrowMargin;
+                    tooltip.classList.add('arrow-up');
+                }
+
+                // 2. 左右の位置を決定 (中央揃え)
+                left = iconRect.left + (iconRect.width / 2) - (tooltipRect.width / 2);
+
+                // 3. 左右のはみ出しを補正
+                if (left < 5) { left = 5; }
+                if (left + tooltipRect.width > viewportWidth - 5) { left = viewportWidth - tooltipRect.width - 5; }
+
+                // 4. 矢印の位置をアイコンの中央に合わせる
+                const arrowLeft = iconRect.left + (iconRect.width / 2) - left;
+                tooltip.style.setProperty('--arrow-left', `${arrowLeft}px`);
+
+                // 5. スタイルを適用
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+            }
+        });
+
+        label.addEventListener('mouseleave', () => {
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+            }
+            if (startBtn) {
+                setContainerBackground(null);
+            }
+        });
+    });
+
     // --- Functions ---
 
-    function startSearch() {
-        const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
+    function startSearch(selectedAlgorithm) {
+        // const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
         const usePruning = pruningCheckbox.checked && optimalPathData.normalizedSet !== null;
         const useLocalVisited = useLocalVisitedCheckbox.checked && localVisitedData.set !== null;
         const normalizedInitialState = COMMON.normalizeState(INITIAL_STATE);
@@ -67,7 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
 
         setUIState(true); // Disable UI for search
-        
+
+        // Lock the background image
+        lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
+        topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
+        topContainer.classList.add('bg-active');
+
         const options = {
             initialState: INITIAL_STATE,
             pruningOptions: {
@@ -94,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSolver = new IDAstarSolver(options);
                 break;
         }
+        currentSolver.algorithm = selectedAlgorithm;
         currentSolver.start();
     }
 
@@ -107,12 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSuccess(result) {
-        const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
+        const selectedAlgorithm = currentSolver.algorithm;
         const totalTime = (performance.now() - searchStartTime) / 1000;
 
         // 解の性質（最短かどうか）を判定し、サマリーメッセージを作成
         const isJunctionSolution = result.message && result.message.includes('合流');
-        const isOptimal = (selectedAlgorithm === 'bfs' || selectedAlgorithm === 'astar') || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
+        const isOptimal = (selectedAlgorithm === 'bfs' || selectedAlgorithm === 'astar')
+	      || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
         const title = isOptimal ? '最短手数' : '発見した手数';
 
         displaySolution(result.path);
@@ -132,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { visited, queue, head, algorithm } = progress;
         const exploredNodes = visited ? visited.size.toLocaleString() : 'N/A';
         const queueSize = queue ? (queue.length - (head || 0)) : 0;
-        
+
         let html = `探索アルゴリズム: ${algorithm.toUpperCase()} | 探索済みノード数: <span class="num">${exploredNodes}</span> | キューの長さ: <span class="num">${queueSize.toLocaleString()}</span>`;
 
         if (searchStartTime) {
@@ -149,11 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Progress is updated via onProgress callback
         } else {
             if (timerInterval) clearInterval(timerInterval);
-            clearInterval(timerInterval);
             searchStartTime = null;
+            // Unlock and revert background when search is over
+            lockedBgUrl = null;
+            setContainerBackground(null);
         }
 
-        startBtn.disabled = isSearching;
+        document.querySelectorAll('.start-algorithm-btn').forEach(btn => {
+            btn.disabled = isSearching;
+        });
         stopBtn.disabled = !isSearching;
         saveBtn.disabled = isSearching;
         checkDataBtn.disabled = isSearching;
@@ -161,11 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initialStateInput.disabled = isSearching;
         pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
         useLocalVisitedCheckbox.disabled = isSearching || localVisitedData.status !== '読込完了';
-        algorithmRadios.forEach(radio => {
-            radio.closest('label').style.pointerEvents = isSearching ? 'none' : 'auto';
-            radio.disabled = isSearching;
-        });
-
         if (isSearching) {
             searchSummaryDiv.hidden = false;
             saveStatusDiv.textContent = '';
@@ -234,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    
+
     function handleSave() {
         if (!currentSolver || !currentSolver.visited || currentSolver.visited.size === 0) {
             saveStatusDiv.textContent = '保存する探索データがありません。';
@@ -290,10 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const duplicateCount = originalCount - uniqueCount;
                 saveStatusDiv.style.color = '#d32f2f';
-                
+
                 const messageSpan = document.createElement('span');
                 messageSpan.textContent = `警告: ${duplicateCount.toLocaleString()}件の重複ノードが見つかりました。データをクリーンアップしますか？ `;
-                
+
                 const cleanupBtn = document.createElement('button');
                 cleanupBtn.id = 'cleanup-btn';
                 cleanupBtn.textContent = 'はい';
