@@ -203,6 +203,16 @@
           margin: 0;
       }
 
+      #start-buttons-group {
+          display: flex;
+          align-items: center;
+          gap: 0;
+      }
+
+      .action-buttons.searching .icon-btn-label:not(.active-search) {
+          opacity: 0.4;
+          pointer-events: none;
+      }
 
       .icon-btn:hover:not(:disabled) {
           background-color: #4a4a4a;
@@ -484,15 +494,6 @@
 
           <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
 
-          <label class="icon-btn-label">
-            <button id="stop-btn" class="icon-btn" disabled>
-              <img src="../img/icon/stop.png" alt="Stop">
-            </button>
-            <span class="tooltip-text">
-              <strong>探索を停止</strong><br>
-              現在進行中の探索を強制的に停止します。
-            </span>
-          </label>
           <label class="icon-btn-label">
             <button id="save-btn" class="icon-btn" disabled>
               <img src="../img/icon/save.png" alt="Save">

@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
     const progressDetailsDiv = document.getElementById('progress-details');
+    const actionButtonsDiv = document.querySelector('.action-buttons');
 
-    const stopBtn = document.getElementById('stop-btn');
     const saveBtn = document.getElementById('save-btn');
     const saveStatusDiv = document.getElementById('save-status');
     const solutionPathDiv = document.getElementById('solution-path');
@@ -29,10 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
 
-    stopBtn.addEventListener('click', handleStop);
     setStateBtn.addEventListener('click', handleSetState);
-    saveBtn.addEventListener('click', handleSave);
-    checkDataBtn.addEventListener('click', handleCheckData);
     solutionPathDiv.addEventListener('click', (e) => {
         const boardDiv = e.target.closest('.clickable-board');
         if (boardDiv) {
@@ -46,10 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.querySelectorAll('.start-algorithm-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            startSearch(btn.value);
-        });
+    actionButtonsDiv.addEventListener('click', (e) => {
+        const button = e.target.closest('button.icon-btn');
+        if (!button || button.disabled) return;
+
+        if (button.classList.contains('start-algorithm-btn')) {
+            if (currentSolver) return; // A search is already running
+            startSearch(button.value);
+        } else if (button.classList.contains('stop-btn')) {
+            handleStop();
+        } else if (button.id === 'save-btn') {
+            handleSave();
+        } else if (button.id === 'check-data-btn') {
+            handleCheckData();
+        }
     });
 
     // --- Background Image Handling ---
@@ -57,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgImageUrls = {
         bfs: 'bg_bfs.jpg',
         astar: 'bg_astar.jpg',
-        idastar: 'bg_idastar.jpg'
+        idastar: 'bg_cid.jpg'
     };
 
     function setContainerBackground(algo) {
@@ -250,10 +257,29 @@ document.addEventListener('DOMContentLoaded', () => {
             setContainerBackground(null);
         }
 
-        document.querySelectorAll('.start-algorithm-btn').forEach(btn => {
-            btn.disabled = isSearching;
-        });
-        stopBtn.disabled = !isSearching;
+        actionButtonsDiv.classList.toggle('searching', isSearching);
+
+        if (isSearching) {
+            const algo = currentSolver.algorithm;
+            const activeBtn = document.querySelector(`.start-algorithm-btn[value="${algo}"]`);
+            if (activeBtn) {
+                activeBtn.parentElement.classList.add('active-search');
+                // Change to stop button
+                activeBtn.classList.replace('start-algorithm-btn', 'stop-btn');
+                activeBtn.querySelector('img').src = '../img/icon/stop.png';
+            }
+        } else { // Reverting
+            const stopBtn = document.querySelector('.stop-btn');
+            if (stopBtn) {
+                const algo = stopBtn.value; // The value attribute is still there
+                stopBtn.parentElement.classList.remove('active-search');
+                // Revert to start button
+                stopBtn.classList.replace('stop-btn', 'start-algorithm-btn');
+                const originalIconSrc = `../img/icon/${algo}.png`;
+                stopBtn.querySelector('img').src = originalIconSrc;
+            }
+        }
+
         saveBtn.disabled = isSearching;
         checkDataBtn.disabled = isSearching;
         setStateBtn.disabled = isSearching;
