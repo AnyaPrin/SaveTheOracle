@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchStartTime, timerInterval, idaStarSpeechTimeout = null;
     let currentSolver = null;
 
-//    const MIKOTO_SPEECH_WAIT=30000;
-    const MIKOTO_SPEECH_WAIT=30; // for DEBUG
+    const MIKOTO_SPEECH_WAIT=30000;
+//    const MIKOTO_SPEECH_WAIT=30; // for DEBUG
     
     const topContainer = document.querySelector('.top-panel .container');
     const statusDiv = document.getElementById('status');
