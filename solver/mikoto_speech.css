@@ -50,14 +50,25 @@
 .slide-5 { background-image: url('bg_mikoto_5.jpg'); }
 
 #mikoto-speech-container {
-    background-image: url("bg_mikoto_speech.png");    
     position: absolute;
-    bottom: 2%; left: 25%; width: 50%; height: 20%;
+    bottom: 2%; left: 28%; width: 40%; height: 20%;
     padding: 0 0;
     box-sizing: border-box;
     font-size: 1.4em;
     line-height: 1.5;
     white-space: pre-wrap;
+}
+#mikoto-speech{
+    position: absolute;
+    top:30%;
+    width:100%;
+    margin:0;
+
+    text-indent:0;    
+    color: black;
+    font-size: 28%;
+    line-height: 1.45;    
+    text-shadow: 0.1px 0.1px rgba(0,0,0,0.8);
 }
 
 #mikoto-continue-indicator {
@@ -65,21 +76,10 @@
      bottom: 15px;
      right: 30px;
      animation: blink 1.5s infinite;
-     
- }
-#mikoto-speech{
-     position: absolute;
-     left: 2%; 
-     color: black;
-     font-size: 0.6em;
-     line-height: 1.4;
-     text-indent:0;
-     width:50%;
-     margin:0;
- }
+}
  
- @keyframes blink { 50% { opacity: 0.5; } }
- #mikoto-modal-close {
+@keyframes blink { 50% { opacity: 0.5; } }
+#mikoto-modal-close {
      all: unset; /* buttonのデフォルトスタイルをリセット */
      position: absolute;
      top: 10px;
