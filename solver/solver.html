@@ -440,6 +440,57 @@
            font-weight: bold;
        }
 
+       /* --- Mikoto Modal Styles --- */
+       #mikoto-modal {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(0, 0, 0, 0.75);
+           z-index: 2000;
+           display: none; /* JSで表示を制御 */
+           align-items: center;
+           justify-content: center;
+           opacity: 0;
+           transition: opacity 0.4s ease-in-out;
+       }
+       #mikoto-modal.is-active {
+           display: flex;
+           opacity: 1;
+       }
+       .mikoto-modal-content {
+           background-image: url('bg_mikoto.jpg'); /* ミコトさん用の背景画像 */
+           background-size: cover;
+           background-position: center;
+           padding: 30px 40px;
+           border-radius: 12px;
+           color: white;
+           text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+           max-width: 600px;
+           position: relative;
+           border: 1px solid rgba(255, 255, 255, 0.3);
+           box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+       }
+       #mikoto-speech {
+           white-space: pre-wrap; /* テキストの改行(\n)をそのまま表示する */
+           line-height: 1.8;
+           font-size: 1.1em;
+       }
+       #mikoto-modal-close {
+           all: unset; /* buttonのデフォルトスタイルをリセット */
+           position: absolute;
+           top: 10px;
+           right: 15px;
+           font-size: 2em;
+           cursor: pointer;
+           color: rgba(255,255,255,0.7);
+           transition: color 0.2s;
+       }
+       #mikoto-modal-close:hover {
+           color: white;
+       }
+
     </style>
   </head>
   <body>
@@ -525,6 +576,15 @@
         <div id="solution-path"></div>
       </div>
     </div>
+
+    <!-- Mikoto's Speech Modal -->
+    <div id="mikoto-modal">
+      <div class="mikoto-modal-content">
+        <button id="mikoto-modal-close" aria-label="閉じる">&times;</button>
+        <p id="mikoto-speech"></p>
+      </div>
+    </div>
+
     <script content-type="text/javascript" src="../lib/common.js"></script>
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>

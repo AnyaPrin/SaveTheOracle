@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchSummaryDiv = document.getElementById('search-summary');
     const progressDetailsDiv = document.getElementById('progress-details');
     const actionButtonsDiv = document.querySelector('.action-buttons');
+    const mikotoModal = document.getElementById('mikoto-modal');
+    const mikotoSpeechP = document.getElementById('mikoto-speech');
+    const mikotoModalCloseBtn = document.getElementById('mikoto-modal-close');
 
     const saveBtn = document.getElementById('save-btn');
     const saveStatusDiv = document.getElementById('save-status');
@@ -28,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Event Listeners ---
+    mikotoModalCloseBtn.addEventListener('click', () => {
+        mikotoModal.classList.remove('is-active');
+    });
 
     solutionPathDiv.addEventListener('click', (e) => {
         const boardDiv = e.target.closest('.clickable-board');
@@ -183,19 +189,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // IDA*が選択された場合、30秒後にミコトさんの熱弁を表示するタイマーをセット
         if (selectedAlgorithm === 'idastar') {
             idaStarSpeechTimeout = setTimeout(() => {
-                alert("（ミコトが駆け寄ってくる）\n\n" +
-                    "「ちょ、ちょっと待ってください！ 聞こえましたよ！\n" +
-                    "社長のアルゴリズムが、このパズルと相性が悪かっただけなんです！ あれは『適材適所』の典型例で、社長の設計が劣っているなんてことは、断じて、断じてありませんっ！」\n\n" +
-                    "「いいですか？ A*やBFSといったアルゴリズムは、一度通った道を忘れないように、全部ノートに書き写しながら進むんです。だから、このパズルのように同じ場所を何度も通るような狭い迷宮だと、すぐにノートが真っ黒に…いえ、メモリがパンクしちゃうんです！\n\n" +
-                    "でも！ 社長の『Ironworks Designed Astar』、IDA*は違うんです！\n" +
-                    "ノートなんてほとんど使わないで、自分の足と頭、そして『これ以上進んだら無駄足だ』っていうコスト上限だけを頼りに進むんです！ だから、どんなに広大な迷宮…いえ、状態空間でも、メモリ不足の心配がないんですよ！\n\n" +
-                    "例えば、あの…ルービックキューブってありますよね？ あの組み合わせの数、4325京通り以上もあるんです！ 普通のアルゴリズムじゃ、探索を始めた瞬間にメモリが足りなくなって計算機が止まっちゃいます！\n\n" +
-                    "でも、IDA*なら…！ IDA*だけが、そんな天文学的な組み合わせの中から、最短手数解を見つけられる、事実上唯一の、本当に唯一の希望なんです！ これって、すごいことなんですよ！\n\n" +
-                    "…はっ、すみません、つい熱くなってしまいました。\n" +
-                    "とにかく、社長のアルゴリズムは、メモリという限られたリソースで最大の結果を出す、本当にすごい発明なんですっ！」");
+                const speechText = "「待ってください！ \n" +
+                "このパズル、社長さんのアルゴリズムと相性が悪いだけなんです！\n" +
+		        "社長さんの設計が劣っているなんてことは断じて、断じてありませんっ！\n" +
+                "いいですか？ 他のアルゴリズムは一度通った道を忘れないようノートに\n" +
+		        "全部書き写しながら進みます。だから同じ場所を何度も通るような迷宮だと\n" +
+		        "すぐにメモリが丸焦げに……いえノートが真っ黒に！\n" +
+                "でも！ 社長さんのIDA*,Ironworks Designed Astarは違う！\n" +
+                "ノートなんてほとんど使わず自分の足と頭そして『これ以上は危険だ』という\n" +
+		        "上限だけを頼りに進むんです！ だからどんな状態空間…いえ広大な迷宮でも\n" +
+		        "メモリ不足の心配がないんです！ 例えばルービック…いえ魔導キューブ\n" +
+                "組合せの数は4325京通り以上、普通のアルゴリズムなら探索を始めた瞬間\n" +
+		        "メモリが足りなくなって雷子計算機が止まってしまう！　でもIDA*なら！\n" +
+		        "IDA*だけがそんな天文学的な組合せの中から最短手数解を見つけられる！\n" +
+		        "事実上唯一の、本当に唯一の希望なんです！これってスゴイことなんです！\n\n" +
+                "…はっ、すみません、つい熱くなってしまいました。\n" +
+		        "とにかく社長さんのアルゴリズムは限られたリソースで最大の結果を出す\n" +
+                "本当にすごい発明なんですっ！」";
+
+                mikotoSpeechP.innerText = speechText;
+                mikotoModal.classList.add('is-active');
+
             }, 30000); // 30秒
         }
-
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
         topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
@@ -237,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(idaStarSpeechTimeout);
             idaStarSpeechTimeout = null;
         }
+        mikotoModal.classList.remove('is-active');
         if (currentSolver) {
             currentSolver.stop();
             currentSolver = null;
@@ -251,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(idaStarSpeechTimeout);
             idaStarSpeechTimeout = null;
         }
+        mikotoModal.classList.remove('is-active');
         const selectedAlgorithm = currentSolver.algorithm;
         const totalTime = (performance.now() - searchStartTime) / 1000;
 
@@ -272,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(idaStarSpeechTimeout);
             idaStarSpeechTimeout = null;
         }
+        mikotoModal.classList.remove('is-active');
         const totalTime = (performance.now() - searchStartTime) / 1000;
         statusDiv.textContent = `解が見つかりませんでした。 (探索時間: ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
