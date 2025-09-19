@@ -598,6 +598,9 @@ document.addEventListener('DOMContentLoaded', () => {
         highlightOverlay.hidden = true;
 
         const INITIAL_SOURCE_STATE = "BAACBAACDFFEDIJEG..H";
+        const initialPiecesForMap = stateToPieces(INITIAL_SOURCE_STATE);
+        const originalPositionsMap = new Map(initialPiecesForMap.map(p => [p.id, p.positions]));
+
         let sourcePieces = [];
         let targetPieces = [];
         let selectedPiece = null;
@@ -921,6 +924,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const clickedPiece = targetPieces.find(p => p.positions.includes(index));
 
             if (clickedPiece) {
+                // Restore original positions before moving it back to source
+                clickedPiece.positions = originalPositionsMap.get(clickedPiece.id);
+
                 targetPieces = targetPieces.filter(p => p.id !== clickedPiece.id);
                 sourcePieces.push(clickedPiece);
                 updateAllRenders();
