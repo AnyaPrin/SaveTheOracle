@@ -44,6 +44,12 @@
           color: var(--primary-text-color);
           overflow: hidden;
       }
+      .main-container {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+      }
+
       .top-panel {
           padding-top: 10px;
           overflow-y: auto;
@@ -55,12 +61,15 @@
           overflow-y: auto;
           padding-bottom: 20px;
       }
-      .container {
+      .controls-container {
           position: relative;
 	  margin: 25px;
 	  padding: 14px 25px 0px 25px;
-	  width: 800px;
-	  max-width: 800px;
+	  /* width: 800px; */
+	  /* max-width: 800px; */
+      flex-shrink: 0;
+      width: 650px;
+
 	  justify-content: left;
 	  background-color: rgba(44, 44, 44, 0.85); /* 背景画像が見えるように半透明のオーバーレイに変更 */
 	  border-radius: 18px;
@@ -69,7 +78,7 @@
 	  text-align: left;
 	  z-index: 1;
       }
-      .top-panel .container {
+      .top-panel .controls-container {
 	  background-size: cover;
 	  background-repeat: no-repeat;
 	  background-position: left;
@@ -77,16 +86,14 @@
 	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
       }
       .bottom-panel .container {
-	       background-image: none;
-	       background: none;
-	       background-color: none;
+	       /* background-image: none; */
+	       background: transparent;
 	       box-shadow: none;
-	       justify-content: center;
-	       margin-bottom: 25px;
+	       /* justify-content: center; */ /* This has no effect on a block element */
 	       margin-bottom: 25px;
       }
 
-      .container::before, .container::after {
+      .controls-container::before, .controls-container::after {
 	  content: '';
 	  position: absolute;
 	  top: 0; left: 0; right: 0; bottom: 0;
@@ -97,15 +104,15 @@
 	  z-index: -1;
       }
 
-      .container::before {
+      .controls-container::before {
 	  background-image: url(bg_solver.jpg);
       }
-      .container::after {
+      .controls-container::after {
 	  background-image: var(--after-bg-image, none);
 	  opacity: 0;
 	  transition: opacity 0.4s ease-in-out;
       }
-      .container.bg-active::after {
+      .controls-container.bg-active::after {
 	  opacity: 1;
       }
 
@@ -442,11 +449,118 @@
 	  font-weight: bold;
       }
 
+      /* --- Settings Panel Styles --- */
+      .settings-container {
+          margin-bottom: 20px;
+      }
+      .advanced-settings-panel {
+          background-color: rgba(0,0,0,0.2);
+          border: 1px solid var(--border-color);
+          border-radius: 6px;
+          padding: 15px;
+          margin-top: 10px;
+          flex-direction: column;
+          gap: 10px;
+      }
+      .advanced-settings-panel:not([hidden]) {
+          display: flex;
+      }
+      .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      /* --- Board Editor Styles --- */
+      .board-editor-container {
+          flex-grow: 1;
+          padding: 20px;
+          background-color: rgba(44, 44, 44, 0.85);
+          border-radius: 18px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          margin-top: 25px;
+      }
+      .board-editor-container h2 {
+          margin-top: 0;
+          margin-bottom: 15px;
+          font-size: 1.2em;
+      }
+      .grid-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      .editor-layout {
+          display: flex;
+          gap: 20px;
+          margin-bottom: 15px;
+      }
+      .editor-grid {
+          position: relative; /* For highlight overlay */
+          display: grid;
+          grid-template-columns: repeat(4, 36px);
+          grid-template-rows: repeat(5, 36px);
+          gap: 0;
+          border-top: 1px solid var(--border-color);
+          border-left: 1px solid var(--border-color);
+          padding: 0;
+      }
+      .editor-grid-cell {
+          width: 36px;
+          height: 36px;
+          background-color: var(--surface-color);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: monospace;
+          font-size: 1.2em;
+          font-weight: bold;
+          user-select: none;
+          box-sizing: border-box;
+          border-right: 1px solid var(--border-color);
+          border-bottom: 1px solid var(--border-color);
+      }
+      .piece-inner-right { border-right-color: transparent; }
+      .piece-inner-bottom { border-bottom-color: transparent; }
+
+      .editor-grid-cell.preview-piece {
+          background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .editor-grid-cell.hovered-piece { filter: brightness(1.25); }
+      #selection-highlight {
+          position: absolute;
+          border: 2px solid var(--primary-accent-color);
+          box-shadow: 0 0 10px var(--primary-accent-color);
+          border-radius: 4px;
+          pointer-events: none;
+          box-sizing: border-box;
+          transition: opacity 0.15s ease-in-out;
+      }
+      .editor-actions button {
+          padding: 6px 12px;
+          font-size: 0.9em;
+          margin: 0 10px 0 0;
+      }
+      /* Piece Colors */
+      .piece-A { background-color: #c62828; color: white; } /* 2x2, Red */
+      .piece-B { background-color: #2e7d32; color: white; } /* 2x1, Green */
+      .piece-C { background-color: #0277bd; color: white; } /* 1x2, Blue */
+      .piece-D { background-color: #6a1b9a; color: white; } /* 1x2, Purple */
+      .piece-E { background-color: #00695c; color: white; } /* 1x2, Teal */
+      .piece-F { background-color: #283593; color: white; } /* 1x2, Indigo */
+      .piece-G { background-color: #f9a825; color: black; } /* 1x1, Yellow */
+      .piece-H { background-color: #c2185b; color: white; } /* 1x1, Pink */
+      .piece-I { background-color: #ef6c00; color: white; } /* 1x1, Orange */
+      .piece-J { background-color: #5d4037; color: white; } /* 1x1, Brown */
+      .piece-dot { background-color: var(--surface-color); }
+
     </style>
   </head>
   <body>
-    <div class="top-panel">
-      <div class="container">
+    <div class="main-container">
+      <div class="top-panel">
+        <div class="controls-container">
         <h1>SAVE THE ORACLE SOLVER</h1>
         <div class="board-input-container">
           <strong>初期盤面:</strong>
@@ -454,11 +568,15 @@
 		 title="20文字の盤面状態 (A-Z, .)">
           <button id="set-state-btn">OK </button> <div id="set-state-status"></div>
         </div>
-        <div class="pruning-selection" style="text-align: left">
-	  <br>
-          <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈り
-          <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データの利用
-	  <br>
+        <div class="settings-container">
+          <div id="advanced-settings-panel" class="advanced-settings-panel" hidden>
+            <label class="checkbox-label">
+              <input type="checkbox" id="pruning-enabled" disabled> 最短解データによる枝刈り
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="use-local-visited-enabled" disabled> 保存済み探索データの利用
+            </label>
+          </div>
           <span id="pruning-status"></span>
         </div>
         <div class="action-buttons">
@@ -514,8 +632,36 @@
               ブラウザに保存された探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
             </span>
           </label>
+          <label class="icon-btn-label">
+            <button id="advanced-settings-btn" class="icon-btn">
+              <img src="../img/icon/config.png" alt="Settings">
+            </button>
+            <span class="tooltip-text">
+              <strong>詳細設定</strong><br>
+              枝刈りや保存済みデータの利用など、探索に関する高度な設定を行います。
+            </span>
+          </label>
         </div>
         <div id="save-status"></div>
+      </div>
+      </div>
+      <div class="board-editor-container">
+        <h2>盤面エディタ</h2>
+        <div class="editor-layout">
+          <div class="grid-wrapper">
+            <h3>ソース</h3>
+            <div id="source-grid" class="editor-grid"></div>
+          </div>
+          <div class="grid-wrapper">
+            <h3>ターゲット</h3>
+            <div id="target-grid" class="editor-grid"></div>
+          </div>
+        </div>
+        <div class="editor-actions">
+          <button id="apply-editor-btn">この盤面を適用</button>
+          <button id="reset-editor-btn">リセット</button>
+        </div>
+        <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 10px;">左の盤の駒をクリックで選択し、右の盤をクリックで配置します。<br>右の盤に配置した駒は右クリックで左の盤に戻せます。</p>
       </div>
     </div>
     <div class="bottom-panel">
@@ -549,6 +695,19 @@
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const advancedSettingsBtn = document.getElementById('advanced-settings-btn');
+        const advancedSettingsPanel = document.getElementById('advanced-settings-panel');
+
+        if (advancedSettingsBtn && advancedSettingsPanel) {
+          advancedSettingsBtn.addEventListener('click', () => {
+            advancedSettingsPanel.hidden = !advancedSettingsPanel.hidden;
+          });
+        }
+      });
+    </script>
 
     <script src="main.js"></script>
   </body>
