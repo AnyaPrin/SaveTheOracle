@@ -61,12 +61,11 @@
 }
 
 #mikoto-speech{
-    font-family: "Segoe UI", "Noto Sans CJK JP", Arial, sans-serif;
     position: absolute;
     top:28%;
     width:100%;
     margin:0;
-    text-indent:0;    
+    text-indent:0;
     color: black;
     font-size: 48%;
     line-height: 1.5;
@@ -79,7 +78,7 @@
      right: 30px;
      animation: blink 1.5s infinite;
 }
- 
+
 @keyframes blink { 50% { opacity: 0.5; } }
 #mikoto-modal-close {
      all: unset; /* buttonのデフォルトスタイルをリセット */
