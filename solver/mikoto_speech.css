@@ -22,7 +22,7 @@
 .mikoto-modal-content {
     position: relative;
     width: 90vw;
-    max-width: 1920px; /* 16:9の比率を保つための最大幅 */
+    max-width: 800px; /* 16:9の比率を保つための最大幅 */
     aspect-ratio: 16 / 9;
     background-color: #000;
     border-radius: 12px;
