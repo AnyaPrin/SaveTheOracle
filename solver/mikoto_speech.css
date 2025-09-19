@@ -51,7 +51,7 @@
 
 #mikoto-speech-container {
     position: absolute;
-    bottom: 2%; left: 28%; width: 40%; height: 20%;
+    bottom: 2%; left: 28%; width: 44%; height: 20%;
     padding: 0 0;
     box-sizing: border-box;
     font-size: 1.4em;
@@ -59,15 +59,15 @@
     white-space: pre-wrap;
 }
 #mikoto-speech{
+    font-family: "Segoe UI", "Noto Sans CJK JP", Arial, sans-serif;
     position: absolute;
-    top:30%;
+    top:28%;
     width:100%;
     margin:0;
-
     text-indent:0;    
     color: black;
-    font-size: 32%;
-    line-height: 1.45;    
+    font-size: 48%;
+    line-height: 1.45;
     text-shadow: 0.1px 0.1px rgba(0,0,0,0.8);
 }
 
