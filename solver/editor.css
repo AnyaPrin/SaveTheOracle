@@ -27,16 +27,17 @@
 .editor-grid {
     position: relative; /* For highlight overlay */
     display: grid;
-    grid-template-columns: repeat(4, 36px);
-    grid-template-rows: repeat(5, 36px);
+    grid-template-columns: repeat(4, 24px);
+    grid-template-rows: repeat(5, 24px);
     gap: 0;
     border-top: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
     padding: 0;
 }
+
 .editor-grid-cell {
-    width: 36px;
-    height: 36px;
+    width: 24px;
+    height: 24px;
     background-color: var(--surface-color);
     cursor: pointer;
     display: flex;
@@ -50,9 +51,9 @@
     border-right: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
 }
+
 .piece-inner-right { border-right-color: transparent; }
 .piece-inner-bottom { border-bottom-color: transparent; }
-
 .editor-grid-cell.preview-piece {
     background-color: rgba(255, 255, 255, 0.2);
 }

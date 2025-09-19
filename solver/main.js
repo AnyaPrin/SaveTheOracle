@@ -789,8 +789,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const originIndex = selectedPiece.positions[0];
             const cellElement = sourceGrid.querySelector(`.editor-grid-cell[data-index='${originIndex}']`);
             if (cellElement) {
-                const cellWidth = 36;
-                const cellHeight = 36;
+                const cellWidth = 24;
+                const cellHeight = 24;
                 const gap = 1;
                 highlightOverlay.style.top = `${cellElement.offsetTop}px`;
                 highlightOverlay.style.left = `${cellElement.offsetLeft}px`;
