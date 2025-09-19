@@ -8,11 +8,13 @@
     <style>
       @font-face {
 	  font-family: 'MeiryoB';
-	  src: url('fonts/meiryob.ttc') format('ttc');
-	  font-weight: normal;
+	  src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
+	       url('../fonts/MeiryoUI-Bold.woff') format('woff');
+	  font-weight: bold;
 	  font-style: normal;
+      font-display: swap;
       }
-      
+
       :root {
           --bg-color: #1a1a1a;
           --surface-color: #2c2c2c;
@@ -34,7 +36,7 @@
           padding: 10px;
           margin: 10px;
           display: flex;
-          height: 100vh;	  
+          height: 100vh;
           min-width: 700px;
           min-height: 100vh;
           flex-direction: column;
@@ -58,24 +60,24 @@
 	  margin: 25px;
 	  padding: 14px 25px 0px 25px;
 	  width: 800px;
-	  max-width: 800px;	  
+	  max-width: 800px;
 	  justify-content: left;
 	  background-color: rgba(44, 44, 44, 0.85); /* 背景画像が見えるように半透明のオーバーレイに変更 */
 	  border-radius: 18px;
 	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	  box-sizing: border-box;
 	  text-align: left;
-	  z-index: 1;	  
+	  z-index: 1;
       }
       .top-panel .container {
 	  background-size: cover;
 	  background-repeat: no-repeat;
 	  background-position: left;
-	  background-image: 
+	  background-image:
 	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
       }
       .bottom-panel .container {
-	       background-image: none;	  
+	       background-image: none;
 	       background: none;
 	       background-color: none;
 	       box-shadow: none;
@@ -83,7 +85,7 @@
 	       margin-bottom: 25px;
 	       margin-bottom: 25px;
       }
-      
+
       .container::before, .container::after {
 	  content: '';
 	  position: absolute;
@@ -94,7 +96,7 @@
 	  border-radius: 18px;  /* Match containers border-radius */
 	  z-index: -1;
       }
-      
+
       .container::before {
 	  background-image: url(bg_solver.jpg);
       }
@@ -106,7 +108,7 @@
       .container.bg-active::after {
 	  opacity: 1;
       }
-      
+
 
       h1 {
 	  color: var(--primary-text-color);
@@ -286,14 +288,14 @@
       .step {
 	  display: flex;
 	  flex-direction: column;
-	  align-items: center;	  
+	  align-items: center;
 	  gap: 2px;
       }
-      
+
       .step-number {
 	  font-size: 0.78em;
 	  font-weight: bold;
-	  align-items: left;	  
+	  align-items: left;
 	  color: var(--secondary-text-color);
       }
       .step-board {
@@ -309,7 +311,7 @@
 	  font-size: 1.1em;
 	  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
-      
+
       /* Style for when the hidden input is disabled */
       .icon-group input:disabled + .icon-label {
 	  background-color: #2a2a2a;
@@ -530,7 +532,7 @@
     <div id="mikoto-modal">
       <div class="mikoto-modal-content" title="クリックして進む">
         <button id="mikoto-modal-close" aria-label="閉じる">&times;</button>
-        <div class="mikoto-slide slide-0 is-active"></div>	
+        <div class="mikoto-slide slide-0 is-active"></div>
         <div class="mikoto-slide slide-1"></div>
         <div class="mikoto-slide slide-2"></div>
         <div class="mikoto-slide slide-3"></div>
