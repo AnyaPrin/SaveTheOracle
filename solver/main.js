@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     // --- Global State and DOM Elements ---
     let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
     let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
@@ -6,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchStartTime, timerInterval, idaStarSpeechTimeout = null;
     let currentSolver = null;
 
-    const MIKOTO_SPEECH_WAIT=30000;
+    const MIKOTO_SPEECH_WAIT = 30000;
     const topContainer = document.querySelector('.top-panel .controls-container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
@@ -37,11 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const MIKOTO_SPEECHES = [
         "……このパズル、シドさんのアルゴリズムと相性が悪いだけです……。\n設計が劣っているなんてことは断じて、断じてありません……。", // Slide 0
         "……いいですか？ ……他のアルゴリズムは一度通った道を忘れないよう記憶媒体に全部書き写しながら進みます。だから各ノードの状態選択自由度が大きな…… えーとつまり広大な迷宮ではすぐにDRAMが黒焦げ…… いえ記憶媒体が真っ黒になってしまいます。でも！ IDAstarは違います！", // Slide 1
-	"記憶媒体なんてほとんど使わず自分の足と頭そして『これ以上は危険だ』という上限だけを頼りに進むんです！ だから広大な迷宮でも記憶媒体不足の心配がないんです！", // Slide 2
-	"たとえばルービックもとい魔導キューブってありますよね？ あれの組合せの数は4325京通り以上、普通のアルゴリズムでは記憶容量が足りずに雷子計算機が止まってしまうそんな状況でもIDAstarは歩みを止めない！", // Slide 3
-	"IDAstarだけは、シドさんのアルゴリズムだけはいつだって解を見つける！どんなに時間がかかろうと必ず見つける！ 事実上、唯一の希望なんです！\n…………すみません、つい熱くなって……。\n……と、とにかくIDAstarは本当にスゴイ発明なんです。", // Slide 4
+        "記憶媒体なんてほとんど使わず自分の足と頭そして『これ以上は危険だ』という上限だけを頼りに進むんです！ だから広大な迷宮でも記憶媒体不足の心配がないんです！", // Slide 2
+        "たとえばルービックもとい魔導キューブってありますよね？ あれの組合せの数は4325京通り以上、普通のアルゴリズムでは記憶容量が足りずに雷子計算機が止まってしまうそんな状況でもIDAstarは歩みを止めない！", // Slide 3
+        "IDAstarだけは、シドさんのアルゴリズムだけはいつだって解を見つける！どんなに時間がかかろうと必ず見つける！ 事実上、唯一の希望なんです！\n…………すみません、つい熱くなって……。\n……と、とにかくIDAstarは本当にスゴイ発明なんです。", // Slide 4
         "" // Slide 5: テキストなし
     ];
+
 
     function showMikotoModal() {
         currentMikotoSlideIndex = 0;
@@ -116,10 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Background Image Handling ---
     let lockedBgUrl = null;
+
     const bgImageUrls = {
-        bfs: 'bg_bfs.jpg',
-        astar: 'bg_astar.jpg',
-        idastar: 'bg_idastar.jpg'
+        bfs: '../img/bg_bfs.jpg',
+        astar: '../img/bg_astar.jpg',
+        idastar: '../img/bg_idastar.jpg'
     };
 
     function setContainerBackground(algo) {
@@ -226,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒後にミコトさんの熱弁を表示するタイマーをセット
         if (selectedAlgorithm === 'idastar') {
-            idaStarSpeechTimeout = setTimeout(() => {showMikotoModal();}, MIKOTO_SPEECH_WAIT);
+            idaStarSpeechTimeout = setTimeout(() => { showMikotoModal(); }, MIKOTO_SPEECH_WAIT);
         }
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
@@ -291,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 解の性質（最短かどうか）を判定し、サマリーメッセージを作成
         const isJunctionSolution = result.message && result.message.includes('合流');
         const isOptimal = (selectedAlgorithm === 'bfs' || selectedAlgorithm === 'astar')
-	      || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
+            || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
         const title = isOptimal ? '最短手数' : '発見した手数';
 
         displaySolution(result.path);
@@ -791,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cellElement) {
                 const cellWidth = 24;
                 const cellHeight = 24;
-                const gap = 1;
+                const gap = 0; // グリッドのgapが0なので、こちらも0に合わせます
                 highlightOverlay.style.top = `${cellElement.offsetTop}px`;
                 highlightOverlay.style.left = `${cellElement.offsetLeft}px`;
                 highlightOverlay.style.width = `${selectedPiece.width * cellWidth + (selectedPiece.width - 1) * gap}px`;
