@@ -55,11 +55,10 @@
           box-sizing: border-box;
           border-radius: 18px;
       }
-
       .bottom-panel {
         position:absolute;
         top: 260px;
-        overflow-y: 1;
+        overflow-y: scroll;
         padding: 20px 20px;
         background: transparent;
         box-shadow: none;
@@ -84,7 +83,6 @@
 	      url(bg_solver.jpg);
 	  z-index: -1;
       }
-
       .controls-container::before {
 	  background-size: cover;
 	  background-repeat: no-repeat;
@@ -515,7 +513,6 @@
             <span id="mikoto-continue-indicator">▼</span>
         </div>
     </div>
-
     <script content-type="text/javascript" src="../lib/common.js"></script>
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
