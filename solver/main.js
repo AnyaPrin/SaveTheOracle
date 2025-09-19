@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchStartTime, timerInterval, idaStarSpeechTimeout = null;
     let currentSolver = null;
 
+//    const MIKOTO_SPEECH_WAIT=30000;
+    const MIKOTO_SPEECH_WAIT=30; // for DEBUG
+    
     const topContainer = document.querySelector('.top-panel .container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
@@ -13,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionButtonsDiv = document.querySelector('.action-buttons');
     const mikotoModal = document.getElementById('mikoto-modal');
     const mikotoSpeechP = document.getElementById('mikoto-speech');
+    const mikotoContinueIndicator = document.getElementById('mikoto-continue-indicator');
     const mikotoModalCloseBtn = document.getElementById('mikoto-modal-close');
 
     const saveBtn = document.getElementById('save-btn');
@@ -30,9 +34,45 @@ document.addEventListener('DOMContentLoaded', () => {
     initialStateInput.value = INITIAL_STATE;
 
 
+    // --- Mikoto Modal Logic ---
+    let mikotoSlides, currentMikotoSlideIndex = 0;
+    const MIKOTO_SPEECHES = [
+        "……このパズル、社長さんのアルゴリズムと相性が悪いだけです\n設計が劣っているなんてことは断じて、断じてありません", // Slide 0
+        "……いいですか？ ……他のアルゴリズムは一度通った道を忘れないよう\nノートに全部書き写しながら進みます。だから同じ場所を何度も通る迷宮では\nすぐにメモリが丸焦げに……いえノートが真っ黒に……", // Slide 1
+	"でも！ IDA*は違います！ノートなんて使わず、自分の足と頭、そして、\n『これ以上は危険だ』という上限だけを頼りに進むんです！\nだから、広大な迷宮でもメモリ不足の心配がないんです", // Slide 2
+	"例えばルービック…もとい魔導キューブってありますよね\nあれの組合せの数は4325京通り以上、普通のアルゴリズムではメモリが足りず雷子計算機が止まってしまいます\n", // Slide 3
+	"でもIDA*は、社長さんのアルゴリズムだけは、解を見つけられる。事実上唯一の希望なんです\nすみません、つい熱くなって……とにかく本当にスゴイ発明なんです……", // Slide 4
+        "" // Slide 5: テキストなし
+    ];
+
+    function showMikotoModal() {
+        currentMikotoSlideIndex = 0;
+        updateMikotoSlide();
+        mikotoModal.classList.add('is-active');
+    }
+
+    function updateMikotoSlide() {
+        mikotoSlides.forEach((slide, index) => {
+            slide.classList.toggle('is-active', index === currentMikotoSlideIndex);
+        });
+        mikotoSpeechP.innerText = MIKOTO_SPEECHES[currentMikotoSlideIndex] || "";
+        mikotoContinueIndicator.style.display = (currentMikotoSlideIndex >= mikotoSlides.length - 1) ? 'none' : 'block';
+    }
+
     // --- Event Listeners ---
     mikotoModalCloseBtn.addEventListener('click', () => {
         mikotoModal.classList.remove('is-active');
+    });
+
+    document.querySelector('.mikoto-modal-content').addEventListener('click', (e) => {
+        if (!mikotoModal.classList.contains('is-active') || e.target === mikotoModalCloseBtn) return;
+
+        currentMikotoSlideIndex++;
+        if (currentMikotoSlideIndex >= mikotoSlides.length) {
+            mikotoModal.classList.remove('is-active');
+        } else {
+            updateMikotoSlide();
+        }
     });
 
     solutionPathDiv.addEventListener('click', (e) => {
@@ -186,31 +226,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
 
-        // IDA*が選択された場合、30秒後にミコトさんの熱弁を表示するタイマーをセット
+        // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒後にミコトさんの熱弁を表示するタイマーをセット
         if (selectedAlgorithm === 'idastar') {
-            idaStarSpeechTimeout = setTimeout(() => {
-                const speechText = "「待ってください！ \n" +
-                "このパズル、社長さんのアルゴリズムと相性が悪いだけなんです！\n" +
-		        "社長さんの設計が劣っているなんてことは断じて、断じてありませんっ！\n" +
-                "いいですか？ 他のアルゴリズムは一度通った道を忘れないようノートに\n" +
-		        "全部書き写しながら進みます。だから同じ場所を何度も通るような迷宮だと\n" +
-		        "すぐにメモリが丸焦げに……いえノートが真っ黒に！\n" +
-                "でも！ 社長さんのIDA*,Ironworks Designed Astarは違う！\n" +
-                "ノートなんてほとんど使わず自分の足と頭そして『これ以上は危険だ』という\n" +
-		        "上限だけを頼りに進むんです！ だからどんな状態空間…いえ広大な迷宮でも\n" +
-		        "メモリ不足の心配がないんです！ 例えばルービック…いえ魔導キューブ\n" +
-                "組合せの数は4325京通り以上、普通のアルゴリズムなら探索を始めた瞬間\n" +
-		        "メモリが足りなくなって雷子計算機が止まってしまう！　でもIDA*なら！\n" +
-		        "IDA*だけがそんな天文学的な組合せの中から最短手数解を見つけられる！\n" +
-		        "事実上唯一の、本当に唯一の希望なんです！これってスゴイことなんです！\n\n" +
-                "…はっ、すみません、つい熱くなってしまいました。\n" +
-		        "とにかく社長さんのアルゴリズムは限られたリソースで最大の結果を出す\n" +
-                "本当にすごい発明なんですっ！」";
-
-                mikotoSpeechP.innerText = speechText;
-                mikotoModal.classList.add('is-active');
-
-            }, 30000); // 30秒
+            idaStarSpeechTimeout = setTimeout(() => {showMikotoModal();}, MIKOTO_SPEECH_WAIT); 
         }
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
@@ -567,4 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 localVisitedData.status = 'データなし';
             }
         });
+
+    mikotoSlides = document.querySelectorAll('.mikoto-slide');
 });

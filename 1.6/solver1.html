@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="mikoto_speech.css" >
     <title>Save The Oracle Solver (Klotski Solver)</title>
     <style>
       :root {
@@ -19,9 +18,11 @@
           --error-color: #ef5350;
           --border-color: #424242;
       }
+
       html {
           height: 100%;
       }
+
       body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans",
 		       "Noto Sans CJK JP", "Helvetica Neue", Arial, sans-serif;
@@ -324,12 +325,17 @@
 	       color: var(--success-color);
 	       font-weight: bold;
 	   }
+
+
+
+
 	   .board-input-container {
 	       display: flex;
 	       align-items: center;
 	       gap: 10px;
 
 	   }
+
 	   #initial-state-input {
 	       /* flex-grow: 1; */
 	       font-family: monospace;
@@ -433,6 +439,92 @@
 	       color: var(--primary-accent-color);
 	       font-weight: bold;
 	   }
+	   
+
+	   /* --- Mikoto Modal Styles --- */
+	   #mikoto-modal {
+	       position: fixed;
+	       top: 0;
+	       left: 0;
+	       width: 100%;
+	       height: 100%;
+	       background-color: rgba(0, 0, 0, 0.75);
+	       z-index: 2000;
+	       display: none; /* JSで表示を制御 */
+	       align-items: center;
+	       justify-content: center;
+	       opacity: 0;
+	       transition: opacity 0.4s ease-in-out;
+	   }
+	   #mikoto-modal.is-active {
+	       display: flex;
+	       opacity: 1;
+	   }
+	   .mikoto-modal-content {
+	       position: relative;
+	       width: 90vw;
+	       max-width: 1280px; /* 16:9の比率を保つための最大幅 */
+	       aspect-ratio: 16 / 9;
+	       background-color: #000;
+	       border-radius: 12px;
+	       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+	       overflow: hidden;
+	       cursor: pointer;
+	   }
+	   .mikoto-slide {
+	       position: absolute;
+	       top: 0; left: 0; width: 100%; height: 100%;
+	       background-size: cover;
+	       background-position: center;
+	       opacity: 0;
+	       visibility: hidden;
+	       transition: opacity 0.5s ease-in-out;
+	   }
+	   .mikoto-slide.is-active {
+	       opacity: 1;
+	       visibility: visible;
+	   }
+	   /* 画像ファイルを配置してください */
+	   .slide-1 { background-image: url('bg_mikoto_1.jpg'); }
+	   .slide-2 { background-image: url('bg_mikoto_2.jpg'); }
+	   .slide-3 { background-image: url('bg_mikoto_3.jpg'); }
+	   .slide-4 { background-image: url('bg_mikoto_4.jpg'); }
+	   .slide-5 { background-image: url('bg_mikoto_5.jpg'); }
+
+	   #mikoto-speech-container {
+	       position: absolute;
+	       bottom: 0; left: 0; width: 100%; height: 28%;
+	       padding: 20px 40px;
+	       box-sizing: border-box;
+	       text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+	       white-space: pre-wrap;
+	   }
+	   #mikoto-continue-indicator {
+	       position: absolute;
+	       bottom: 15px;
+	       right: 30px;
+	       animation: blink 1.5s infinite;
+	   }
+	   #mikoto-speech {
+	       color: black;
+	       font-size: 0.78em;
+	       line-height: 1.4;
+	   }
+	   @keyframes blink { 50% { opacity: 0.5; } }
+	   #mikoto-modal-close {
+	       all: unset; /* buttonのデフォルトスタイルをリセット */
+	       position: absolute;
+	       top: 10px;
+	       right: 15px;
+	       font-size: 2em;
+	       cursor: pointer;
+	       color: rgba(255,255,255,0.8);
+	       transition: color 0.2s;
+	       z-index: 10; /* テキストより手前に */
+	   }
+	   #mikoto-modal-close:hover {
+	       color: white;
+	   }
 
     </style>
   </head>
@@ -524,14 +616,13 @@
     <div id="mikoto-modal">
       <div class="mikoto-modal-content" title="クリックして進む">
         <button id="mikoto-modal-close" aria-label="閉じる">&times;</button>
-        <div class="mikoto-slide slide-0 is-active"></div>	
-        <div class="mikoto-slide slide-1"></div>
+        <div class="mikoto-slide slide-1 is-active"></div>
         <div class="mikoto-slide slide-2"></div>
         <div class="mikoto-slide slide-3"></div>
         <div class="mikoto-slide slide-4"></div>
         <div class="mikoto-slide slide-5"></div>
         <div id="mikoto-speech-container">
-          <p id="mikoto-speech"></p>
+          <span id="mikoto-speech"></span>
         </div>
         <span id="mikoto-continue-indicator">▼</span>
       </div>
