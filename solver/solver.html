@@ -67,7 +67,6 @@
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
           text-align: left;
       }
-
       .container::before, .container::after {
           content: '';
           position: absolute;
@@ -77,422 +76,422 @@
           background-position: left;
           border-radius: 18px; /* Match container's border-radius */
           z-index: -1;
-      }
+	  }
 
-      .container::before {
-          background-image: url(bg_solver.jpg);
-      }
+	   .container::before {
+               background-image: url(bg_solver.jpg);
+	   }
 
-      .container::after {
-          background-image: var(--after-bg-image, none);
-          opacity: 0;
-          transition: opacity 0.4s ease-in-out;
-      }
+	   .container::after {
+               background-image: var(--after-bg-image, none);
+               opacity: 0;
+               transition: opacity 0.4s ease-in-out;
+	   }
 
-      .container.bg-active::after {
-          opacity: 1;
-      }
+	   .container.bg-active::after {
+               opacity: 1;
+	   }
 
-      .bottom-panel .container {
-          padding-left: 0;
-          background: none;
-          background-color: none;
-          background-image: none;
-          border-radius: 8px;
-          box-shadow: none;
-          margin-top: 20px;
-      }
+	   .bottom-panel .container {
+               padding-left: 0;
+               background: none;
+               background-color: none;
+               background-image: none;
+               border-radius: 8px;
+               box-shadow: none;
+               margin-top: 20px;
+	   }
 
-      h1 {
-          color: var(--primary-text-color);
-          margin-bottom: 24px;
-      }
+	   h1 {
+               color: var(--primary-text-color);
+               margin-bottom: 24px;
+	   }
 
-      .info {
-          background-color: rgba(92, 107, 192, 0.15);
-          border-left: 5px solid var(--secondary-accent-color);
-          padding: 15px;
-          margin-bottom: 20px;
-          border-radius: 4px;
-          text-align: left;
-      }
+	   .info {
+               background-color: rgba(92, 107, 192, 0.15);
+               border-left: 5px solid var(--secondary-accent-color);
+               padding: 15px;
+               margin-bottom: 20px;
+               border-radius: 4px;
+               text-align: left;
+	   }
 
-      .info p {
-          margin: 0;
-          line-height: 1.6;
-      }
+	   .info p {
+               margin: 0;
+               line-height: 1.6;
+	   }
 
-      .board {
-          white-space: pre;
-          font-family: monospace;
-          line-height: 1.1;
-          font-size: 1.5em;
-          margin-bottom: 20px;
-          text-align: left;
-          border: 2px solid var(--border-color);
-          display: inline-block;
-          padding: 4px;
-          border-radius: 4px;
-          background-color: var(--bg-color);
-      }
+	   .board {
+               white-space: pre;
+               font-family: monospace;
+               line-height: 1.1;
+               font-size: 1.5em;
+               margin-bottom: 20px;
+               text-align: left;
+               border: 2px solid var(--border-color);
+               display: inline-block;
+               padding: 4px;
+               border-radius: 4px;
+               background-color: var(--bg-color);
+	   }
 
-      button {
-          background-color: var(--secondary-accent-color);
-          color: white;
-          padding: 12px 24px;
-          border: none;
-          border-radius: 5px;
-          font-size: 1em;
-          cursor: pointer;
-          transition: background-color 0.3s, transform 0.2s;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-      }
+	   button {
+               background-color: var(--secondary-accent-color);
+               color: white;
+               padding: 12px 24px;
+               border: none;
+               border-radius: 5px;
+               font-size: 1em;
+               cursor: pointer;
+               transition: background-color 0.3s, transform 0.2s;
+               margin-bottom: 20px;
+               box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+	   }
 
-      button:hover {
-          background-color: var(--primary-accent-color);
-          transform: translateY(-2px);
-      }
+	   button:hover {
+               background-color: var(--primary-accent-color);
+               transform: translateY(-2px);
+	   }
 
-      button:disabled {
-          background-color: #424242;
-          color: #757575;
-          cursor: not-allowed;
-          box-shadow: none;
-          transform: none;
-      }
-      .icon-btn img {
-          width: 58px;
-          height: 58px;
-      }
-      /* Icon-based UI styles */
-      .action-buttons, .icon-group {
-          display: flex;
-          justify-content: flex-start;
-          gap: 0;
-          align-items: center;
-      }
-      .action-buttons {
-          margin-bottom: 10px; /* ボタン下のマージン */
-      }
+	   button:disabled {
+               background-color: #424242;
+               color: #757575;
+               cursor: not-allowed;
+               box-shadow: none;
+               transform: none;
+	   }
+	   .icon-btn img {
+               width: 58px;
+               height: 58px;
+	   }
+	   /* Icon-based UI styles */
+	   .action-buttons, .icon-group {
+               display: flex;
+               justify-content: flex-start;
+               gap: 0;
+               align-items: center;
+	   }
+	   .action-buttons {
+               margin-bottom: 10px; /* ボタン下のマージン */
+	   }
 
-      .icon-btn {
-          /* Reset default button styles */
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-          background: none;
-          padding: 0;
-          font-family: inherit;
-          color: inherit;
+	   .icon-btn {
+               /* Reset default button styles */
+               -webkit-appearance: none;
+               -moz-appearance: none;
+               appearance: none;
+               background: none;
+               padding: 0;
+               font-family: inherit;
+               color: inherit;
 
-          /* Icon styles */
-          width: 56px;
-          height: 56px;
-          background-color: #3a3a3a;
-          border: 2px solid #5a5a5a;
-          border-radius: 6px;
-          display: inline-flex; /* Use flex to center content */
-          align-items: center;
-          justify-content: center;
+               /* Icon styles */
+               width: 56px;
+               height: 56px;
+               background-color: #3a3a3a;
+               border: 2px solid #5a5a5a;
+               border-radius: 6px;
+               display: inline-flex; /* Use flex to center content */
+               align-items: center;
+               justify-content: center;
 
-          font-size: 2em;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          user-select: none;
-          margin: 0;
-      }
+               font-size: 2em;
+               cursor: pointer;
+               transition: all 0.2s ease;
+               user-select: none;
+               margin: 0;
+	   }
 
-      #start-buttons-group {
-          display: flex;
-          align-items: center;
-          gap: 0;
-      }
+	   #start-buttons-group {
+               display: flex;
+               align-items: center;
+               gap: 0;
+	   }
 
-      .action-buttons.searching .icon-btn-label:not(.active-search) {
-          opacity: 0.4;
-          pointer-events: none;
-      }
+	   .action-buttons.searching .icon-btn-label:not(.active-search) {
+               opacity: 0.4;
+               pointer-events: none;
+	   }
 
-      .icon-btn:hover:not(:disabled) {
-          background-color: #4a4a4a;
-          border-color: var(--primary-accent-color);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-      }
+	   .icon-btn:hover:not(:disabled) {
+               background-color: #4a4a4a;
+               border-color: var(--primary-accent-color);
+               transform: translateY(-2px);
+               box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+	   }
 
-      .icon-btn:disabled {
-          background-color: #2a2a2a;
-          border-color: #424242;
-          color: #666;
-          cursor: not-allowed;
-          transform: none;
-          box-shadow: none;
-      }
+	   .icon-btn:disabled {
+               background-color: #2a2a2a;
+               border-color: #424242;
+               color: #666;
+               cursor: not-allowed;
+               transform: none;
+               box-shadow: none;
+	   }
 
-      /* Hide the actual radio/checkbox input */
-      .icon-group input {
-          position: absolute;
-          opacity: 0;
-          width: 0;
-          height: 0;
-      }
+	   /* Hide the actual radio/checkbox input */
+	   .icon-group input {
+               position: absolute;
+               opacity: 0;
+               width: 0;
+               height: 0;
+	   }
 
-      #status {
-          font-size: 1em;
-          font-weight: bold;
-          color: var(--primary-accent-color);
-      }
+	   #status {
+               font-size: 1em;
+               font-weight: bold;
+               color: var(--primary-accent-color);
+	   }
 
-      #search-summary {
-          background-color: rgba(44, 44, 44, 0.5); /* 半透明の背景 */
-          backdrop-filter: blur(4px); /* すりガラス効果 */
-          -webkit-backdrop-filter: blur(4px); /* Safari用 */
-          border-radius: 8px;
-          padding: 15px 25px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(255, 255, 255, 0.1); /* 境界線を少し見せる */
-      }
+	   #search-summary {
+               background-color: rgba(44, 44, 44, 0.5); /* 半透明の背景 */
+               backdrop-filter: blur(4px); /* すりガラス効果 */
+               -webkit-backdrop-filter: blur(4px); /* Safari用 */
+               border-radius: 8px;
+               padding: 15px 25px;
+               margin-bottom: 20px;
+               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+               border: 1px solid rgba(255, 255, 255, 0.1); /* 境界線を少し見せる */
+	   }
 
-      #progress-details {
-          font-size: 0.7em;
-          color: var(--secondary-text-color);
-          margin-top: 0;
-      }
+	   #progress-details {
+               font-size: 0.7em;
+               color: var(--secondary-text-color);
+               margin-top: 0;
+	   }
 
-      #save-status {
-          font-size: 0.9em;
-          color: var(--error-color);
-          margin-top: 10px;
-          min-height: 20px;
-      }
-      #save-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
-          color: var(--success-color) !important;
-      }
+	   #save-status {
+               font-size: 0.9em;
+               color: var(--error-color);
+               margin-top: 10px;
+               min-height: 20px;
+	   }
+	   #save-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
+               color: var(--success-color) !important;
+	   }
 
-      #solution-path {
-          margin-top: 0;
-          text-align: left;
-          display: grid;
-          grid-template-columns: repeat(15, 1fr);
-          gap: 2px;
-      }
+	   #solution-path {
+               margin-top: 0;
+               text-align: left;
+               display: grid;
+               grid-template-columns: repeat(15, 1fr);
+               gap: 2px;
+	   }
 
-      .step {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-      }
+	   .step {
+               display: flex;
+               flex-direction: column;
+               align-items: center;
+               gap: 4px;
+	   }
 
-      .step-number {
-          font-size: 0.8em;
-          font-weight: bold;
-          color: var(--secondary-text-color)
-      }
-
-
-      .step-board {
-          border: 1px solid var(--border-color);
-          padding: 5px;
-          border-radius: 4px;
-          background-color: var(--bg-color);
-          white-space: pre;
-          font-family: monospace;
-          line-height: 1.1;
-          font-size: 1em;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      /* Style for when the hidden input is disabled */
-      .icon-group input:disabled + .icon-label {
-          background-color: #2a2a2a;
-          border-color: #424242;
-          color: #666;
-          cursor: not-allowed;
-          box-shadow: none;
-      }
-
-    .step-board.clickable-board {
-        cursor: pointer;
-        transition: border-color 0.2s ease;
-    }
-    .step-board.clickable-board:hover {
-        border-color: var(--primary-accent-color);
-    }
-    .moved-piece {
-        color: var(--success-color);
-        font-weight: bold;
-    }
+	   .step-number {
+               font-size: 0.8em;
+               font-weight: bold;
+               color: var(--secondary-text-color)
+	   }
 
 
+	   .step-board {
+               border: 1px solid var(--border-color);
+               padding: 5px;
+               border-radius: 4px;
+               background-color: var(--bg-color);
+               white-space: pre;
+               font-family: monospace;
+               line-height: 1.1;
+               font-size: 1em;
+               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	   }
+
+	   /* Style for when the hidden input is disabled */
+	   .icon-group input:disabled + .icon-label {
+               background-color: #2a2a2a;
+               border-color: #424242;
+               color: #666;
+               cursor: not-allowed;
+               box-shadow: none;
+	   }
+
+	   .step-board.clickable-board {
+               cursor: pointer;
+               transition: border-color 0.2s ease;
+	   }
+	   .step-board.clickable-board:hover {
+               border-color: var(--primary-accent-color);
+	   }
+	   .moved-piece {
+               color: var(--success-color);
+               font-weight: bold;
+	   }
 
 
-      .board-input-container {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-      }
-
-      #initial-state-input {
-          /* flex-grow: 1; */
-          font-family: monospace;
-          width: 22ch; /* 20文字とパディング分を考慮 */
-          font-size: 1em;
-          padding: 7px;
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          background-color: var(--bg-color);
-          color: var(--primary-text-color);
-      }
-      #set-state-btn {
-          padding: 4px 35px ;
-          margin: 0;
-          border: 1px solid var(--border-color);
-          flex-shrink: 0;
-      }
-      #set-state-status {
-          min-height: 1.2em;
-          font-size: 0.9em;
-          text-align: left;
-          margin-top: 5px;
-      }
-      #set-state-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
-          color: var(--success-color) !important;
-      }
-      .pruning-selection {
-          margin-bottom: 20px;
-          /* text-align: center; */
-      }
-      .pruning-selection label {
-          margin: 0 10px;
-          font-size: 1em;
-          cursor: pointer;
-      }
-      #pruning-status {
-          color: var(--secondary-text-color);
-          margin-left: 10px;
-          font-size: 0.9em;
-      }
-
-      .separated-icon-label {
-          margin-left: 20px; /* IDA*を他のアイコンから離す */
-      }
-
-      .icon-btn-label {
-          position: relative;
-          display: inline-block;
-      }
 
 
-       /* --- Tooltip Styles --- */
-       .tooltip-text {
-           visibility: hidden;
-           width: 280px; /* ツールチップの幅 */
-           background-color: rgba(44, 44, 44, 0.1); /* 半透明の背景 */
-           backdrop-filter: blur(4px); /* すりガラス効果 */
-           -webkit-backdrop-filter: blur(4px); /* Safari用 */
-           color: var(--primary-text-color);
-           text-align: left;
-           border-radius: 6px;
-           padding: 10px 15px;
-           position: fixed; /* JSでビューポート基準の位置を計算するため */
-           z-index: 1000;
-           opacity: 0;
-           transition: opacity 0.3s ease;
-           font-size: 0.9em;
-           line-height: 1.5;
-           box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-           pointer-events: none; /* ツールチップ自体がマウスイベントを妨げないようにする */
-           --arrow-left: 50%; /* JSから矢印の位置を動的に設定するためのCSS変数 */
-       }
-       /* ツールチップの矢印 */
-       .tooltip-text::after {
-           content: "";
-           position: absolute;
-           left: var(--arrow-left);
-           transform: translateX(-50%);
-           border-width: 5px;
-           border-style: solid;
-       }
+	   .board-input-container {
+               display: flex;
+               align-items: center;
+               gap: 10px;
 
-       /* 上に表示する場合の矢印（下向き） */
-       .tooltip-text.arrow-down::after {
-           top: 100%;
-           border-color:rgba(44, 44, 44, 0.85) transparent transparent transparent;
-       }
+	   }
 
-       /* 下に表示する場合の矢印（上向き） */
-       .tooltip-text.arrow-up::after {
-           bottom: 100%;
-           border-color: transparent transparent rgba(44, 44, 44, 0.85) transparent;
-       }
+	   #initial-state-input {
+               /* flex-grow: 1; */
+               font-family: monospace;
+               width: 22ch; /* 20文字とパディング分を考慮 */
+               font-size: 1em;
+               padding: 7px;
+               border: 1px solid var(--border-color);
+               border-radius: 8px;
+               background-color: var(--bg-color);
+               color: var(--primary-text-color);
+	   }
+	   #set-state-btn {
+               padding: 4px 35px ;
+               margin: 0;
+               border: 1px solid var(--border-color);
+               flex-shrink: 0;
+	   }
+	   #set-state-status {
+               min-height: 1.2em;
+               font-size: 0.9em;
+               text-align: left;
+               margin-top: 5px;
+	   }
+	   #set-state-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
+               color: var(--success-color) !important;
+	   }
+	   .pruning-selection {
+               margin-bottom: 20px;
+               /* text-align: center; */
+	   }
+	   .pruning-selection label {
+               margin: 0 10px;
+               font-size: 1em;
+               cursor: pointer;
+	   }
+	   #pruning-status {
+               color: var(--secondary-text-color);
+               margin-left: 10px;
+               font-size: 0.9em;
+	   }
 
-       /* ホバー時にツールチップを表示 */
-       .tooltip-text.visible {
-           visibility: visible;
-           opacity: 1;
-       }
-       .tooltip-text strong {
-           color: var(--primary-accent-color);
-           font-weight: bold;
-       }
+	   .separated-icon-label {
+               margin-left: 20px; /* IDA*を他のアイコンから離す */
+	   }
 
-       /* --- Mikoto Modal Styles --- */
-       #mikoto-modal {
-           position: fixed;
-           top: 0;
-           left: 0;
-           width: 100%;
-           height: 100%;
-           background-color: rgba(0, 0, 0, 0.75);
-           z-index: 2000;
-           display: none; /* JSで表示を制御 */
-           align-items: center;
-           justify-content: center;
-           opacity: 0;
-           transition: opacity 0.4s ease-in-out;
-       }
-       #mikoto-modal.is-active {
-           display: flex;
-           opacity: 1;
-       }
-       .mikoto-modal-content {
-           background-image: url('bg_mikoto.jpg'); /* ミコトさん用の背景画像 */
-           background-size: cover;
-           background-position: center;
-           padding: 30px 40px;
-           border-radius: 12px;
-           color: white;
-           text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
-           max-width: 600px;
-           position: relative;
-           border: 1px solid rgba(255, 255, 255, 0.3);
-           box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-       }
-       #mikoto-speech {
-           white-space: pre-wrap; /* テキストの改行(\n)をそのまま表示する */
-           line-height: 1.8;
-           font-size: 1.1em;
-       }
-       #mikoto-modal-close {
-           all: unset; /* buttonのデフォルトスタイルをリセット */
-           position: absolute;
-           top: 10px;
-           right: 15px;
-           font-size: 2em;
-           cursor: pointer;
-           color: rgba(255,255,255,0.7);
-           transition: color 0.2s;
-       }
-       #mikoto-modal-close:hover {
-           color: white;
-       }
+	   .icon-btn-label {
+               position: relative;
+               display: inline-block;
+	   }
 
+
+	   /* --- Tooltip Styles --- */
+	   .tooltip-text {
+               visibility: hidden;
+               width: 280px; /* ツールチップの幅 */
+               background-color: rgba(44, 44, 44, 0.1); /* 半透明の背景 */
+               backdrop-filter: blur(4px); /* すりガラス効果 */
+               -webkit-backdrop-filter: blur(4px); /* Safari用 */
+               color: var(--primary-text-color);
+               text-align: left;
+               border-radius: 6px;
+               padding: 10px 15px;
+               position: fixed; /* JSでビューポート基準の位置を計算するため */
+               z-index: 1000;
+               opacity: 0;
+               transition: opacity 0.3s ease;
+               font-size: 0.9em;
+               line-height: 1.5;
+               box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+               pointer-events: none; /* ツールチップ自体がマウスイベントを妨げないようにする */
+               --arrow-left: 50%; /* JSから矢印の位置を動的に設定するためのCSS変数 */
+	   }
+	   /* ツールチップの矢印 */
+	   .tooltip-text::after {
+               content: "";
+               position: absolute;
+               left: var(--arrow-left);
+               transform: translateX(-50%);
+               border-width: 5px;
+               border-style: solid;
+	   }
+
+	   /* 上に表示する場合の矢印（下向き） */
+	   .tooltip-text.arrow-down::after {
+               top: 100%;
+               border-color:rgba(44, 44, 44, 0.85) transparent transparent transparent;
+	   }
+
+	   /* 下に表示する場合の矢印（上向き） */
+	   .tooltip-text.arrow-up::after {
+               bottom: 100%;
+               border-color: transparent transparent rgba(44, 44, 44, 0.85) transparent;
+	   }
+
+	   /* ホバー時にツールチップを表示 */
+	   .tooltip-text.visible {
+               visibility: visible;
+               opacity: 1;
+	   }
+	   .tooltip-text strong {
+               color: var(--primary-accent-color);
+               font-weight: bold;
+	   }
+
+	   /* --- Mikoto Modal Styles --- */
+	   #mikoto-modal {
+               position: fixed;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               background-color: rgba(0, 0, 0, 0.75);
+               z-index: 2000;
+               display: none; /* JSで表示を制御 */
+               align-items: center;
+               justify-content: center;
+               opacity: 0;
+               transition: opacity 0.4s ease-in-out;
+	   }
+	   #mikoto-modal.is-active {
+               display: flex;
+               opacity: 1;
+	   }
+	   .mikoto-modal-content {
+               background-image: url('bg_mikoto.jpg'); /* ミコトさん用の背景画像 */
+               background-size: cover;
+               background-position: center;
+               padding: 30px 40px;
+               border-radius: 12px;
+               color: white;
+               text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+               max-width: 600px;
+               position: relative;
+               border: 1px solid rgba(255, 255, 255, 0.3);
+               box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+	   }
+	   #mikoto-speech {
+               white-space: pre-wrap; /* テキストの改行(\n)をそのまま表示する */
+               line-height: 1.8;
+               font-size: 1.1em;
+	   }
+	   #mikoto-modal-close {
+               all: unset; /* buttonのデフォルトスタイルをリセット */
+               position: absolute;
+               top: 10px;
+               right: 15px;
+               font-size: 2em;
+               cursor: pointer;
+               color: rgba(255,255,255,0.7);
+               transition: color 0.2s;
+	   }
+	   #mikoto-modal-close:hover {
+               color: white;
+	   }
     </style>
   </head>
+
   <body>
     <div class="top-panel">
       <div class="container">
@@ -521,7 +520,7 @@
             </button>
             <span class="tooltip-text">
               <strong>Brave Forwards Search (BFS)</strong><br>
-              アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
+              アルフィノがシャーレアン魔法大学在学中に開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
             </span>
           </label>
           <label class="icon-btn-label">
