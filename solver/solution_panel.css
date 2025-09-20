@@ -1,4 +1,13 @@
-.result-panel {
+.solution-panel {
+            padding: 14px 24px;
+            font-size: 14px;
+            width: 800px;
+            max-width: 800px;
+            min-width: 800px;
+            background-color: rgba(44, 44, 44, 0.85);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            border-radius: 18px;
     position: absolute;
     top: 36px;
     padding: 20px 20px;
@@ -8,7 +17,7 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--button-color) var(--bg-color);
-    z-index: 1000;
+    z-index: 9000;
 }
 
 #search-summary {
@@ -61,6 +70,8 @@
 
 .step-board {
     /* グラフィカル表示のコンテナとして機能するため、一部スタイルをリセット・変更 */
+    background-color: rgba(44, 44, 44, 0.1);
+    backdrop-filter: blur(1px);    /* すりガラス効果 */
     background: transparent;
     border: 1px solid var(--border-color);
     padding: 2px;
@@ -79,23 +90,25 @@
 
 .moved-piece {
     /* 動いた駒を少し明るくして目立たせる */
-    filter: brightness(1.2);
+    filter: brightness(4);
 }
 
 /* --- グラフィカル表示用のスタイル --- */
 .solution-board-grid {
-    position: relative; /* オーバーレイ用 */
+    position: relative; /* オーバーレイの配置基準にする */
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(5, 1fr);
-    width: 80px;
-    height: 100px;
+    width: 65px;
+    height: 80px;
     /* コンテナ自体のスタイルを上書き */
     padding: 0;
     border: none;
-    /* gapの代わりにセルのborderで線を描画するため、コンテナに上と左の枠線だけ設定 */
-    border-top: 1px solid var(--border-color);
-    border-left: 1px solid var(--border-color);
+    /* gapの代わりにセルのborderで線を描画 */
+    border-top: 2px solid var(--border-color);
+    border-left: 2px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 .solution-board-cell {
@@ -121,7 +134,7 @@
 
 /* 動いた駒のハイライト枠 */
 .moved-piece-overlay {
-    position: absolute;
+    position: absolute; /* 他の要素に影響を与えずに重ねて表示する */
     border: 2px solid var(--success-color);
     pointer-events: none;
     z-index: 2;
@@ -131,17 +144,29 @@
 }
 
 /* 駒の色 (board_editor.cssから引用) */
-.solution-board-cell.piece-A { background-color: #c62828; color: white; } /* 2x2, Red */
-.solution-board-cell.piece-B { background-color: #2e7d32; color: white; } /* 2x1, Green */
-.solution-board-cell.piece-C { background-color: #0277bd; color: white; } /* 1x2, Blue */
-.solution-board-cell.piece-D { background-color: #6a1b9a; color: white; } /* 1x2, Purple */
-.solution-board-cell.piece-E { background-color: #00695c; color: white; } /* 1x2, Teal */
-.solution-board-cell.piece-F { background-color: #283593; color: white; } /* 1x2, Indigo */
-.solution-board-cell.piece-G { background-color: #f9a825; color: black; } /* 1x1, Yellow */
-.solution-board-cell.piece-H { background-color: #c2185b; color: white; } /* 1x1, Pink */
-.solution-board-cell.piece-I { background-color: #ef6c00; color: white; } /* 1x1, Orange */
-.solution-board-cell.piece-J { background-color: #5d4037; color: white; } /* 1x1, Brown */
-.solution-board-cell.piece-dot { background-color: var(--surface-color); }
+ .solution-board-cell.piece {background-color: #6f6f6f; color: white;};
+ .solution-board-cell.piece-A { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-B { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-C { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-D { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-E { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-F { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-G { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-H { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-I { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-J { background-color: #525252; color: white; } 
+ .solution-board-cell.piece-dot { background-color: rgb(0,0,100,0.15); } 
+/* .solution-board-cell.piece-A { background-color: #c62828; color: white; } /\* 2x2, Red *\/ */
+/* .solution-board-cell.piece-B { background-color: #2e7d32; color: white; } /\* 2x1, Green *\/ */
+/* .solution-board-cell.piece-C { background-color: #0277bd; color: white; } /\* 1x2, Blue *\/ */
+/* .solution-board-cell.piece-D { background-color: #6a1b9a; color: white; } /\* 1x2, Purple *\/ */
+/* .solution-board-cell.piece-E { background-color: #00695c; color: white; } /\* 1x2, Teal *\/ */
+/* .solution-board-cell.piece-F { background-color: #283593; color: white; } /\* 1x2, Indigo *\/ */
+/* .solution-board-cell.piece-G { background-color: #f9a825; color: black; } /\* 1x1, Yellow *\/ */
+/* .solution-board-cell.piece-H { background-color: #c2185b; color: white; } /\* 1x1, Pink *\/ */
+/* .solution-board-cell.piece-I { background-color: #ef6c00; color: white; } /\* 1x1, Orange *\/ */
+/* .solution-board-cell.piece-J { background-color: #5d4037; color: white; } /\* 1x1, Brown *\/ */
+/* .solution-board-cell.piece-dot { background-color: var(--surface-color); } */
 
 /* --- Custom Scrollbar Styles (for Webkit) --- */
 ::-webkit-scrollbar {

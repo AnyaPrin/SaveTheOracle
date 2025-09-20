@@ -6,12 +6,9 @@
     margin: 24px 48px 0 48px;
     padding: 24px;
 
-    background-color: rgba(44, 44, 44, 0.5);
-    /* 半透明の背景 */
-    backdrop-filter: blur(4px);
-    /* すりガラス効果 */
-    -webkit-backdrop-filter: blur(4px);
-    /* Safari用 */
+    background-color: rgba(44, 44, 44, 0.5);    /* 半透明の背景 */
+    backdrop-filter: blur(4px);    /* すりガラス効果 */
+    -webkit-backdrop-filter: blur(4px);    /* Safari用 */
 
     border-radius: 18px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

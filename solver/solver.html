@@ -17,7 +17,7 @@
 
         :root {
             --bg-color: #1a1a1a;
-            --surface-color: #2c2c2c;
+            --surface-color: rgb(76, 75, 80, 0.8);
             --button-color: #3c3c3c;
             --button-hover-color: #8e8c8e;
             --button-disabled-color: rgb(76, 75, 80, 0.1);
@@ -57,8 +57,10 @@
 
         }
 
-        .ui-panel,
-        .result-panel {
+        .ui-panel {
+            display: flex;
+            flex-direction: row;
+            position: absolute;	    
             padding: 14px 24px;
             font-size: 14px;
             width: 800px;
@@ -68,12 +70,9 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             box-sizing: border-box;
             border-radius: 18px;
-        }
 
-        .ui-panel {
-            display: flex;
-            flex-direction: row;
-            position: absolute;
+
+
             text-align: center;
             z-index: 1;
         }
@@ -384,13 +383,12 @@
     </style>
     <link rel="stylesheet" href="mikoto_speech.css">
     <link rel="stylesheet" href="board_editor.css">
-    <link rel="stylesheet" href="result-panel.css">
+    <link rel="stylesheet" href="solution_panel.css">
     <link rel="stylesheet" href="tooltips.css">
 </head>
 
 <body>
     <div class="ui-panel">
-
         <div class="horizontal-panel">
             <div class="controls-container">
                 <h1>SAVE THE ORACLE SOLVER</h1>
@@ -555,7 +553,7 @@
 
     </div>
 
-    <div class="result-panel">
+    <div class="solution-panel">
         <div id="search-summary" hidden>
             <button id="hide-summary-btn" class="close-btn" title="閉じる">&times;</button>
             <div id="status"></div>
@@ -577,12 +575,12 @@
             <span id="mikoto-continue-indicator">▼</span>
         </div>
     </div>
-
     <script content-type="text/javascript" src="../lib/common.js"></script>
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
-
+    <script content-type="text/javascript" src="solution_display.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const advancedSettingsBtn = document.getElementById('advanced-settings-btn');

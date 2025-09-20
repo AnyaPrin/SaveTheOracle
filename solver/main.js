@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const topContainer = document.querySelector('.ui-panel .controls-container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
-    const resultPanelDiv = document.querySelector('.result-panel');
+    const resultPanelDiv = document.querySelector('.solution-panel');
 
     const progressDetailsDiv = document.getElementById('progress-details');
     const actionButtonsDiv = document.querySelector('.action-buttons');
@@ -71,19 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mikotoModal.classList.remove('is-active');
         } else {
             updateMikotoSlide();
-        }
-    });
-
-    solutionPathDiv.addEventListener('click', (e) => {
-        const boardDiv = e.target.closest('.clickable-board');
-        if (boardDiv) {
-            const state = boardDiv.dataset.state;
-            if (state) {
-                initialStateInput.value = state;
-                handleSetState();
-                // ユーザーが新しい盤面を設定したことを分かりやすくするため、ページ上部にスクロールする
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         }
     });
 
@@ -296,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
         const title = isOptimal ? '最短手数' : '発見した手数';
 
-        displaySolution(result.path);
+        SolutionDisplay.displaySolution(result.path);
         statusDiv.textContent = `${result.message} 　 ${title}: ${result.path.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
         setUIState(false);
         currentSolver = null;
@@ -384,76 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             statusDiv.textContent = 'Searching...';
             solutionPathDiv.innerHTML = '';
         }
-    }
-
-    function displaySolution(path) {
-        let html = '';
-
-        path.forEach((state, index) => {
-            const prevState = path[index - 1] || null;
-            const currentPieces = stateToPieces(state);
-            let movedPiece = null;
-
-            // 1. 動いた駒を特定します。正規化の影響を受けないように、
-            // 「一手前では空きマスで、現在地では駒がある」場所を探します。
-            if (prevState) {
-                let movedToPos = -1;
-                for (let i = 0; i < prevState.length; i++) {
-                    if (prevState[i] === '.' && state[i] !== '.') {
-                        movedToPos = i;
-                        break;
-                    }
-                }
-                if (movedToPos !== -1) {
-                    movedPiece = currentPieces.find(p => p.positions.includes(movedToPos));
-                }
-            }
-
-            // 2. 盤面のHTMLを構築します。
-            const pieceMap = Array(COMMON.WIDTH * COMMON.HEIGHT).fill(null);
-            for (const piece of currentPieces) {
-                for (const pos of piece.positions) {
-                    pieceMap[pos] = piece;
-                }
-            }
-
-            let boardCellsHtml = '';
-            for (let i = 0; i < COMMON.WIDTH * COMMON.HEIGHT; i++) {
-                const piece = pieceMap[i];
-                const classList = ['solution-board-cell'];
-                let cellContent = '';
-
-                if (piece) {
-                    classList.push(`piece-${piece.char}`);
-                    if (i === piece.positions[0]) cellContent = piece.char;
-                    if (movedPiece && piece.id === movedPiece.id) classList.push('moved-piece');
-
-                    const x = i % COMMON.WIDTH;
-                    const y = Math.floor(i / COMMON.WIDTH);
-                    if (x < COMMON.WIDTH - 1 && pieceMap[i + 1] === piece) classList.push('piece-inner-right');
-                    if (y < COMMON.HEIGHT - 1 && pieceMap[i + COMMON.WIDTH] === piece) classList.push('piece-inner-bottom');
-                } else {
-                    classList.push('piece-dot');
-                }
-                boardCellsHtml += `<div class="${classList.join(' ')}">${cellContent}</div>`;
-            }
-
-            // 3. ハイライト用のオーバーレイHTMLを構築します。
-            let overlayHtml = '';
-            if (movedPiece) {
-                let minX = COMMON.WIDTH, minY = COMMON.HEIGHT;
-                for (const pos of movedPiece.positions) {
-                    minX = Math.min(minX, pos % COMMON.WIDTH);
-                    minY = Math.min(minY, Math.floor(pos / COMMON.WIDTH));
-                }
-                const style = `grid-column: ${minX + 1} / span ${movedPiece.width}; grid-row: ${minY + 1} / span ${movedPiece.height};`;
-                overlayHtml = `<div class="moved-piece-overlay" style="${style}"></div>`;
-            }
-
-            // 4. このステップの最終的なHTMLを組み立てます。
-            html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board clickable-board solution-board-grid" data-state="${state}">${boardCellsHtml}${overlayHtml}</div></div>`;
-        });
-        solutionPathDiv.innerHTML = html;
     }
 
     function handleSetState() {
@@ -569,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     pruningDataStatus.textContent = '(読込中...)';
-    fetch('data.json')
+    fetch('data/data.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
@@ -589,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 共有＆ローカルの探索済みデータを読み込む ---
     localVisitedDataStatus.textContent = '(読込中...)';
     // 1. まず共有された探索済みデータ(shared_visited.json)を非同期で読み込む
-    fetch('shared_visited.json')
+    fetch('data/shared_visited.json')
         .then(response => {
             // ファイルが存在し、レスポンスが正常ならJSONとして解析する
             if (response.ok) return response.json();
@@ -717,7 +634,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let previewPositions = [];
         let lastPreviewIndex = -1;
         let lastHoveredPieceInfo = { piece: null, grid: null };
-
         function createGridCells(gridElement) {
             gridElement.innerHTML = '';
             for (let i = 0; i < 20; i++) {
@@ -727,7 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 gridElement.appendChild(cell);
             }
         }
-
         function renderGridWithPieces(gridElement, pieces) {
             const pieceMap = Array(20).fill(null);
             for (const piece of pieces) {
@@ -743,10 +658,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (piece) {
                     classList.push(`piece-${piece.char}`);
                     cell.textContent = (i === piece.positions[0]) ? piece.char : '';
-
                     const x = i % COMMON.WIDTH;
                     const y = Math.floor(i / COMMON.WIDTH);
-
                     if (x < COMMON.WIDTH - 1 && pieceMap[i + 1] === piece) classList.push('piece-inner-right');
                     if (y < COMMON.HEIGHT - 1 && pieceMap[i + COMMON.WIDTH] === piece) classList.push('piece-inner-bottom');
                 } else {
@@ -984,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const finalStateArray = finalState.split('');
             const emptyCount = finalStateArray.filter(c => c === '.').length;
             if (emptyCount !== 2) {
-                alert(`すべての駒を配置してください`);
+                alert(`配置していない駒があります`);
                 return;
             }
             initialStateInput.value = finalState;
@@ -1000,11 +913,19 @@ document.addEventListener('DOMContentLoaded', () => {
         resetEditor();
     }
 
+    SolutionDisplay.init({
+        solutionPathDiv: document.getElementById('solution-path'),
+        initialStateInput: document.getElementById('initial-state-input'),
+        handleSetState: handleSetState,
+        stateToPieces: stateToPieces,
+        COMMON: COMMON
+    });
+
     initializeBoardEditor();
 
     // --- Draggable Panel Logic ---
     function initializeDraggablePanel() {
-        const panel = document.querySelector('.result-panel');
+        const panel = document.querySelector('.solution-panel');
         const header = document.getElementById('search-summary');
 
         let isDragging = false;
