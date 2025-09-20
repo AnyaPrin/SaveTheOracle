@@ -114,10 +114,9 @@
             background-repeat: no-repeat;
             background-position: left;
             border-radius: 18px;
-            /* Match containers border-radius */
-            background-image:
-                linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
-                url('../img/bg_solver.jpg');
+            /* Match container's border-radius */
+            background-image: var(--before-bg-image,
+                linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)), url('../img/bg_solver.jpg'));
             z-index: -1;
         }
 
@@ -130,7 +129,7 @@
         .controls-container::after {
             background-image: var(--after-bg-image, none);
             opacity: 0;
-            transition: opacity 0.4s ease-in-out;
+            transition: opacity 1s ease-in-out; /* じわっと変わるように調整 */
         }
 
         .controls-container.bg-active::after {

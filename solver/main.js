@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
             sharedVisited: 'data/shared_visited.json'
         },
         MIKOTO_SLIDES: [
-            '../img/mikoto_speech/slide_0.jpg',
-            '../img/mikoto_speech/slide_1.jpg',
-            '../img/mikoto_speech/slide_2.jpg',
-            '../img/mikoto_speech/slide_3.jpg',
-            '../img/mikoto_speech/slide_4.jpg',
-            '../img/mikoto_speech/slide_5.jpg'
+            '../img/mikoto_speech/slide_0.webp',
+            '../img/mikoto_speech/slide_1.webp',
+            '../img/mikoto_speech/slide_2.webp',
+            '../img/mikoto_speech/slide_3.webp',
+            '../img/mikoto_speech/slide_4.webp',
+            '../img/mikoto_speech/slide_5.webp'
         ]
     };
 
@@ -203,20 +203,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
         setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
 
-        // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒ごとに背景を切り替えるタイマーをセット
+        // IDA*探索が選択された場合、ミコトさんのスライドショーを開始する
         if (selectedAlgorithm === 'idastar') {
             let slideIndex = 0;
+            const transitionDuration = 1000; // CSSのtransition-durationと合わせる
+
+            // 1. 最初のスライドを下のレイヤー('::before')に即時表示する
+            const initialSlide = `url(${ASSET_PATHS.MIKOTO_SLIDES[slideIndex]})`;
+            const initialBgComposite = `
+                linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
+                ${initialSlide}
+            `;
+            topContainer.style.setProperty('--before-bg-image', initialBgComposite);
+            topContainer.style.setProperty('--after-bg-image', 'none'); // 上のレイヤーは透明に
+            topContainer.classList.remove('bg-active');
+            lockedBgUrl = initialSlide;
+
             mikotoTimer = setInterval(() => {
+                // 2. 次のスライドを上のレイヤー('::after')にセットし、フェードインさせる
+                //    この時、下のレイヤーには前のスライドが表示されているため、クロスフェードのように見える
                 slideIndex = (slideIndex + 1) % ASSET_PATHS.MIKOTO_SLIDES.length;
-                const nextBg = `url(${ASSET_PATHS.MIKOTO_SLIDES[slideIndex]})`;
-                lockedBgUrl = nextBg;
-                topContainer.style.setProperty('--after-bg-image', nextBg);
+                const nextSlide = `url(${ASSET_PATHS.MIKOTO_SLIDES[slideIndex]})`;
+                topContainer.style.setProperty('--after-bg-image', nextSlide);
+                topContainer.classList.add('bg-active');
+
+                // 3. フェード完了後、次のサイクルのためにレイヤーをリセットする
+                setTimeout(() => {
+                    // 現在表示されたスライドを下のレイヤーに移動
+                    const nextBgComposite = `
+                        linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
+                        ${nextSlide}
+                    `;
+                    topContainer.style.setProperty('--before-bg-image', nextBgComposite);
+                    topContainer.classList.remove('bg-active'); // 上のレイヤーを再び透明に
+                    lockedBgUrl = nextSlide;
+                }, transitionDuration);
             }, MIKOTO_SPEECH_WAIT);
+        } else {
+            // 他アルゴリズムの場合は、キャラクター画像を固定表示
+            lockedBgUrl = `url(${ASSET_PATHS.BG_IMAGES[selectedAlgorithm]})`;
+            topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
+            topContainer.classList.add('bg-active');
         }
-        // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
-        lockedBgUrl = `url(${ASSET_PATHS.BG_IMAGES[selectedAlgorithm]})`;
-        topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
-        topContainer.classList.add('bg-active');
 
         const options = {
             initialState: INITIAL_STATE,
@@ -316,6 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
             searchStartTime = null;
             // 探索終了後、背景画像のロックを解除し、デフォルトに戻す
             lockedBgUrl = null;
+            // IDA*探索用に設定したベース背景をリセット
+            topContainer.style.setProperty('--before-bg-image', '');
             setContainerBackground(null);
         }
 
