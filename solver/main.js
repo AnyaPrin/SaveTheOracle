@@ -8,13 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSolver = null;
 
     const MIKOTO_SPEECH_WAIT = 30000;
-    const topContainer = document.querySelector('.top-panel .controls-container');
+    const topContainer = document.querySelector('.ui-panel .controls-container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
     const progressDetailsDiv = document.getElementById('progress-details');
     const actionButtonsDiv = document.querySelector('.action-buttons');
     const mikotoModal = document.getElementById('mikoto-modal');
-    const mikotoSpeechP = document.getElementById('mikoto-speech');
     const mikotoContinueIndicator = document.getElementById('mikoto-continue-indicator');
     const mikotoModalCloseBtn = document.getElementById('mikoto-modal-close');
 
@@ -26,8 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const setStateBtn = document.getElementById('set-state-btn');
     const setStateStatusDiv = document.getElementById('set-state-status');
     const pruningCheckbox = document.getElementById('pruning-enabled');
-    const pruningStatus = document.getElementById('pruning-status');
     const useLocalVisitedCheckbox = document.getElementById('use-local-visited-enabled');
+    const pruningDataStatus = document.getElementById('pruning-data-status');
+    const localVisitedDataStatus = document.getElementById('local-visited-data-status');
     const checkDataBtn = document.getElementById('check-data-btn');
 
     initialStateInput.value = INITIAL_STATE;
@@ -35,15 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Mikoto Modal Logic ---
     let mikotoSlides, currentMikotoSlideIndex = 0;
-    const MIKOTO_SPEECHES = [
-        "……このパズル、シドさんのアルゴリズムと相性が悪いだけです……。\n設計が劣っているなんてことは断じて、断じてありません……。", // Slide 0
-        "……いいですか？ ……他のアルゴリズムは一度通った道を忘れないよう記憶媒体に全部書き写しながら進みます。だから各ノードの状態選択自由度が大きな…… えーとつまり広大な迷宮ではすぐにDRAMが黒焦げ…… いえ記憶媒体が真っ黒になってしまいます。でも！ IDAstarは違います！", // Slide 1
-        "記憶媒体なんてほとんど使わず自分の足と頭そして『これ以上は危険だ』という上限だけを頼りに進むんです！ だから広大な迷宮でも記憶媒体不足の心配がないんです！", // Slide 2
-        "たとえばルービックもとい魔導キューブってありますよね？ あれの組合せの数は4325京通り以上、普通のアルゴリズムでは記憶容量が足りずに雷子計算機が止まってしまうそんな状況でもIDAstarは歩みを止めない！", // Slide 3
-        "IDAstarだけは、シドさんのアルゴリズムだけはいつだって解を見つける！どんなに時間がかかろうと必ず見つける！ 事実上、唯一の希望なんです！\n…………すみません、つい熱くなって……。\n……と、とにかくIDAstarは本当にスゴイ発明なんです。", // Slide 4
-        "" // Slide 5: テキストなし
-    ];
-
 
     function showMikotoModal() {
         currentMikotoSlideIndex = 0;
@@ -55,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mikotoSlides.forEach((slide, index) => {
             slide.classList.toggle('is-active', index === currentMikotoSlideIndex);
         });
-        mikotoSpeechP.innerText = MIKOTO_SPEECHES[currentMikotoSlideIndex] || "";
         mikotoContinueIndicator.style.display = (currentMikotoSlideIndex >= mikotoSlides.length - 1) ? 'none' : 'block';
     }
 
@@ -440,9 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (optimalPathData.normalizedSet) {
             const normalizedState = COMMON.normalizeState(INITIAL_STATE);
             if (optimalPathData.normalizedSet.has(normalizedState)) {
-                pruningStatus.textContent = `(最短経路上: ${optimalPathData.normalizedSet.size.toLocaleString()}件のデータ利用可)`;
+                pruningDataStatus.textContent = `(最短経路上: ${optimalPathData.normalizedSet.size.toLocaleString()}件のデータ利用可)`;
             } else {
-                pruningStatus.textContent = `(注意: 初期盤面は最短経路上にありません)`;
+                pruningDataStatus.textContent = `(注意: 初期盤面は最短経路上にありません)`;
             }
         }
     }
@@ -529,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Initial Load ---
-    pruningStatus.textContent = '(最短解データを読込中...)';
+    pruningDataStatus.textContent = '(読込中...)';
     fetch('data.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -540,14 +530,15 @@ document.addEventListener('DOMContentLoaded', () => {
             optimalPathData.array = data;
             optimalPathData.normalizedSet = new Set(data.map(state => COMMON.normalizeState(state)));
             pruningCheckbox.disabled = false;
-            pruningStatus.textContent = `(データ読込完了: ${optimalPathData.rawSet.size.toLocaleString()}件)`;
+            pruningDataStatus.textContent = `(${optimalPathData.rawSet.size.toLocaleString()}件)`;
         })
         .catch(error => {
-            pruningStatus.textContent = '(データ読込失敗)';
+            pruningDataStatus.textContent = '(読込失敗)';
             console.error('Error loading optimal path data:', error);
         });
 
     // --- 共有＆ローカルの探索済みデータを読み込む ---
+    localVisitedDataStatus.textContent = '(読込中...)';
     // 1. まず共有された探索済みデータ(shared_visited.json)を非同期で読み込む
     fetch('shared_visited.json')
         .then(response => {
@@ -580,10 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 localVisitedData.set = mergedSet;
                 localVisitedData.status = '読込完了';
                 useLocalVisitedCheckbox.disabled = false;
-                // メッセージを追記して、マージ後の合計件数を表示
-                pruningStatus.textContent += ` | 保存済みデータ: ${mergedSet.size.toLocaleString()}件`;
+                localVisitedDataStatus.textContent = `(${mergedSet.size.toLocaleString()}件)`;
             } else {
                 localVisitedData.status = 'データなし';
+                localVisitedDataStatus.textContent = '(データなし)';
             }
         });
 

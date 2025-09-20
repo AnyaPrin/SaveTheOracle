@@ -8,8 +8,8 @@
     <style>
         @font-face {
             font-family: 'MeiryoB';
-            src: url('../fonts/Meiryo-Bold.woff2') format('woff2'),
-                url('../fonts/Meiryo-Bold.woff') format('woff');
+            src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
+                url('../fonts/MeiryoUI-Bold.woff') format('woff');
             font-weight: bold;
             font-style: normal;
             font-display: swap;
@@ -36,7 +36,7 @@
         }
 
         body {
-            font-family: 'MeryoB', sans-serif;
+            font-family: 'MeiryoB', sans-serif;
             padding: 10px;
             margin: 10px;
             display: flex;
@@ -52,10 +52,13 @@
         .horizontal-panel {
             display: flex;
             flex-direction: row;
+            margin: 20px 10px;
+            box-sizing: border-box;
+
         }
 
-        .top-panel,
-        .bottom-panel {
+        .ui-panel,
+        .result-panel {
             padding: 14px 24px;
             font-size: 14px;
             width: 800px;
@@ -67,26 +70,14 @@
             border-radius: 18px;
         }
 
-        .top-panel {
+        .ui-panel {
             display: flex;
             flex-direction: row;
             position: absolute;
-            text-align: left;
+            text-align: right;
             z-index: 1;
         }
 
-        .bottom-panel {
-            position: absolute;
-            top: 280px;
-            padding: 20px 20px;
-            background: transparent;
-            box-shadow: none;
-            align-items: center;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--button-color) var(--bg-color);
-            z-index: 1000;
-        }
 
         #search-summary {
             background-color: rgba(44, 44, 44, 0.5);
@@ -288,19 +279,6 @@
             height: 0;
         }
 
-        #status {
-            font-size: 1em;
-            font-weight: bold;
-            color: var(--primary-accent-color);
-        }
-
-
-        #progress-details {
-            font-size: 0.7em;
-            color: var(--secondary-text-color);
-            margin-top: 0;
-        }
-
         #save-status {
             font-size: 0.9em;
             color: var(--error-color);
@@ -311,58 +289,6 @@
         #save-status[style*="color: rgb(76, 175, 80)"] {
             /* For success message */
             color: var(--success-color) !important;
-        }
-
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-        }
-
-        .step-number {
-            font-size: 0.78em;
-            font-weight: bold;
-            align-items: left;
-            color: var(--secondary-text-color);
-        }
-
-        .step-board {
-            font-family: MeiryoB;
-            border: 1px solid var(--border-color);
-            padding: 4px 8px;
-            border-radius: 4px;
-            background-color: var(--bg-color);
-            justify-content: left;
-            white-space: pre;
-            font-family: monospace;
-            line-height: 1.1;
-            font-size: 1.1em;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Style for when the hidden input is disabled */
-        .icon-group input:disabled+.icon-label {
-            background-color: #2a2a2a;
-            border-color: #424242;
-            color: #666;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .step-board.clickable-board {
-            cursor: pointer;
-            transition: border-color 0.2s ease;
-        }
-
-        .step-board.clickable-board:hover {
-            border-color: var(--primary-accent-color);
-        }
-
-        .moved-piece {
-            color: var(--success-color);
-            font-weight: bold;
         }
 
         .board-input-container {
@@ -417,7 +343,8 @@
             cursor: pointer;
         }
 
-        #pruning-status {
+        #pruning-data-status,
+        #local-visited-data-status {
             color: var(--secondary-text-color);
             margin-left: 10px;
             font-size: 0.9em;
@@ -454,48 +381,166 @@
         .advanced-settings-panel:not([hidden]) {
             display: flex;
         }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* --- Custom Scrollbar Styles (for Webkit) --- */
-        ::-webkit-scrollbar {
-            width: 12px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--button-color);
-
-            border-radius: 6px;
-            border: 3px solid var(--bg-color);
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--secondary-accent-color);
-        }
     </style>
     <link rel="stylesheet" href="mikoto_speech.css">
     <link rel="stylesheet" href="board_editor.css">
+    <link rel="stylesheet" href="result-panel.css">
     <link rel="stylesheet" href="tooltips.css">
 </head>
 
 <body>
-    <div class="top-panel">
+    <div class="ui-panel">
+
+        <div class="horizontal-panel">
+            <div class="controls-container">
+                <h1>SAVE THE ORACLE SOLVER</h1>
+
+                <div class="board-input-container">
+                    <input type="text" id="initial-state-input" maxlength="20" minlength="20"
+                        title="20文字の盤面状態 (A-Z, .)">
+                    <button id="set-state-btn">OK</button>
+                    <div id="set-state-status"></div>
+                </div>
+
+                <div class="action-buttons">
+
+                    <label class="icon-btn-label">
+                        <button class="icon-btn start-algorithm-btn" value="bfs">
+                            <img src="../img/icon/bfs.png" alt="BFS">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>Brave Forwards Search (BFS)</strong><br>
+                            アルフィノがシャーレアン魔法大学在学中に開発したとされる最も基本的な探索アルゴリズム。
+                            スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
+                        </span>
+                    </label>
+
+                    <label class="icon-btn-label">
+                        <button class="icon-btn start-algorithm-btn" value="astar">
+                            <img src="../img/icon/astar.png" alt="A*">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
+                            ネロがアラグの超技術を利用して開発したらしい探索アルゴリズム。
+                            ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつ、
+                            より高速に解を見つけることができます。
+                        </span>
+                    </label>
+
+                    <label class="icon-btn-label separated-icon-label">
+                        <button class="icon-btn start-algorithm-btn" value="idastar">
+                            <img src="../img/icon/idastar.png" alt="IDA*">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>Ironworks Designed Astar (IDA*)</strong><br>
+                            シドが開発したかもしれないA*探索の改良版。メモリ使用量を抑えられますが、
+                            このパズルのように同じ状態に何度も到達する問題では探索効率が著しく低下する場合があります。(試験的実装)
+                        </span>
+                    </label>
+
+                    <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
+
+                    <label class="icon-btn-label">
+                        <button id="save-btn" class="icon-btn" disabled>
+                            <img src="../img/icon/save.png" alt="Save">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>探索結果を保存</strong><br>
+                            今回の探索で訪れた盤面（探索済みノード）をブラウザに保存します。次回以降の探索で再利用できます。
+                        </span>
+                    </label>
+
+                    <label class="icon-btn-label">
+                        <button id="check-data-btn" class="icon-btn">
+                            <img src="../img/icon/check.png" alt="Check">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>データ整合性チェック</strong><br>
+                            ブラウザに保存された探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
+                        </span>
+                    </label>
+
+                    <label class="icon-btn-label">
+                        <button id="advanced-settings-btn" class="icon-btn">
+                            <img src="../img/icon/config.png" alt="Settings">
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>詳細設定</strong><br>
+                            枝刈りや保存済みデータの利用など、探索に関する高度な設定を行います。
+                        </span>
+                    </label>
+
+                </div>
+
+                <style>
+                    /* Icon-based UI styles */
+                    .action-buttons,
+                    .icon-group {
+                        display: flex;
+                        justify-content: flex-start;
+                        gap: 0;
+                        align-items: center;
+                    }
+
+                    .action-buttons {
+                        margin: 14px 0;
+
+                    }
+
+                    .icon-btn {
+                        -webkit-appearance: none;
+                        /* Reset default button styles */
+                        -moz-appearance: none;
+                        appearance: none;
+                        background: none;
+                        padding: 0;
+                        font-family: inherit;
+                        color: inherit;
+
+                        width: 56px;
+                        /* Icon styles */
+                        height: 56px;
+                        background-color: #3a3a3a;
+                        border: 2px solid #5a5a5a;
+                        border-radius: 6px;
+                        display: inline-flex;
+                        /* Use flex to center content */
+                        align-items: center;
+                        justify-content: center;
+
+                        font-size: 2em;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        user-select: none;
+                        margin: 0;
+                    }
+
+                    .action-buttons.searching .icon-btn-label:not(.active-search) {
+                        opacity: 0.4;
+                        pointer-events: none;
+                    }
+
+                    .icon-btn:hover:not(:disabled) {
+                        background-color: #4a4a4a;
+                        border-color: var(--primary-accent-color);
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                    }
+                </style>
+                <div id="save-status"></div>
+                <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
+                    最短解データによる枝刈り</label><span id="pruning-data-status"></span>
+                <label class="checkbox-label"><input type="checkbox" id="use-local-visited-enabled" disabled>
+                    保存済み探索データの利用</label><span id="local-visited-data-status"></span>
+            </div>
+
+        </div>
+
+
+
         <div class="horizontal-panel">
             <div class="settings-container">
                 <div id="advanced-settings-panel" class="advanced-settings-panel" hidden>
-                    <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
-                        最短解データによる枝刈り</label>
-                    <label class="checkbox-label"><input type="checkbox" id="use-local-visited-enabled" disabled>
-                        保存済み探索データの利用</label>
-                    <span id="pruning-status"></span>
                     <label class="function-title">BOARD EDITOR</label>
                     <div class="editor-layout">
                         <div class="grid-wrapper">
@@ -512,94 +557,10 @@
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class="horizontal-panel">
-        <div class="controls-container">
-            <h1>SAVE THE ORACLE SOLVER</h1>
-
-            <div class="board-input-container">
-                <input type="text" id="initial-state-input" maxlength="20" minlength="20" title="20文字の盤面状態 (A-Z, .)">
-                <button id="set-state-btn">OK</button>
-                <div id="set-state-status"></div>
-            </div>
-
-            <div class="action-buttons">
-
-                <label class="icon-btn-label">
-                    <button class="icon-btn start-algorithm-btn" value="bfs">
-                        <img src="../img/icon/bfs.png" alt="BFS">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>Brave Forwards Search (BFS)</strong><br>
-                        アルフィノがシャーレアン魔法大学在学中に開発したとされる最も基本的な探索アルゴリズム。
-                        スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つけます。
-                    </span>
-                </label>
-
-                <label class="icon-btn-label">
-                    <button class="icon-btn start-algorithm-btn" value="astar">
-                        <img src="../img/icon/astar.png" alt="A*">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
-                        ネロがアラグの超技術を利用して開発したらしい探索アルゴリズム。
-                        ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつ、
-                        より高速に解を見つけることができます。
-                    </span>
-                </label>
-
-                <label class="icon-btn-label separated-icon-label">
-                    <button class="icon-btn start-algorithm-btn" value="idastar">
-                        <img src="../img/icon/idastar.png" alt="IDA*">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>Ironworks Designed Astar (IDA*)</strong><br>
-                        シドが開発したかもしれないA*探索の改良版。メモリ使用量を抑えられますが、
-                        このパズルのように同じ状態に何度も到達する問題では探索効率が著しく低下する場合があります。(試験的実装)
-                    </span>
-                </label>
-
-                <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
-
-                <label class="icon-btn-label">
-                    <button id="save-btn" class="icon-btn" disabled>
-                        <img src="../img/icon/save.png" alt="Save">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>探索結果を保存</strong><br>
-                        今回の探索で訪れた盤面（探索済みノード）をブラウザに保存します。次回以降の探索で再利用できます。
-                    </span>
-                </label>
-
-                <label class="icon-btn-label">
-                    <button id="check-data-btn" class="icon-btn">
-                        <img src="../img/icon/check.png" alt="Check">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>データ整合性チェック</strong><br>
-                        ブラウザに保存された探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
-                    </span>
-                </label>
-
-                <label class="icon-btn-label">
-                    <button id="advanced-settings-btn" class="icon-btn">
-                        <img src="../img/icon/config.png" alt="Settings">
-                    </button>
-                    <span class="tooltip-text">
-                        <strong>詳細設定</strong><br>
-                        枝刈りや保存済みデータの利用など、探索に関する高度な設定を行います。
-                    </span>
-                </label>
-
-            </div>
-
-            <div id="save-status"></div>
-
-        </div>
-    </div>
-
-    <div class="bottom-panel">
+    <div class="result-panel">
         <div id="search-summary" hidden>
             <div id="status"></div>
             <div id="progress-details"></div>
@@ -617,9 +578,6 @@
             <div class="mikoto-slide slide-3"></div>
             <div class="mikoto-slide slide-4"></div>
             <div class="mikoto-slide slide-5"></div>
-            <div id="mikoto-speech-container">
-                <p id="mikoto-speech"></p>
-            </div>
             <span id="mikoto-continue-indicator">▼</span>
         </div>
     </div>
@@ -634,6 +592,12 @@
             const advancedSettingsBtn = document.getElementById('advanced-settings-btn');
             const advancedSettingsPanel = document.getElementById('advanced-settings-panel');
 
+            const checkboxLabel = document.querySelectorAll('.checkbox-label');
+            checkboxLabel.forEach(label => {
+                label.style.display = 'flex';
+                label.style.alignItems = 'center';
+                label.style.gap = '8px';
+            });
             if (advancedSettingsBtn && advancedSettingsPanel) {
                 advancedSettingsBtn.addEventListener('click', () => {
                     advancedSettingsPanel.hidden = !advancedSettingsPanel.hidden;

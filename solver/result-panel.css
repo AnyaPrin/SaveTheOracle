@@ -1,0 +1,118 @@
+.result-panel {
+    position: absolute;
+    top: 80px;
+    padding: 20px 20px;
+    background: transparent;
+    box-shadow: none;
+    align-items: center;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--button-color) var(--bg-color);
+    z-index: 1000;
+}
+
+#search-summary {
+    background-color: rgba(44, 44, 44, 0.5);
+    /* 半透明の背景 */
+    backdrop-filter: blur(4px);
+    /* すりガラス効果 */
+    -webkit-backdrop-filter: blur(4px);
+    /* Safari用 */
+    border-radius: 8px;
+    padding: 15px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* 境界線を少し見せる */
+    z-index: 9999;
+}
+
+#solution-path {
+    margin-top: 0;
+    text-align: left;
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 2px;
+}
+
+#status {
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--primary-accent-color);
+}
+
+
+#progress-details {
+    font-size: 0.7em;
+    color: var(--secondary-text-color);
+    margin-top: 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.step-number {
+    font-size: 0.78em;
+    font-weight: bold;
+    align-items: left;
+    color: var(--secondary-text-color);
+}
+
+.step-board {
+
+    background-color: rgba(44, 44, 44, 0.5);
+    /* 半透明の背景 */
+    backdrop-filter: blur(4px);
+    /* すりガラス効果 */
+    -webkit-backdrop-filter: blur(4px);
+    /* Safari用 */
+
+    font-family: MeiryoB;
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    justify-content: left;
+    white-space: pre;
+    font-family: monospace;
+    line-height: 1.1;
+    font-size: 1.1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.step-board.clickable-board {
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.step-board.clickable-board:hover {
+    border-color: var(--primary-accent-color);
+}
+
+.moved-piece {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+/* --- Custom Scrollbar Styles (for Webkit) --- */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--button-color);
+
+    border-radius: 6px;
+    border: 3px solid var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--secondary-accent-color);
+}

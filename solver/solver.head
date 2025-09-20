@@ -47,7 +47,7 @@
       .main-container {
 	  width:800px;
           max-width: 800px;
-	  box-sizing: border-box;	  
+	  box-sizing: border-box;
       }
       .container {
             background-image: url(bg_solver.jpg);
@@ -65,7 +65,7 @@
             text-align: left;
 	    box-sizing: border-box;
       }
-      
+
       .top-panel {
           padding-top: 10px;
           overflow-y: auto;
@@ -73,21 +73,21 @@
           font-size: 14px;
 	  width:800px;
           max-width: 800px;
-	  box-sizing: border-box;	  
+	  box-sizing: border-box;
       }
-      .bottom-panel {
-	  
+      .result-panel {
+
           flex-grow: 1;
           overflow-y: auto;
           padding-bottom: 20px;
 	  width:800px;
           max-width: 800px;
-	  box-sizing: border-box;	  
+	  box-sizing: border-box;
       }
       .controls-container {
           position: relative;
 	  margin: 25px;
-	  padding: 14px 25px 0px 25px; 
+	  padding: 14px 25px 0px 25px;
 	  width: 800px;
 	  max-width: 800px;
 	  flex-shrink: 0;
@@ -107,7 +107,7 @@
 	  background-image:
 	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
       }
-      .bottom-panel .container {
+      .result-panel .container {
 	       /* background-image: none; */
 	       background: transparent;
 	       box-shadow: none;
@@ -698,7 +698,7 @@
       </div>
       </div>
     </div>
-    <div class="bottom-panel">
+    <div class="result-panel">
         <div id="search-summary" hidden>
           <div id="status"></div>
           <div id="progress-details"></div>

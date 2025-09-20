@@ -5,7 +5,14 @@
     width: 360px;
     margin: 24px;
     padding: 24px;
-    background-color: rgba(44, 44, 44, 0.85);
+
+    background-color: rgba(44, 44, 44, 0.5);
+    /* 半透明の背景 */
+    backdrop-filter: blur(4px);
+    /* すりガラス効果 */
+    -webkit-backdrop-filter: blur(4px);
+    /* Safari用 */
+
     border-radius: 18px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
@@ -92,61 +99,61 @@
 
 /* Piece Colors */
 .piece-A {
-    background-color: #c62828;
+    background-color: #883a3a;
     color: white;
 }
 
 /* 2x2, Red */
 .piece-B {
-    background-color: #2e7d32;
+    background-color: #446644;
     color: white;
 }
 
 /* 2x1, Green */
 .piece-C {
-    background-color: #0277bd;
+    background-color: #445588;
     color: white;
 }
 
 /* 1x2, Blue */
 .piece-D {
-    background-color: #6a1b9a;
+    background-color: #664488;
     color: white;
 }
 
 /* 1x2, Purple */
 .piece-E {
-    background-color: #00695c;
+    background-color: #336666;
     color: white;
 }
 
 /* 1x2, Teal */
 .piece-F {
-    background-color: #283593;
+    background-color: #444477;
     color: white;
 }
 
 /* 1x2, Indigo */
 .piece-G {
-    background-color: #f9a825;
-    color: black;
+    background-color: #777733;
+    color: white;
 }
 
 /* 1x1, Yellow */
 .piece-H {
-    background-color: #c2185b;
+    background-color: #884466;
     color: white;
 }
 
 /* 1x1, Pink */
 .piece-I {
-    background-color: #ef6c00;
+    background-color: #885533;
     color: white;
 }
 
 /* 1x1, Orange */
 .piece-J {
-    background-color: #5d4037;
+    background-color: #665555;
     color: white;
 }
 

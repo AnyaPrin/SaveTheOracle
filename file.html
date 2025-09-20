@@ -50,7 +50,7 @@
           flex-shrink: 0;
           font-size: 14px;
       }
-      .bottom-panel {
+      .result-panel {
           flex-grow: 1;
           overflow-y: auto;
           padding-bottom: 20px;
@@ -62,7 +62,7 @@
 	  width: 800px;
 	  max-width: 800px;
 	  justify-content: left;
-	  background-color: rgba(44, 44, 44, 0.85); 
+	  background-color: rgba(44, 44, 44, 0.85);
 	  border-radius: 18px;
 	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 	  box-sizing: border-box;
@@ -76,7 +76,7 @@
 	  background-image:
 	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
       }
-      .bottom-panel .container {
+      .result-panel .container {
 	       background-image: none;
 	       background: none;
 	       background-color: none;
@@ -252,14 +252,14 @@
       }
 
       #search-summary {
-	  background-color: rgba(44, 44, 44, 0.5); 
-	  backdrop-filter: blur(4px); 
-	  -webkit-backdrop-filter: blur(4px); 
+	  background-color: rgba(44, 44, 44, 0.5);
+	  backdrop-filter: blur(4px);
+	  -webkit-backdrop-filter: blur(4px);
 	  border-radius: 8px;
 	  padding: 15px 25px;
 	  margin-bottom: 20px;
 	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-	  border: 1px solid rgba(255, 255, 255, 0.1); 
+	  border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       #progress-details {
@@ -340,7 +340,7 @@
       #initial-state-input {
 	  /* flex-grow: 1; */
 	  font-family: monospace;
-	  width: 22ch; 
+	  width: 22ch;
 	  font-size: 1em;
 	  padding: 7px;
 	  border: 1px solid var(--border-color);
@@ -378,7 +378,7 @@
 	  font-size: 0.9em;
       }
       .separated-icon-label {
-	  margin-left: 20px; 
+	  margin-left: 20px;
       }
       .icon-btn-label {
 	  position: relative;
@@ -388,23 +388,23 @@
       /* --- Tooltip Styles --- */
       .tooltip-text {
 	  visibility: hidden;
-	  width: 280px; 
-	  background-color: rgba(44, 44, 44, 0.1); 
-	  backdrop-filter: blur(4px); 
-	  -webkit-backdrop-filter: blur(4px); 
+	  width: 280px;
+	  background-color: rgba(44, 44, 44, 0.1);
+	  backdrop-filter: blur(4px);
+	  -webkit-backdrop-filter: blur(4px);
 	  color: var(--primary-text-color);
 	  text-align: left;
 	  border-radius: 6px;
 	  padding: 10px 15px;
-	  position: fixed; 
+	  position: fixed;
 	  z-index: 1000;
 	  opacity: 0;
 	  transition: opacity 0.3s ease;
 	  font-size: 0.9em;
 	  line-height: 1.5;
 	  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-	  pointer-events: none; 
-	  --arrow-left: 50%; 
+	  pointer-events: none;
+	  --arrow-left: 50%;
       }
       .tooltip-text::after {
 	  content: "";
@@ -497,7 +497,7 @@
         <div id="save-status"></div>
       </div>
     </div>
-    <div class="bottom-panel">
+    <div class="result-panel">
       <div class="container">
         <div id="search-summary" hidden>
           <div id="status"></div>

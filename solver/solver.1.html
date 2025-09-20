@@ -47,7 +47,7 @@
       .main-container {
 	  width:800px;
           max-width: 800px;
-	  box-sizing: border-box;	  
+	  box-sizing: border-box;
       }
       .top-panel {
           padding-top: 10px;
@@ -56,7 +56,7 @@
           font-size: 14px;
 	  width:800px;
           max-width: 800px;
-	  box-sizing: border-box;	  
+	  box-sizing: border-box;
       }
       .container {
             background-size: cover;
@@ -73,7 +73,7 @@
             text-align: left;
 	    box-sizing: border-box;
       }
-      .bottom-panel {
+      .result-panel {
           flex-grow: 1;
           overflow-y: auto;
           padding-bottom: 20px;
@@ -82,12 +82,12 @@
 	  box-sizing: border-box;
 	  z-index: -100;
       }
-      
+
       .controls-container {
           position: relative;
 	  width: 800px;
 	  max-width: 800px;
-	  width: 800px;	  
+	  width: 800px;
 	  flex-shrink: 0;
 	  justify-content: left;
 	  background-color: rgba(44, 44, 44, 0.85); /* 背景画像が見えるように半透明のオーバーレイに変更 */
@@ -97,7 +97,7 @@
 	  text-align: left;
 	  z-index: 1;
       }
-      
+
       .top-panel .controls-container {
 	  background-size: cover;
 	  background-repeat: no-repeat;
@@ -105,7 +105,7 @@
 	  background-image:
 	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
       }
-      .bottom-panel .container {
+      .result-panel .container {
 	       /* background-image: none; */
 	       background: transparent;
 	       box-shadow: none;
@@ -695,7 +695,7 @@
       </div>
       </div>
     </div>
-    <div class="bottom-panel">
+    <div class="result-panel">
         <div id="search-summary" hidden>
           <div id="status"></div>
           <div id="progress-details"></div>

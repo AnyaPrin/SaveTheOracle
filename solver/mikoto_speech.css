@@ -76,31 +76,6 @@
     background-image: url('../img/bg_mikoto_5.jpg');
 }
 
-#mikoto-speech-container {
-    position: absolute;
-    bottom: 2%;
-    left: 28%;
-    width: 44%;
-    height: 20%;
-    padding: 0 0;
-    box-sizing: border-box;
-    line-height: 1.5;
-    font-size: 4%;
-    white-space: pre-wrap;
-}
-
-#mikoto-speech {
-    position: absolute;
-    top: 28%;
-    width: 100%;
-    margin: 0;
-    text-indent: 0;
-    color: black;
-    font-size: 48%;
-    line-height: 1.5;
-    text-shadow: 0.1px 0.1px rgba(0, 0, 0, 0.8);
-}
-
 #mikoto-continue-indicator {
     position: absolute;
     bottom: 15px;

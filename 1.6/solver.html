@@ -45,7 +45,7 @@
             font-size: 14px;
         }
 
-        .bottom-panel {
+        .result-panel {
             flex-grow: 1;
             overflow-y: auto;
             padding-bottom: 20px;
@@ -67,7 +67,7 @@
             text-align: left;
         }
 
-        .bottom-panel .container {
+        .result-panel .container {
             padding-left: 0;
             background: none;
             background-color: none;
@@ -109,7 +109,7 @@
             border-radius: 4px;
             background-color: var(--bg-color);
         }
-        
+
         button {
             background-color: var(--secondary-accent-color);
             color: white;
@@ -171,14 +171,14 @@
             display: inline-flex; /* Use flex to center content */
             align-items: center;
             justify-content: center;
-            
+
             font-size: 2em;
             cursor: pointer;
             transition: all 0.2s ease;
             user-select: none;
             margin: 0;
         }
-	
+
 
         .icon-btn:hover:not(:disabled) {
             background-color: #4a4a4a;
@@ -215,7 +215,7 @@
             font-weight: bold;
             color: var(--primary-accent-color);
         }
-        
+
         #search-summary {
             background-color: var(--surface-color);
             border-radius: 8px;
@@ -229,7 +229,7 @@
             color: var(--secondary-text-color);
             margin-top: 0;
         }
-        
+
         #save-status {
             font-size: 0.9em;
             color: var(--error-color);
@@ -239,7 +239,7 @@
         #save-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
             color: var(--success-color) !important;
         }
-        
+
         #solution-path {
             margin-top: 0;
             text-align: left;
@@ -260,7 +260,7 @@
             font-weight: bold;
             color: var(--secondary-text-color)
         }
-	
+
 
         .step-board {
             border: 1px solid var(--border-color);
@@ -413,11 +413,11 @@
                 </label>
                 <label title="IDA*">
                     <input type="radio" name="algorithm" value="idastar">
-                    <span class="icon-label"><img src="../img/icon/idastar.png"></span>	      
+                    <span class="icon-label"><img src="../img/icon/idastar.png"></span>
                 </label>
         </div>
 
-                
+
             </div>
 
         <div class="pruning-selection" style="text-align: left">
@@ -442,7 +442,7 @@
             <div id="save-status"></div>
         </div>
     </div>
-    <div class="bottom-panel">
+    <div class="result-panel">
         <div class="container">
             <div id="search-summary" hidden>
                 <div id="status"></div>
@@ -452,8 +452,8 @@
         </div>
     </div>
     <script content-type="text/javascript" src="../lib/common.js"></script>
-    <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>    
-    <script content-type="text/javascript" src="solvers/astar_solver.js"></script>    
+    <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
+    <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
 
     <script src="main.js"></script>
