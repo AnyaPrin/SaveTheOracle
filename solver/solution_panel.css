@@ -69,9 +69,6 @@
 }
 
 .step-board {
-    /* グラフィカル表示のコンテナとして機能するため、一部スタイルをリセット・変更 */
-    background-color: rgba(44, 44, 44, 0.1);
-    backdrop-filter: blur(1px);    /* すりガラス効果 */
     background: transparent;
     border: 1px solid var(--border-color);
     padding: 2px;
@@ -89,8 +86,7 @@
 }
 
 .moved-piece {
-    /* 動いた駒を少し明るくして目立たせる */
-    filter: brightness(4);
+    filter: brightness(1);
 }
 
 /* --- グラフィカル表示用のスタイル --- */
@@ -145,17 +141,17 @@
 
 /* 駒の色 (board_editor.cssから引用) */
  .solution-board-cell.piece {background-color: #6f6f6f; color: white;};
- .solution-board-cell.piece-A { background-color: #525252; color: white; } 
- .solution-board-cell.piece-B { background-color: #525252; color: white; } 
- .solution-board-cell.piece-C { background-color: #525252; color: white; } 
- .solution-board-cell.piece-D { background-color: #525252; color: white; } 
- .solution-board-cell.piece-E { background-color: #525252; color: white; } 
- .solution-board-cell.piece-F { background-color: #525252; color: white; } 
- .solution-board-cell.piece-G { background-color: #525252; color: white; } 
- .solution-board-cell.piece-H { background-color: #525252; color: white; } 
- .solution-board-cell.piece-I { background-color: #525252; color: white; } 
- .solution-board-cell.piece-J { background-color: #525252; color: white; } 
- .solution-board-cell.piece-dot { background-color: rgb(0,0,100,0.15); } 
+ .solution-board-cell.piece-A { background-color: #525252; color: white; }
+ .solution-board-cell.piece-B { background-color: #525252; color: white; }
+ .solution-board-cell.piece-C { background-color: #525252; color: white; }
+ .solution-board-cell.piece-D { background-color: #525252; color: white; }
+ .solution-board-cell.piece-E { background-color: #525252; color: white; }
+ .solution-board-cell.piece-F { background-color: #525252; color: white; }
+ .solution-board-cell.piece-G { background-color: #525252; color: white; }
+ .solution-board-cell.piece-H { background-color: #525252; color: white; }
+ .solution-board-cell.piece-I { background-color: #525252; color: white; }
+ .solution-board-cell.piece-J { background-color: #525252; color: white; }
+ .solution-board-cell.piece-dot { background-color: rgb(0,0,100,0.15); }
 /* .solution-board-cell.piece-A { background-color: #c62828; color: white; } /\* 2x2, Red *\/ */
 /* .solution-board-cell.piece-B { background-color: #2e7d32; color: white; } /\* 2x1, Green *\/ */
 /* .solution-board-cell.piece-C { background-color: #0277bd; color: white; } /\* 1x2, Blue *\/ */

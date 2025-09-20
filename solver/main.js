@@ -1,13 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Global State and DOM Elements ---
+    const COLORS = {
+        error: '#d32f2f',
+        success: '#4CAF50',
+        info: '#666',
+        warning: '#d32f2f' // エラーと同じ色だが、意味合いとして定義
+    };
+    const ASSET_PATHS = {
+        BG_IMAGES: {
+            bfs: '../img/bg_bfs.jpg',
+            astar: '../img/bg_astar.jpg',
+            idastar: '../img/bg_idastar.jpg'
+        },
+        ICONS: {
+            stop: '../img/icon/stop.png',
+            getAlgoIcon: (algo) => `../img/icon/${algo}.png`
+        },
+        DATA_FILES: {
+            optimalPath: 'data/data.json',
+            sharedVisited: 'data/shared_visited.json'
+        },
+        MIKOTO_SLIDES: [
+            '../img/mikoto_speech/slide_0.jpg',
+            '../img/mikoto_speech/slide_1.jpg',
+            '../img/mikoto_speech/slide_2.jpg',
+            '../img/mikoto_speech/slide_3.jpg',
+            '../img/mikoto_speech/slide_4.jpg',
+            '../img/mikoto_speech/slide_5.jpg'
+        ]
+    };
+
     let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
     let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
     let localVisitedData = { set: null, status: '未読込' };
-    let searchStartTime, timerInterval, idaStarSpeechTimeout = null;
+    let searchStartTime, timerInterval, mikotoTimer = null;
     let currentSolver = null;
 
-    const MIKOTO_SPEECH_WAIT = 30000;
+    const MIKOTO_SPEECH_WAIT = 5000; // デバッグ用に5秒に設定
     const topContainer = document.querySelector('.ui-panel .controls-container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
@@ -15,9 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const progressDetailsDiv = document.getElementById('progress-details');
     const actionButtonsDiv = document.querySelector('.action-buttons');
-    const mikotoModal = document.getElementById('mikoto-modal');
-    const mikotoContinueIndicator = document.getElementById('mikoto-continue-indicator');
-    const mikotoModalCloseBtn = document.getElementById('mikoto-modal-close');
     const hideSummaryBtn = document.getElementById('hide-summary-btn');
 
     const saveBtn = document.getElementById('save-btn');
@@ -36,43 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initialStateInput.value = INITIAL_STATE;
 
 
-    // --- Mikoto Modal Logic ---
-    let mikotoSlides, currentMikotoSlideIndex = 0;
-
-    function showMikotoModal() {
-        currentMikotoSlideIndex = 0;
-        updateMikotoSlide();
-        mikotoModal.classList.add('is-active');
-    }
-
-    function updateMikotoSlide() {
-        mikotoSlides.forEach((slide, index) => {
-            slide.classList.toggle('is-active', index === currentMikotoSlideIndex);
-        });
-        mikotoContinueIndicator.style.display = (currentMikotoSlideIndex >= mikotoSlides.length - 1) ? 'none' : 'block';
-    }
-
     // --- Event Listeners ---
-    mikotoModalCloseBtn.addEventListener('click', () => {
-        mikotoModal.classList.remove('is-active');
-    });
-
     if (hideSummaryBtn) {
         hideSummaryBtn.addEventListener('click', () => {
             resultPanelDiv.hidden = true;
         });
     }
-
-    document.querySelector('.mikoto-modal-content').addEventListener('click', (e) => {
-        if (!mikotoModal.classList.contains('is-active') || e.target === mikotoModalCloseBtn) return;
-
-        currentMikotoSlideIndex++;
-        if (currentMikotoSlideIndex >= mikotoSlides.length) {
-            mikotoModal.classList.remove('is-active');
-        } else {
-            updateMikotoSlide();
-        }
-    });
 
     topContainer.addEventListener('click', (e) => {
         // イベント委譲(Event Delegation)パターン:
@@ -105,20 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Background Image Handling ---
     let lockedBgUrl = null;
 
-    const bgImageUrls = {
-        bfs: '../img/bg_bfs.jpg',
-        astar: '../img/bg_astar.jpg',
-        idastar: '../img/bg_idastar.jpg'
-    };
-
     function setContainerBackground(algo) {
         // lockedBgUrlが設定されている（＝探索中）場合は、ホバーによる背景変更を無視する
         if (lockedBgUrl) return;
 
-        if (algo && bgImageUrls[algo]) {
+        if (algo && ASSET_PATHS.BG_IMAGES[algo]) {
             // CSS変数(--after-bg-image)を動的に設定し、CSS側で::after擬似要素の背景画像として利用する。
             // これにより、opacityを使った滑らかなフェードイン・アウトが可能になる。
-            topContainer.style.setProperty('--after-bg-image', `url(${bgImageUrls[algo]})`);
+            topContainer.style.setProperty('--after-bg-image', `url(${ASSET_PATHS.BG_IMAGES[algo]})`);
             topContainer.classList.add('bg-active');
         } else {
             // マウスが離れた場合(algoがnull)は、デフォルトの背景に戻す
@@ -203,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)
             // この場合、安全策として保存済みデータの利用を一時的に無効にする。
             if (localVisitedData.set.has(normalizedInitialState)) {
-                console.warn("初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。");
+                console.warn('初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。');
                 statusDiv.textContent = '情報: 初期盤面が保存済みデータに含まれていたため、保存データは利用されません。';
             } else {
                 preloadedDataForSolver = localVisitedData.set;
@@ -212,13 +202,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
         setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
-        // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒後にミコトさんの熱弁を表示するタイマーをセット
-        if (selectedAlgorithm === 'idastar') {
-            idaStarSpeechTimeout = setTimeout(() => { showMikotoModal(); }, MIKOTO_SPEECH_WAIT);
-        }
 
+        // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒ごとに背景を切り替えるタイマーをセット
+        if (selectedAlgorithm === 'idastar') {
+            let slideIndex = 0;
+            mikotoTimer = setInterval(() => {
+                slideIndex = (slideIndex + 1) % ASSET_PATHS.MIKOTO_SLIDES.length;
+                const nextBg = `url(${ASSET_PATHS.MIKOTO_SLIDES[slideIndex]})`;
+                lockedBgUrl = nextBg;
+                topContainer.style.setProperty('--after-bg-image', nextBg);
+            }, MIKOTO_SPEECH_WAIT);
+        }
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
-        lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
+        lockedBgUrl = `url(${ASSET_PATHS.BG_IMAGES[selectedAlgorithm]})`;
         topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
         topContainer.classList.add('bg-active');
 
@@ -253,12 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleStop() {
-        // 探索が停止されたら、ミコトさんの熱弁タイマーを解除
-        if (idaStarSpeechTimeout) {
-            clearTimeout(idaStarSpeechTimeout);
-            idaStarSpeechTimeout = null;
+        if (mikotoTimer) {
+            clearInterval(mikotoTimer);
+            mikotoTimer = null;
         }
-        mikotoModal.classList.remove('is-active');
         if (currentSolver) {
             currentSolver.stop();
             currentSolver = null;
@@ -268,12 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSuccess(result) {
-        // 探索が成功したら、ミコトさんの熱弁タイマーを解除
-        if (idaStarSpeechTimeout) {
-            clearTimeout(idaStarSpeechTimeout);
-            idaStarSpeechTimeout = null;
+        if (mikotoTimer) {
+            clearInterval(mikotoTimer);
+            mikotoTimer = null;
         }
-        mikotoModal.classList.remove('is-active');
         const selectedAlgorithm = currentSolver.algorithm;
         const totalTime = (performance.now() - searchStartTime) / 1000;
 
@@ -290,12 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFailure() {
-        // 探索が失敗したら、ミコトさんの熱弁タイマーを解除
-        if (idaStarSpeechTimeout) {
-            clearTimeout(idaStarSpeechTimeout);
-            idaStarSpeechTimeout = null;
+        if (mikotoTimer) {
+            clearInterval(mikotoTimer);
+            mikotoTimer = null;
         }
-        mikotoModal.classList.remove('is-active');
         const totalTime = (performance.now() - searchStartTime) / 1000;
         statusDiv.textContent = `解が見つかりませんでした。 (探索時間: ${totalTime.toFixed(2)}秒)`;
         setUIState(false);
@@ -342,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 役割を「探索開始」から「停止」に変更
                 activeBtn.classList.replace('start-algorithm-btn', 'stop-btn');
                 // アイコン画像を「停止」アイコンに差し替える
-                activeBtn.querySelector('img').src = '../img/icon/stop.png';
+                activeBtn.querySelector('img').src = ASSET_PATHS.ICONS.stop;
             }
         } else { // Reverting
             const stopBtn = document.querySelector('.stop-btn');
@@ -352,8 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 役割を「停止」から「探索開始」に戻す
                 stopBtn.classList.replace('stop-btn', 'start-algorithm-btn');
                 // アイコン画像を元のアルゴリズムのアイコンに戻す
-                const originalIconSrc = `../img/icon/${algo}.png`;
-                stopBtn.querySelector('img').src = originalIconSrc;
+                stopBtn.querySelector('img').src = ASSET_PATHS.ICONS.getAlgoIcon(algo);
             }
         }
 
@@ -378,18 +367,18 @@ document.addEventListener('DOMContentLoaded', () => {
         setStateStatusDiv.textContent = '';
 
         if (newState.length !== COMMON.WIDTH * COMMON.HEIGHT) {
-            setStateStatusDiv.style.color = '#d32f2f';
+            setStateStatusDiv.style.color = COLORS.error;
             setStateStatusDiv.textContent = `エラー: 盤面の文字列は${COMMON.WIDTH * COMMON.HEIGHT}文字である必要があります。`;
             return;
         }
         if (!/^[A-Z\.]+$/.test(newState)) {
-            setStateStatusDiv.style.color = '#d32f2f';
+            setStateStatusDiv.style.color = COLORS.error;
             setStateStatusDiv.textContent = 'エラー: 使用できる文字は英大文字(A-Z)とピリオド(.)のみです。';
             return;
         }
 
         INITIAL_STATE = newState;
-        setStateStatusDiv.style.color = '#4CAF50';
+        setStateStatusDiv.style.color = COLORS.success;
         setStateStatusDiv.textContent = '初期盤面が更新されました。';
         setTimeout(() => { setStateStatusDiv.textContent = ''; }, 3000);
 
@@ -424,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveStatusDiv.textContent = `探索済みノードをlocalStorageに保存しました。(合計: ${mergedSet.size.toLocaleString()}件)`;
         } catch (e) {
             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                saveStatusDiv.textContent = 'エラー: localStorageの容量制限を超えました。';
+                saveStatusDiv.textContent = `エラー: localStorageの容量制限を超えました。`;
             } else {
                 saveStatusDiv.textContent = `保存中にエラーが発生しました: ${e.message}`;
             }
@@ -434,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleCheckData() {
         saveStatusDiv.textContent = 'データチェック中...';
-        saveStatusDiv.style.color = '#666';
+        saveStatusDiv.style.color = COLORS.info;
 
         // 以前のクリーンアップボタンが残っていれば削除
         const oldCleanupBtn = document.getElementById('cleanup-btn');
@@ -453,11 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const uniqueCount = uniqueSet.size;
 
             if (originalCount === uniqueCount) {
-                saveStatusDiv.style.color = '#4CAF50';
+                saveStatusDiv.style.color = COLORS.success;
                 saveStatusDiv.textContent = `データは正常です。重複するノードはありませんでした。(${originalCount.toLocaleString()}件)`;
             } else {
                 const duplicateCount = originalCount - uniqueCount;
-                saveStatusDiv.style.color = '#d32f2f';
+                saveStatusDiv.style.color = COLORS.warning;
 
                 const messageSpan = document.createElement('span');
                 messageSpan.textContent = `警告: ${duplicateCount.toLocaleString()}件の重複ノードが見つかりました。データをクリーンアップしますか？ `;
@@ -470,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cleanupBtn.onclick = () => {
                     localStorage.setItem('klotskiVisitedStates', JSON.stringify(Array.from(uniqueSet)));
                     localVisitedData.set = uniqueSet; // メモリ上のデータも更新
-                    saveStatusDiv.style.color = '#4CAF50';
+                    saveStatusDiv.style.color = COLORS.success;
                     saveStatusDiv.textContent = `データをクリーンアップしました。 (重複${duplicateCount.toLocaleString()}件を削除 → ${uniqueCount.toLocaleString()}件)`;
                 };
                 saveStatusDiv.textContent = '';
@@ -478,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveStatusDiv.appendChild(cleanupBtn);
             }
         } catch (e) {
-            saveStatusDiv.style.color = '#d32f2f';
+            saveStatusDiv.style.color = COLORS.error;
             saveStatusDiv.textContent = `データチェック中にエラーが発生しました: ${e.message}`;
             console.error('Error during data check:', e);
         }
@@ -486,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     pruningDataStatus.textContent = '(読込中...)';
-    fetch('data/data.json')
+    fetch(ASSET_PATHS.DATA_FILES.optimalPath)
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
@@ -506,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 共有＆ローカルの探索済みデータを読み込む ---
     localVisitedDataStatus.textContent = '(読込中...)';
     // 1. まず共有された探索済みデータ(shared_visited.json)を非同期で読み込む
-    fetch('data/shared_visited.json')
+    fetch(ASSET_PATHS.DATA_FILES.sharedVisited)
         .then(response => {
             // ファイルが存在し、レスポンスが正常ならJSONとして解析する
             if (response.ok) return response.json();
@@ -543,8 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 localVisitedDataStatus.textContent = '(データなし)';
             }
         });
-
-    mikotoSlides = document.querySelectorAll('.mikoto-slide');
 
     function stateToPieces(state) {
     const pieces = [];

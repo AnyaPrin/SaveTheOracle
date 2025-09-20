@@ -60,7 +60,7 @@
         .ui-panel {
             display: flex;
             flex-direction: row;
-            position: absolute;	    
+            position: absolute;
             padding: 14px 24px;
             font-size: 14px;
             width: 800px;
@@ -375,13 +375,13 @@
             display: none;
             flex-direction: column;
             box-sizing: border-box;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);}
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
 
         .advanced-settings-panel:not([hidden]) {
             display: flex;
         }
     </style>
-    <link rel="stylesheet" href="mikoto_speech.css">
     <link rel="stylesheet" href="board_editor.css">
     <link rel="stylesheet" href="solution_panel.css">
     <link rel="stylesheet" href="tooltips.css">
@@ -562,25 +562,12 @@
         <div id="solution-path"></div>
     </div>
 
-    <!-- Mikoto's Speech Modal -->
-    <div id="mikoto-modal">
-        <div class="mikoto-modal-content" title="クリックして進む">
-            <button id="mikoto-modal-close" aria-label="閉じる">&times;</button>
-            <div class="mikoto-slide slide-0 is-active"></div>
-            <div class="mikoto-slide slide-1"></div>
-            <div class="mikoto-slide slide-2"></div>
-            <div class="mikoto-slide slide-3"></div>
-            <div class="mikoto-slide slide-4"></div>
-            <div class="mikoto-slide slide-5"></div>
-            <span id="mikoto-continue-indicator">▼</span>
-        </div>
-    </div>
     <script content-type="text/javascript" src="../lib/common.js"></script>
     <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
     <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
     <script content-type="text/javascript" src="solution_display.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const advancedSettingsBtn = document.getElementById('advanced-settings-btn');
