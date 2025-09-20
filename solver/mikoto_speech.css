@@ -52,29 +52,14 @@
     visibility: visible;
 }
 
-.slide-0 {
-    background-image: url('../img/bg_mikoto_0.jpg');
-}
+.slide-0 {    background-image: url('../img/bg_mikoto_0.jpg');}
+.slide-1 {    background-image: url('../img/bg_mikoto_1.jpg');}
+.slide-2 {    background-image: url('../img/bg_mikoto_2.jpg');}
+.slide-3 {    background-image: url('../img/bg_mikoto_3.jpg');}
+.slide-4 {    background-image: url('../img/bg_mikoto_4.jpg');}
+.slide-5 {    background-image: url('../img/bg_mikoto_5.jpg');}
 
-.slide-1 {
-    background-image: url('../img/bg_mikoto_1.jpg');
-}
-
-.slide-2 {
-    background-image: url('../img/bg_mikoto_2.jpg');
-}
-
-.slide-3 {
-    background-image: url('../img/bg_mikoto_3.jpg');
-}
-
-.slide-4 {
-    background-image: url('../img/bg_mikoto_4.jpg');
-}
-
-.slide-5 {
-    background-image: url('../img/bg_mikoto_5.jpg');
-}
+#mikoto-modal-close:hover {    color: white;}
 
 #mikoto-continue-indicator {
     position: absolute;
@@ -103,6 +88,3 @@
     /* テキストより手前に */
 }
 
-#mikoto-modal-close:hover {
-    color: white;
-}

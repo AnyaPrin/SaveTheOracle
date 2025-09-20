@@ -222,14 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 preloadedDataForSolver = localVisitedData.set;
             }
         }
+
         const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
-
         setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
-
         // IDA*が選択された場合、MIKOTO_SPEECH_WAIT秒後にミコトさんの熱弁を表示するタイマーをセット
         if (selectedAlgorithm === 'idastar') {
             idaStarSpeechTimeout = setTimeout(() => { showMikotoModal(); }, MIKOTO_SPEECH_WAIT);
         }
+
         // 探索中の背景画像を、選択されたアルゴリズムのキャラクター画像で固定する
         lockedBgUrl = `url(${bgImageUrls[selectedAlgorithm]})`;
         topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
@@ -389,30 +389,69 @@ document.addEventListener('DOMContentLoaded', () => {
     function displaySolution(path) {
         let html = '';
 
-        function findMovedPiece(prev, curr) {
-            if (!prev) return null;
-            for (let i = 0; i < prev.length; i++) {
-                // 以前は駒があったが、今は空白になっている場所を探す
-                if (prev[i] !== curr[i] && prev[i] !== '.') {
-                    return prev[i]; // 動いた駒の文字を返す
-                }
-            }
-            return null;
-        }
-
         path.forEach((state, index) => {
             const prevState = path[index - 1] || null;
-            const movedPiece = findMovedPiece(prevState, state);
+            const currentPieces = stateToPieces(state);
+            let movedPiece = null;
 
-            let boardHtml = '';
-            for (let i = 0; i < state.length; i++) {
-                const char = state[i];
-                boardHtml += (movedPiece && char === movedPiece)
-                    ? `<span class="moved-piece">${char}</span>`
-                    : char;
-                if ((i + 1) % COMMON.WIDTH === 0) boardHtml += '\n';
+            // 1. 動いた駒を特定します。正規化の影響を受けないように、
+            // 「一手前では空きマスで、現在地では駒がある」場所を探します。
+            if (prevState) {
+                let movedToPos = -1;
+                for (let i = 0; i < prevState.length; i++) {
+                    if (prevState[i] === '.' && state[i] !== '.') {
+                        movedToPos = i;
+                        break;
+                    }
+                }
+                if (movedToPos !== -1) {
+                    movedPiece = currentPieces.find(p => p.positions.includes(movedToPos));
+                }
             }
-            html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board clickable-board" data-state="${state}">${boardHtml.trim()}</div></div>`;
+
+            // 2. 盤面のHTMLを構築します。
+            const pieceMap = Array(COMMON.WIDTH * COMMON.HEIGHT).fill(null);
+            for (const piece of currentPieces) {
+                for (const pos of piece.positions) {
+                    pieceMap[pos] = piece;
+                }
+            }
+
+            let boardCellsHtml = '';
+            for (let i = 0; i < COMMON.WIDTH * COMMON.HEIGHT; i++) {
+                const piece = pieceMap[i];
+                const classList = ['solution-board-cell'];
+                let cellContent = '';
+
+                if (piece) {
+                    classList.push(`piece-${piece.char}`);
+                    if (i === piece.positions[0]) cellContent = piece.char;
+                    if (movedPiece && piece.id === movedPiece.id) classList.push('moved-piece');
+
+                    const x = i % COMMON.WIDTH;
+                    const y = Math.floor(i / COMMON.WIDTH);
+                    if (x < COMMON.WIDTH - 1 && pieceMap[i + 1] === piece) classList.push('piece-inner-right');
+                    if (y < COMMON.HEIGHT - 1 && pieceMap[i + COMMON.WIDTH] === piece) classList.push('piece-inner-bottom');
+                } else {
+                    classList.push('piece-dot');
+                }
+                boardCellsHtml += `<div class="${classList.join(' ')}">${cellContent}</div>`;
+            }
+
+            // 3. ハイライト用のオーバーレイHTMLを構築します。
+            let overlayHtml = '';
+            if (movedPiece) {
+                let minX = COMMON.WIDTH, minY = COMMON.HEIGHT;
+                for (const pos of movedPiece.positions) {
+                    minX = Math.min(minX, pos % COMMON.WIDTH);
+                    minY = Math.min(minY, Math.floor(pos / COMMON.WIDTH));
+                }
+                const style = `grid-column: ${minX + 1} / span ${movedPiece.width}; grid-row: ${minY + 1} / span ${movedPiece.height};`;
+                overlayHtml = `<div class="moved-piece-overlay" style="${style}"></div>`;
+            }
+
+            // 4. このステップの最終的なHTMLを組み立てます。
+            html += `<div class="step"><div class="step-number">${index === 0 ? 'Start' : index}</div><div class="step-board clickable-board solution-board-grid" data-state="${state}">${boardCellsHtml}${overlayHtml}</div></div>`;
         });
         solutionPathDiv.innerHTML = html;
     }
@@ -590,6 +629,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     mikotoSlides = document.querySelectorAll('.mikoto-slide');
 
+    function stateToPieces(state) {
+    const pieces = [];
+    const processed = new Set();
+    let pieceIdCounter = 0;
+
+    for (let i = 0; i < state.length; i++) {
+        const char = state[i];
+        if (char === '.' || processed.has(i)) {
+            continue;
+        }
+
+        // BFSで同じ文字の連結成分を探す
+        const positions = [];
+        const queue = [i];
+        processed.add(i);
+
+        let minX = COMMON.WIDTH, minY = COMMON.HEIGHT, maxX = -1, maxY = -1;
+
+        while (queue.length > 0) {
+            const curr = queue.shift();
+            positions.push(curr);
+
+            const x = curr % COMMON.WIDTH;
+            const y = Math.floor(curr / COMMON.WIDTH);
+
+            // 駒のバウンディングボックスを計算
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+
+            const neighbors = [
+                (y > 0) ? curr - COMMON.WIDTH : -1,                      // 上
+                (y < COMMON.HEIGHT - 1) ? curr + COMMON.WIDTH : -1,   // 下
+                (x > 0) ? curr - 1 : -1,                                 // 左
+                (x < COMMON.WIDTH - 1) ? curr + 1 : -1,               // 右
+            ];
+
+            for (const neighbor of neighbors) {
+                if (neighbor !== -1 && !processed.has(neighbor) && state[neighbor] === char) {
+                    processed.add(neighbor);
+                    queue.push(neighbor);
+                }
+            }
+        }
+
+        pieces.push({
+            id: pieceIdCounter++,
+            char: char,
+            positions: positions.sort((a, b) => a - b), // 常にソートして一貫性を保つ
+            width: maxX - minX + 1,
+            height: maxY - minY + 1
+        });
+    }
+    return pieces;
+}
+
+    function piecesToState(pieces) {
+        const state = Array(20).fill('.');
+        for (const piece of pieces) {
+            for (const pos of piece.positions) {
+                state[pos] = piece.char;
+            }
+        }
+        return state.join('');
+    }
+
     // --- Board Editor Logic ---
     function initializeBoardEditor() {
         const sourceGrid = document.getElementById('source-grid');
@@ -611,70 +717,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let previewPositions = [];
         let lastPreviewIndex = -1;
         let lastHoveredPieceInfo = { piece: null, grid: null };
-
-        function stateToPieces(state) {
-            const pieces = [];
-            const processed = new Set();
-            let pieceIdCounter = 0;
-
-            for (let i = 0; i < state.length; i++) {
-                const char = state[i];
-                if (char !== '.' && !processed.has(i)) {
-                    const positions = [];
-                    const q = [i];
-                    processed.add(i);
-
-                    while (q.length > 0) {
-                        const curr = q.shift();
-                        positions.push(curr);
-                        const x = curr % COMMON.WIDTH;
-                        const y = Math.floor(curr / COMMON.WIDTH);
-
-                        const neighbors = [
-                            (y > 0) ? curr - COMMON.WIDTH : -1,
-                            (y < COMMON.HEIGHT - 1) ? curr + COMMON.WIDTH : -1,
-                            (x > 0) ? curr - 1 : -1,
-                            (x < COMMON.WIDTH - 1) ? curr + 1 : -1,
-                        ];
-
-                        for (const neighbor of neighbors) {
-                            if (neighbor !== -1 && !processed.has(neighbor) && state[neighbor] === char) {
-                                processed.add(neighbor);
-                                q.push(neighbor);
-                            }
-                        }
-                    }
-
-                    positions.sort((a, b) => a - b);
-                    const originIndex = positions[0];
-                    const originX = originIndex % COMMON.WIDTH;
-                    let maxX = originX, maxY = Math.floor(originIndex / COMMON.WIDTH);
-                    for (const p of positions) {
-                        maxX = Math.max(maxX, p % COMMON.WIDTH);
-                        maxY = Math.max(maxY, Math.floor(p / COMMON.WIDTH));
-                    }
-
-                    pieces.push({
-                        id: pieceIdCounter++,
-                        char: char,
-                        positions: positions,
-                        width: maxX - originX + 1,
-                        height: maxY - Math.floor(originIndex / COMMON.WIDTH) + 1
-                    });
-                }
-            }
-            return pieces;
-        }
-
-        function piecesToState(pieces) {
-            const state = Array(20).fill('.');
-            for (const piece of pieces) {
-                for (const pos of piece.positions) {
-                    state[pos] = piece.char;
-                }
-            }
-            return state;
-        }
 
         function createGridCells(gridElement) {
             gridElement.innerHTML = '';
@@ -837,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const targetX = targetIndex % COMMON.WIDTH;
             const targetY = Math.floor(targetIndex / COMMON.WIDTH);
-            const currentTargetState = piecesToState(targetPieces);
+            const currentTargetState = piecesToState(targetPieces).split('');
 
             let canPlace = true;
             if (targetX + selectedPiece.width > COMMON.WIDTH || targetY + selectedPiece.height > COMMON.HEIGHT) {
@@ -881,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetIndex = parseInt(cell.dataset.index, 10);
             const targetX = targetIndex % COMMON.WIDTH;
             const targetY = Math.floor(targetIndex / COMMON.WIDTH);
-            const currentTargetState = piecesToState(targetPieces);
+            const currentTargetState = piecesToState(targetPieces).split('');
 
             let canPlace = true;
             if (targetX + selectedPiece.width > COMMON.WIDTH || targetY + selectedPiece.height > COMMON.HEIGHT) {
@@ -938,13 +980,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         applyBtn.addEventListener('click', () => {
-            const finalStateArray = piecesToState(targetPieces);
+            const finalState = piecesToState(targetPieces);
+            const finalStateArray = finalState.split('');
             const emptyCount = finalStateArray.filter(c => c === '.').length;
             if (emptyCount !== 2) {
-                alert(`空白マスが2つになるように配置してください。(現在: ${emptyCount}つ)`);
+                alert(`すべての駒を配置してください`);
                 return;
             }
-            const finalState = finalStateArray.join('');
             initialStateInput.value = finalState;
             handleSetState();
         });
@@ -959,4 +1001,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initializeBoardEditor();
+
+    // --- Draggable Panel Logic ---
+    function initializeDraggablePanel() {
+        const panel = document.querySelector('.result-panel');
+        const header = document.getElementById('search-summary');
+
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        header.addEventListener('mousedown', (e) => {
+            // パネル内のボタンをクリックした場合はドラッグを開始しない
+            if (e.target.closest('button')) {
+                return;
+            }
+
+            isDragging = true;
+            // パネルの左上隅からマウスポインタまでのオフセットを計算
+            offsetX = e.clientX - panel.offsetLeft;
+            offsetY = e.clientY - panel.offsetTop;
+
+            // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
+            header.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            // マウスの現在位置からオフセットを引いて、パネルの新しい位置を計算
+            panel.style.left = `${e.clientX - offsetX}px`;
+            panel.style.top = `${e.clientY - offsetY}px`;
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            // スタイルを元に戻す
+            header.style.cursor = 'grab';
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+
+    initializeDraggablePanel();
 });

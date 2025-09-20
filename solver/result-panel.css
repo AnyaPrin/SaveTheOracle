@@ -14,18 +14,15 @@
 #search-summary {
     position: relative;
     background-color: rgba(44, 44, 44, 0.5);
-    /* 半透明の背景 */
-    backdrop-filter: blur(4px);
-    /* すりガラス効果 */
-    -webkit-backdrop-filter: blur(4px);
-    /* Safari用 */
+    backdrop-filter: blur(4px);    /* すりガラス効果 */
+    -webkit-backdrop-filter: blur(4px);    /* Safari用 */
     border-radius: 8px;
     padding: 15px 25px;
     margin-bottom: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    /* 境界線を少し見せる */
+    border: 1px solid rgba(255, 255, 255, 0.1);    /* 境界線を少し見せる */
     z-index: 9999;
+    cursor: grab;
 }
 
 #solution-path {
@@ -42,7 +39,6 @@
     color: var(--primary-accent-color);
 }
 
-
 #progress-details {
     font-size: 0.7em;
     color: var(--secondary-text-color);
@@ -57,30 +53,18 @@
 }
 
 .step-number {
-    font-size: 0.78em;
+    font-size: 0.8em;
     font-weight: bold;
     align-items: left;
     color: var(--secondary-text-color);
 }
 
 .step-board {
-
-    background-color: rgba(44, 44, 44, 0.5);
-    /* 半透明の背景 */
-    backdrop-filter: blur(4px);
-    /* すりガラス効果 */
-    -webkit-backdrop-filter: blur(4px);
-    /* Safari用 */
-
-    font-family: MeiryoB;
+    /* グラフィカル表示のコンテナとして機能するため、一部スタイルをリセット・変更 */
+    background: transparent;
     border: 1px solid var(--border-color);
-    padding: 4px 8px;
+    padding: 2px;
     border-radius: 4px;
-    justify-content: left;
-    white-space: pre;
-    font-family: monospace;
-    line-height: 1;
-    font-size: 1em;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -94,9 +78,70 @@
 }
 
 .moved-piece {
-    color: var(--success-color);
-    font-weight: bold;
+    /* 動いた駒を少し明るくして目立たせる */
+    filter: brightness(1.2);
 }
+
+/* --- グラフィカル表示用のスタイル --- */
+.solution-board-grid {
+    position: relative; /* オーバーレイ用 */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    width: 80px;
+    height: 100px;
+    /* コンテナ自体のスタイルを上書き */
+    padding: 0;
+    border: none;
+    /* gapの代わりにセルのborderで線を描画するため、コンテナに上と左の枠線だけ設定 */
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+}
+
+.solution-board-cell {
+    background-color: var(--surface-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    font-weight: bold;
+    user-select: none;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* 駒の内部の線を消す */
+.solution-board-cell.piece-inner-right {
+    border-right-color: transparent;
+}
+.solution-board-cell.piece-inner-bottom {
+    border-bottom-color: transparent;
+}
+
+/* 動いた駒のハイライト枠 */
+.moved-piece-overlay {
+    position: absolute;
+    border: 2px solid var(--success-color);
+    pointer-events: none;
+    z-index: 2;
+    box-sizing: border-box;
+    border-radius: 2px;
+    margin: -1px; /* 枠線がグリッド線と重なるのを防ぐ */
+}
+
+/* 駒の色 (board_editor.cssから引用) */
+.solution-board-cell.piece-A { background-color: #c62828; color: white; } /* 2x2, Red */
+.solution-board-cell.piece-B { background-color: #2e7d32; color: white; } /* 2x1, Green */
+.solution-board-cell.piece-C { background-color: #0277bd; color: white; } /* 1x2, Blue */
+.solution-board-cell.piece-D { background-color: #6a1b9a; color: white; } /* 1x2, Purple */
+.solution-board-cell.piece-E { background-color: #00695c; color: white; } /* 1x2, Teal */
+.solution-board-cell.piece-F { background-color: #283593; color: white; } /* 1x2, Indigo */
+.solution-board-cell.piece-G { background-color: #f9a825; color: black; } /* 1x1, Yellow */
+.solution-board-cell.piece-H { background-color: #c2185b; color: white; } /* 1x1, Pink */
+.solution-board-cell.piece-I { background-color: #ef6c00; color: white; } /* 1x1, Orange */
+.solution-board-cell.piece-J { background-color: #5d4037; color: white; } /* 1x1, Brown */
+.solution-board-cell.piece-dot { background-color: var(--surface-color); }
 
 /* --- Custom Scrollbar Styles (for Webkit) --- */
 ::-webkit-scrollbar {

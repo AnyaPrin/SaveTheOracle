@@ -3,7 +3,7 @@
     position: absolute;
     top: 400px;
     width: 360px;
-    margin: 24px;
+    margin: 24px 48px 0 48px;
     padding: 24px;
 
     background-color: rgba(44, 44, 44, 0.5);
