@@ -1,6 +1,6 @@
 .result-panel {
     position: absolute;
-    top: 80px;
+    top: 36px;
     padding: 20px 20px;
     background: transparent;
     box-shadow: none;
@@ -12,6 +12,7 @@
 }
 
 #search-summary {
+    position: relative;
     background-color: rgba(44, 44, 44, 0.5);
     /* 半透明の背景 */
     backdrop-filter: blur(4px);
@@ -78,8 +79,8 @@
     justify-content: left;
     white-space: pre;
     font-family: monospace;
-    line-height: 1.1;
-    font-size: 1.1em;
+    line-height: 1;
+    font-size: 1em;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -115,4 +116,22 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--secondary-accent-color);
+}
+
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 2em;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--primary-text-color);
 }

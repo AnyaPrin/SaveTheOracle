@@ -74,7 +74,7 @@
             display: flex;
             flex-direction: row;
             position: absolute;
-            text-align: right;
+            text-align: center;
             z-index: 1;
         }
 
@@ -529,19 +529,21 @@
                 </style>
                 <div id="save-status"></div>
                 <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
-                    最短解データによる枝刈り</label><span id="pruning-data-status"></span>
+                    最短解データによる枝刈り<span id="pruning-data-status"></span></label>
                 <label class="checkbox-label"><input type="checkbox" id="use-local-visited-enabled" disabled>
-                    保存済み探索データの利用</label><span id="local-visited-data-status"></span>
+                    保存済み探索データの利用<span id="local-visited-data-status"></span></label>
             </div>
-
         </div>
 
 
 
         <div class="horizontal-panel">
             <div class="settings-container">
+
                 <div id="advanced-settings-panel" class="advanced-settings-panel" hidden>
-                    <label class="function-title">BOARD EDITOR</label>
+
+                    <label text-align="left">BOARD EDITOR</label>
+
                     <div class="editor-layout">
                         <div class="grid-wrapper">
                             <div id="source-grid" class="editor-grid"></div>
@@ -562,6 +564,7 @@
 
     <div class="result-panel">
         <div id="search-summary" hidden>
+            <button id="hide-summary-btn" class="close-btn" title="閉じる">&times;</button>
             <div id="status"></div>
             <div id="progress-details"></div>
         </div>

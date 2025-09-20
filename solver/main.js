@@ -11,11 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const topContainer = document.querySelector('.ui-panel .controls-container');
     const statusDiv = document.getElementById('status');
     const searchSummaryDiv = document.getElementById('search-summary');
+    const resultPanelDiv = document.querySelector('.result-panel');
+
     const progressDetailsDiv = document.getElementById('progress-details');
     const actionButtonsDiv = document.querySelector('.action-buttons');
     const mikotoModal = document.getElementById('mikoto-modal');
     const mikotoContinueIndicator = document.getElementById('mikoto-continue-indicator');
     const mikotoModalCloseBtn = document.getElementById('mikoto-modal-close');
+    const hideSummaryBtn = document.getElementById('hide-summary-btn');
 
     const saveBtn = document.getElementById('save-btn');
     const saveStatusDiv = document.getElementById('save-status');
@@ -53,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
     mikotoModalCloseBtn.addEventListener('click', () => {
         mikotoModal.classList.remove('is-active');
     });
+
+    if (hideSummaryBtn) {
+        hideSummaryBtn.addEventListener('click', () => {
+            resultPanelDiv.hidden = true;
+        });
+    }
 
     document.querySelector('.mikoto-modal-content').addEventListener('click', (e) => {
         if (!mikotoModal.classList.contains('is-active') || e.target === mikotoModalCloseBtn) return;
@@ -369,9 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
         pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
         useLocalVisitedCheckbox.disabled = isSearching || localVisitedData.status !== '読込完了';
         if (isSearching) {
+            resultPanelDiv.hidden = false;
             searchSummaryDiv.hidden = false;
             saveStatusDiv.textContent = '';
-            statusDiv.textContent = '探索中...';
+            statusDiv.textContent = 'Searching...';
             solutionPathDiv.innerHTML = '';
         }
     }
