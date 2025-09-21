@@ -2,18 +2,17 @@
 
 # top-most EditorConfig file
 root = true
-
 # General settings for all files
 [*]
 charset = utf-8
-end_of_line = lf
+#end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
 
 # Settings for specific file types
 [*.{js,html,css}]
-indent_size = 4
+indent_size = 2
 
 [*.py]
 indent_size = 4
