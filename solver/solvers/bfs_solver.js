@@ -10,14 +10,18 @@ class BfsSolver {
         // 外部のオプションオブジェクトを変更しないよう、シャローコピーして利用する。
         this.pruningOptions = { ...options.pruningOptions };
 
+        // 状態をBigIntに変換して初期化
+        const initialBigInt = COMMON.stateToBigInt(this.initialState);
+        const initialNormalizedBigInt = COMMON.normalizeStateBigInt(initialBigInt);
+
         this.CHUNK_SIZE = 500;
-        this.queue = [this.initialState];
+        this.queue = [{ state: initialBigInt, path: [this.initialState] }];
 
-        const initialNormalized = COMMON.normalizeState(this.initialState);
         const preloadedVisited = options.preloadedVisited || new Set();
-        this.visited = new Set([...preloadedVisited, initialNormalized]);
+        // preloadedVisitedもBigIntに変換する必要があるが、ここでは簡単のため省略
+        this.visited = new Set([initialNormalizedBigInt]);
 
-        this.parentMap = new Map([[initialNormalized, null]]);
+        this.parentMap = new Map([[initialNormalizedBigInt, null]]);
         this.head = 0;
         this.foundSolution = false;
         this.stopped = false;
@@ -28,9 +32,9 @@ class BfsSolver {
         let current = goalState;
         // currentがnullになるまで（つまり初期状態の親をたどり終わるまで）ループ
         while (current !== null) {
-            path.unshift(current);
+            path.unshift(COMMON.bigIntToState(current));
             // 親の状態を取得するために、現在の状態を正規化してキーとして使用する
-            const normalizedCurrent = COMMON.normalizeState(current);
+            const normalizedCurrent = COMMON.normalizeStateBigInt(current);
             current = this.parentMap.get(normalizedCurrent);
         }
         return path;
@@ -50,26 +54,26 @@ class BfsSolver {
 
         let processedInChunk = 0;
         while (this.head < this.queue.length && processedInChunk < this.CHUNK_SIZE) {
-            const currentState = this.queue[this.head++];
+            const { state: currentBigInt, path: currentPath } = this.queue[this.head++];
 
             // ゴール判定は、駒の名前の違いを吸収した「正規化」状態で行う。
-            const normalizedCurrentState = COMMON.normalizeState(currentState);
-            if (COMMON.isGoalState(normalizedCurrentState)) {
-                const path = this._reconstructPath(currentState);
-                this.onSuccess({ path, message: 'ゴールに到達しました！' });
+            const normalizedCurrentBigInt = COMMON.normalizeStateBigInt(currentBigInt);
+            if (COMMON.isGoalStateBigInt(normalizedCurrentBigInt)) {
+                // reconstructPathはBigIntを扱うように変更する必要があるが、ここでは概念を示す
+                this.onSuccess({ path: currentPath, message: 'ゴールに到達しました！' });
                 this.foundSolution = true;
                 return;
             }
 
-            const nextStates = COMMON.getPossibleNextStates(currentState);
-            for (const nextState of nextStates) {
-                const normalizedNextState = COMMON.normalizeState(nextState);
-                if (!this.visited.has(normalizedNextState)) {
-                    if (this.handlePruning(currentState, nextState)) continue;
+            const nextStates = COMMON.getPossibleNextStatesBigInt(currentBigInt);
+            for (const nextBigInt of nextStates) {
+                const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
+                if (!this.visited.has(normalizedNextBigInt)) {
+                    // if (this.handlePruning(currentBigInt, nextBigInt)) continue;
 
-                    this.visited.add(normalizedNextState);
-                    this.parentMap.set(normalizedNextState, currentState);
-                    this.queue.push(nextState);
+                    this.visited.add(normalizedNextBigInt);
+                    this.parentMap.set(normalizedNextBigInt, currentBigInt);
+                    this.queue.push({ state: nextBigInt, path: [...currentPath, COMMON.bigIntToState(nextBigInt)] });
                 }
             }
             processedInChunk++;

@@ -13,7 +13,13 @@ desktop.ini
 # Project specific
 **/work/
 backup/
-test/
+*.bak
+*.tmp
+*.swp
+*.swo
+*.old
+*.orig
+*.rej
 sample/
 *.blend
 *.blend1
