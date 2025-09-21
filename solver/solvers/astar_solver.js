@@ -174,7 +174,7 @@ class AstarSolver {
 
             if (COMMON.isGoalState(normalizedCurrentState)) {
                 const path = this._reconstructPath(currentState);
-                this.onSuccess({ path, message: '探索成功 '});
+              this.onSuccess({ path, message: 'ASTAR:'});
                 this.foundSolution = true;
                 return;
             }

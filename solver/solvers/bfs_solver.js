@@ -60,7 +60,7 @@ class BfsSolver {
             const normalizedCurrentBigInt = COMMON.normalizeStateBigInt(currentBigInt);
             if (COMMON.isGoalStateBigInt(normalizedCurrentBigInt)) {
                 // reconstructPathはBigIntを扱うように変更する必要があるが、ここでは概念を示す
-                this.onSuccess({ path: currentPath, message: 'ゴールに到達しました！' });
+              this.onSuccess({ path: currentPath, message: 'BFS: ' });
                 this.foundSolution = true;
                 return;
             }

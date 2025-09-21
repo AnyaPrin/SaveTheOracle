@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exploredNodes = visited ? visited.size.toLocaleString() : 'N/A';
     const queueSize = queue ? (queue.length - (head || 0)) : 0;
 
-    let html = `探索アルゴリズム: ${algorithm.toUpperCase()} | 探索済みノード数: <span class="num">${exploredNodes}</span> | キューの長さ: <span class="num">${queueSize.toLocaleString()}</span>`;
+    let html = `探索済みノード数: <span class="num">${exploredNodes}</span>| キューの長さ: <span class="num">${queueSize.toLocaleString()}</span>`;
 
     if (searchStartTime) {
       const elapsedSeconds = (performance.now() - searchStartTime) / 1000;
@@ -692,7 +692,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const x = i % COMMON.WIDTH;
           const y = Math.floor(i / COMMON.WIDTH);
           if (x < COMMON.WIDTH - 1 && pieceMap[i + 1] === piece) classList.push('piece-inner-right');
-          if (y < COMMON.HEIGHT - 1 && pieceMap[i + COMMON.WIDTH] === piece) classList.push('piece-inner-bottom');
+          if (y < COMMON.HEIGHT - 1 && pieceMap[i + COMMON.WIDTH] === piece)
+            classList.push('piece-inner-bottom');
         } else {
           classList.push('piece-dot');
           cell.textContent = '';

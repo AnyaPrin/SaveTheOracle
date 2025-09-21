@@ -95,7 +95,7 @@ class IDAstarSolver {
 
             // ゴール判定は正規化された状態で行う
             if (COMMON.isGoalState(COMMON.normalizeState(currentState))) {
-                this.onSuccess({ path: currentPath, message: 'ゴールに到達しました！' });
+              this.onSuccess({ path: currentPath, message: 'IDASTAR: ' });
                 this.foundSolution = true;
                 return;
             }
