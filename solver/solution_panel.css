@@ -4,6 +4,7 @@
     width: 1200px;
     max-width: 1200px;
     min-width: 800px;
+    background-image: url('../img/background2');
     background-color: rgba(44, 44, 44, 0.85);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
@@ -14,11 +15,12 @@
     background: transparent;
     box-shadow: none;
     align-items: center;
-    overflow-y: auto;
+    overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--button-color) var(--bg-color);
     z-index: 9000;
 }
+
 
 #search-summary {
     position: relative;

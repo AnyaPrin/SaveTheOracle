@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const progressDetailsDiv = document.getElementById('progress-details');
   const actionButtonsDiv = document.querySelector('.action-buttons');
-  const hideSummaryBtn = document.getElementById('hide-summary-btn');
+
+
 
   const saveBtn = document.getElementById('save-btn');
   const saveStatusDiv = document.getElementById('save-status');
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialStateInput = document.getElementById('initial-state-input');
   const setStateBtn = document.getElementById('set-state-btn');
   const setStateStatusDiv = document.getElementById('set-state-status');
+
   const pruningCheckbox = document.getElementById('pruning-enabled');
   const useLocalVisitedCheckbox = document.getElementById('use-local-visited-enabled');
   const pruningDataStatus = document.getElementById('pruning-data-status');
@@ -77,11 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // --- Event Listeners ---
-  if (hideSummaryBtn) {
-    hideSummaryBtn.addEventListener('click', () => {
-      resultPanelDiv.hidden = true;
-    });
-  }
+
 
 
   topContainer.addEventListener('click', (e) => {
@@ -406,6 +404,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const hideSummaryBtn = document.getElementById('hide-summary-btn');
+  if (hideSummaryBtn) {
+    hideSummaryBtn.addEventListener('click', () => {
+      if ( resultPanelDiv.hidden == true)
+        resultPanelDiv.hidden = false;
+      else
+        resultPanelDiv.hidden = true;
+    });
+  }
+
+
   function handleSetState() {
     const newState = initialStateInput.value.trim().toUpperCase();
     setStateStatusDiv.textContent = '';
@@ -648,6 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeBoardEditor() {
     const sourceGrid = document.getElementById('source-grid');
     const targetGrid = document.getElementById('target-grid');
+
     const applyBtn = document.getElementById('apply-editor-btn');
     const resetBtn = document.getElementById('reset-editor-btn');
 
@@ -935,7 +945,6 @@ document.addEventListener('DOMContentLoaded', () => {
       initialStateInput.value = finalState;
       handleSetState();
     });
-
     resetBtn.addEventListener('click', resetEditor);
 
     // Initial render
@@ -959,39 +968,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeDraggablePanel() {
     const panel = document.querySelector('.solution-panel');
     const header = document.getElementById('search-summary');
-
     let isDragging = false;
     let offsetX, offsetY;
-
     header.addEventListener('mousedown', (e) => {
-      // パネル内のボタンをクリックした場合はドラッグを開始しない
-      if (e.target.closest('button')) {
+      if (e.target.closest('button')) {          // パネル内のボタンをクリックした場合はドラッグを開始しない
         return;
       }
-
       isDragging = true;
-      // パネルの左上隅からマウスポインタまでのオフセットを計算
-      offsetX = e.clientX - panel.offsetLeft;
+      offsetX = e.clientX - panel.offsetLeft;    // パネルの左上隅からマウスポインタまでのオフセットを計算
       offsetY = e.clientY - panel.offsetTop;
-
-      // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
-      header.style.cursor = 'grabbing';
+      header.style.cursor = 'grabbing';          // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
       document.body.style.userSelect = 'none';
-
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
     });
-
     function onMouseMove(e) {
       if (!isDragging) return;
-      // マウスの現在位置からオフセットを引いて、パネルの新しい位置を計算
       panel.style.left = `${e.clientX - offsetX}px`;
       panel.style.top = `${e.clientY - offsetY}px`;
     }
-
-    function onMouseUp() {
+    function onMouseUp() {// スタイルを元に戻す
       isDragging = false;
-      // スタイルを元に戻す
       header.style.cursor = 'grab';
       document.body.style.userSelect = '';
       document.removeEventListener('mousemove', onMouseMove);
