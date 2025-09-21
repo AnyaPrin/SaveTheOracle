@@ -100,6 +100,20 @@
       border: none;
       cursor: pointer;
     }
+    button {
+      position: fixed;
+      top: 10px;
+      left: 700px;
+      padding: 1px 12px;
+      font-size: 9pt;
+      background-color: var(--acc-g);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+    }
 
     /* switch */
     .canvas-container {
@@ -207,6 +221,7 @@
       height: 24px;
     }
 
+
     #clipboard {
       position: fixed;
       top: 10px;
@@ -231,7 +246,7 @@
   <header>
     <span style="font-size:16pt">Save The Oracle</span>
     <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
-    <button id="open-solver-btn">ソルバーで解析</button>
+    <button id="open-solver-btn">ソルバーにデータを送る</button>
   </header>
   <main>
     <canvas id="puzzlecanvas" class="fade"></canvas>
@@ -292,4 +307,5 @@
 
 
 </script>
+
 </html>
