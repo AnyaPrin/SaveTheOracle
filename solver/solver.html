@@ -16,7 +16,7 @@
       }
 
       :root {
-          --bg-color: #1a1a1a;
+          --bg-color: transparent;
           --surface-color: rgb(76, 75, 80, 0.8);
           --button-color: #3c3c3c;
           --button-hover-color: #8e8c8e;
@@ -80,11 +80,8 @@
 
       #search-summary {
           background-color: rgba(44, 44, 44, 0.5);
-          /* 半透明の背景 */
           backdrop-filter: blur(4px);
-          /* すりガラス効果 */
           -webkit-backdrop-filter: blur(4px);
-          /* Safari用 */
           border-radius: 8px;
           padding: 15px 25px;
           margin-bottom: 20px;
@@ -116,11 +113,14 @@
           border-radius: 18px;
           /* Match container's border-radius */
           background-image: var(--before-bg-image,
-                                linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)), url('../img/bg_solver.jpg'));
+                                linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
+                                url('../img/bg_solver.jpg'));
           z-index: -1;
           }
 
            .controls-container::before {
+               opacity: 0.75;
+               backdrop-filter: blur(4px);
                background-size: cover;
                background-repeat: no-repeat;
                background-position: left;
@@ -380,6 +380,15 @@
            .advanced-settings-panel:not([hidden]) {
                display: flex;
            }
+           .tab-title {
+               font-size:15px;
+               position:absolute;
+               top:120px; left:0;
+               transform: rotate(-90deg);
+               transform-origin: left top;
+               display: inline-block;
+           }
+
     </style>
     <link rel="stylesheet" href="board_editor.css">
     <link rel="stylesheet" href="solution_panel.css">
@@ -388,10 +397,9 @@
 
   <body>
     <div class="ui-panel">
-      <div class="horizontal-panel">
+          <div class="tab-title">SOLVER</div>
+          <div class="horizontal-panel">
         <div class="controls-container">
-          <h1>SAVE THE ORACLE SOLVER</h1>
-
           <div class="board-input-container">
             <input type="text" id="initial-state-input" maxlength="20" minlength="20"
                    title="20文字の盤面状態 (A-Z, .)">
