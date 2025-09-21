@@ -164,6 +164,8 @@ let OrclIdx = {
     "up":    "ryneU"
 };
 
+
+
 //let pazzleCanvas, pctx, offCanvas;
 let snd_select, snd_move, snd_miracle, snd_clr;
 let imgSheet = null;
