@@ -967,30 +967,46 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Draggable Panel Logic ---
   function initializeDraggablePanel() {
     const panel = document.querySelector('.solution-panel');
-    const header = document.getElementById('search-summary');
+
     let isDragging = false;
     let offsetX, offsetY;
-    header.addEventListener('mousedown', (e) => {
-      if (e.target.closest('button')) {          // パネル内のボタンをクリックした場合はドラッグを開始しない
-        return;
+
+    panel.addEventListener('mousedown', (e) => {
+      // ドラッグを開始する要素（サマリー部か、下のハンドル）
+      const dragTarget = e.target.closest('#search-summary, #drag-handle');
+      // ドラッグ対象外の要素（ボタンやクリック可能な盤面など）
+      const nonDraggable = e.target.closest('button, .clickable-board, input, a, .close-btn');
+
+      // ドラッグ対象であり、かつドラッグ対象外の要素でなければドラッグ開始
+      if (dragTarget && !nonDraggable) {
+        isDragging = true;
+        offsetX = e.clientX - panel.offsetLeft;
+        offsetY = e.clientY - panel.offsetTop;
+
+        // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
+        dragTarget.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
       }
-      isDragging = true;
-      offsetX = e.clientX - panel.offsetLeft;    // パネルの左上隅からマウスポインタまでのオフセットを計算
-      offsetY = e.clientY - panel.offsetTop;
-      header.style.cursor = 'grabbing';          // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
-      document.body.style.userSelect = 'none';
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
     });
+
     function onMouseMove(e) {
       if (!isDragging) return;
       panel.style.left = `${e.clientX - offsetX}px`;
       panel.style.top = `${e.clientY - offsetY}px`;
     }
-    function onMouseUp() {// スタイルを元に戻す
+
+    function onMouseUp() {
       isDragging = false;
-      header.style.cursor = 'grab';
+      // スタイルを元に戻す
+      const header = document.getElementById('search-summary');
+      const handle = document.getElementById('drag-handle');
+      if (header) header.style.cursor = 'grab';
+      if (handle) handle.style.cursor = 'grab';
       document.body.style.userSelect = '';
+
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     }
