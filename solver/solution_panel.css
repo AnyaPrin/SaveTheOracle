@@ -4,13 +4,16 @@
     width: 800px;
     max-width: 800px;
     min-width: 800px;
+    height: calc(800 * 1.618)px; /* 黄金比 */
+    max-height: calc(800 * 1.618)px;
+    min-height: calc(800 * 1.618)px;
     background-image: url('../img/background2');
     background-color: rgba(44, 44, 44, 0.85);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
     border-radius: 18px;
     position: absolute;
-    top: 36px;
+    left:41px;top: 276px;
     padding: 20px 20px;
     background: transparent;
     box-shadow: none;
@@ -24,6 +27,13 @@
 
 #search-summary {
     position: relative;
+    width:740px; /* 固定幅 デザイン上の理由で変更してはならない */
+    max-width: 740px;
+    min-width: 740px;
+    height:100px; /* 固定高さ */
+    max-height: 60px;
+    min-height: 60px;
+    box-sizing: border-box;
     background-color: rgba(44, 44, 44, 0.5);
     backdrop-filter: blur(4px);    /* すりガラス効果 */
     -webkit-backdrop-filter: blur(4px);    /* Safari用 */

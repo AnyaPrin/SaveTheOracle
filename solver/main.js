@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pruningDataStatus = document.getElementById('pruning-data-status');
   const localVisitedDataStatus = document.getElementById('local-visited-data-status');
   const checkDataBtn = document.getElementById('check-data-btn');
+  const idaOptionLabel = document.getElementById('ida-option-label');
 
   initialStateInput.value = INITIAL_STATE;
 
@@ -98,7 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (button.closest('.action-buttons')) {
       if (button.classList.contains('start-algorithm-btn')) {
         if (currentSolver) return; // A search is already running
-        startSearch(button.value);
+        let algorithm = button.value;
+        // IDA*の場合、チェックボックスの状態に応じてアルゴリズムを決定
+        if (algorithm === 'idastar' && document.getElementById('ida-no-heuristic').checked) {
+          algorithm = 'iddfs';
+        }
+        startSearch(algorithm);
       } else if (button.classList.contains('stop-btn')) {
         handleStop();
       } else if (button.id === 'save-btn') {
@@ -136,6 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     label.addEventListener('mouseenter', () => {
       if (startBtn) {
+        // IDA*にホバーした時だけオプションを表示
+        if (idaOptionLabel) {
+          idaOptionLabel.hidden = (startBtn.value !== 'idastar');
+        }
+
         setContainerBackground(startBtn.value);
       }
       if (tooltip) {
@@ -185,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tooltip.classList.remove('visible');
       }
       if (startBtn) {
+        // マウスが離れたらオプションを隠す（探索中でなければ）
+        if (idaOptionLabel && !actionButtonsDiv.classList.contains('searching')) {
+          idaOptionLabel.hidden = true;
+        }
         setContainerBackground(null);
       }
     });
@@ -194,17 +209,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Functions ---
 
   function startSearch(selectedAlgorithm) {
-    // const selectedAlgorithm = Array.from(algorithmRadios).find(r => r.checked).value;
+    // 実際のソルバーに渡すアルゴリズム名（'idastar' or 'iddfs'）
+    const solverAlgorithm = selectedAlgorithm;
+    // UI上の選択アルゴリズム名（'idastar' or 'bfs' or 'astar'）
+    const uiSelectedAlgorithm = (solverAlgorithm === 'iddfs') ? 'idastar' : solverAlgorithm;
+
     const usePruning = pruningCheckbox.checked && optimalPathData.normalizedSet !== null;
     const useLocalVisited = useLocalVisitedCheckbox.checked && localVisitedData.set !== null;
-    const normalizedInitialState = COMMON.normalizeState(INITIAL_STATE);
+    const initialStateBigInt = COMMON.stateToBigInt(INITIAL_STATE);
+    const normalizedInitialStateBigInt = COMMON.normalizeStateBigInt(initialStateBigInt);
 
     let preloadedDataForSolver = null;
     if (useLocalVisited) {
       // 開始局面が保存済みデータに含まれている場合、そのデータを使うと探索が即座に終了してしまう可能性がある。
       // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)
       // この場合、安全策として保存済みデータの利用を一時的に無効にする。
-      if (localVisitedData.set.has(normalizedInitialState)) {
+      if (localVisitedData.set.has(normalizedInitialStateBigInt)) {
         console.warn('初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。');
         statusDiv.textContent = '情報: 初期盤面が保存済みデータに含まれていたため、保存データは利用されません。';
       } else {
@@ -212,11 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialState);
-    setUIState(true, selectedAlgorithm); // UIを「探索中」の状態に切り替える
+    const isStartOnOptimalPath = usePruning && optimalPathData.normalizedSet.has(normalizedInitialStateBigInt);
+    setUIState(true, uiSelectedAlgorithm); // UIを「探索中」の状態に切り替える
 
     // IDA*探索が選択された場合、ミコトさんのスライドショーを開始する
-    if (selectedAlgorithm === 'idastar') {
+    if (uiSelectedAlgorithm === 'idastar') {
       let slideIndex = 0;
       const transitionDuration = 1000; // CSSのtransition-durationと合わせる
 
@@ -253,13 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }, MIKOTO_SPEECH_WAIT);
     } else {
       // 他アルゴリズムの場合は、キャラクター画像を固定表示
-      lockedBgUrl = `url(${ASSET_PATHS.BG_IMAGES[selectedAlgorithm]})`;
+      lockedBgUrl = `url(${ASSET_PATHS.BG_IMAGES[uiSelectedAlgorithm]})`;
       topContainer.style.setProperty('--after-bg-image', lockedBgUrl);
       topContainer.classList.add('bg-active');
     }
 
     const options = {
-      initialState: INITIAL_STATE,
+      initialState: initialStateBigInt,
+      algorithm: solverAlgorithm, // ソルバーにアルゴリズム名を渡す
       pruningOptions: {
         usePruning,
         isStartOnOptimalPath,
@@ -273,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
       preloadedVisited: preloadedDataForSolver,
     };
 
-    switch (selectedAlgorithm) {
+    switch (solverAlgorithm) {
       case 'bfs':
         currentSolver = new BfsSolver(options);
         break;
@@ -283,8 +304,11 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'idastar':
         currentSolver = new IDAstarSolver(options);
         break;
+      case 'iddfs':
+        currentSolver = new IDAstarSolver(options); // IDDFSもIDAstarSolverクラスを使用
+        break;
     }
-    currentSolver.algorithm = selectedAlgorithm;
+    currentSolver.algorithm = solverAlgorithm;
     currentSolver.start();
   }
 
@@ -306,17 +330,20 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(mikotoTimer);
       mikotoTimer = null;
     }
-    const selectedAlgorithm = currentSolver.algorithm;
+    const solverAlgorithm = currentSolver.algorithm;
     const totalTime = (performance.now() - searchStartTime) / 1000;
 
     // 解の性質（最短かどうか）を判定し、サマリーメッセージを作成
     const isJunctionSolution = result.message && result.message.includes('合流');
-    const isOptimal = (selectedAlgorithm === 'bfs' || selectedAlgorithm === 'astar')
-      || (selectedAlgorithm === 'idastar' && !isJunctionSolution);
+    const isOptimal = (solverAlgorithm === 'bfs' || solverAlgorithm === 'astar')
+      || (solverAlgorithm === 'idastar' && !isJunctionSolution);
     const title = isOptimal ? '最短手数' : '発見した手数';
 
-    SolutionDisplay.displaySolution(result.path);
-    statusDiv.textContent = `${result.message} 　 ${title}: ${result.path.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
+    // ソルバーから返されたBigIntの配列を、表示用に文字列の配列に変換する
+    const pathAsStrings = result.path.map(bigint => COMMON.bigIntToState(bigint));
+
+    SolutionDisplay.displaySolution(pathAsStrings);
+    statusDiv.textContent = `${result.message} 　 ${title}: ${pathAsStrings.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
     setUIState(false);
     currentSolver = null;
   }
@@ -359,6 +386,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // IDA*探索用に設定したベース背景をリセット
       topContainer.style.setProperty('--before-bg-image', '');
       setContainerBackground(null);
+
+      // 探索終了後、IDA*オプションを隠す
+      if (idaOptionLabel) {
+        idaOptionLabel.hidden = true;
+      }
     }
 
     // 'searching'クラスを親要素に付け外しすることで、CSS側でまとめてスタイルを制御する
@@ -436,8 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { setStateStatusDiv.textContent = ''; }, 3000);
 
     if (optimalPathData.normalizedSet) {
-      const normalizedState = COMMON.normalizeState(INITIAL_STATE);
-      if (optimalPathData.normalizedSet.has(normalizedState)) {
+      const normalizedStateBigInt = COMMON.normalizeStateBigInt(COMMON.stateToBigInt(INITIAL_STATE));
+      if (optimalPathData.normalizedSet.has(normalizedStateBigInt)) {
         pruningDataStatus.textContent = `(最短経路上: ${optimalPathData.normalizedSet.size.toLocaleString()}件のデータ利用可)`;
       } else {
         pruningDataStatus.textContent = `(注意: 初期盤面は最短経路上にありません)`;
@@ -536,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       optimalPathData.rawSet = new Set(data);
       optimalPathData.array = data;
-      optimalPathData.normalizedSet = new Set(data.map(state => COMMON.normalizeState(state)));
+      optimalPathData.normalizedSet = new Set(data.map(state => COMMON.normalizeStateBigInt(COMMON.stateToBigInt(state))));
       pruningCheckbox.disabled = false;
       pruningDataStatus.textContent = `(${optimalPathData.rawSet.size.toLocaleString()}件)`;
     })
@@ -573,13 +605,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 3. 共有データと個人データをマージして、ユニークなSetを作成する
-      const mergedSet = new Set([...sharedVisited, ...localVisited]);
+      const mergedBigIntSet = new Set([...sharedVisited, ...localVisited].map(s => COMMON.stateToBigInt(s)));
 
-      if (mergedSet.size > 0) {
-        localVisitedData.set = mergedSet;
+      if (mergedBigIntSet.size > 0) {
+        localVisitedData.set = mergedBigIntSet;
         localVisitedData.status = '読込完了';
         useLocalVisitedCheckbox.disabled = false;
-        localVisitedDataStatus.textContent = `(${mergedSet.size.toLocaleString()}件)`;
+        localVisitedDataStatus.textContent = `(${mergedBigIntSet.size.toLocaleString()}件)`;
       } else {
         localVisitedData.status = 'データなし';
         localVisitedDataStatus.textContent = '(データなし)';

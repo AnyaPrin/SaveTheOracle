@@ -1,38 +1,36 @@
 class BfsSolver {
     constructor(options) {
-        this.initialState = options.initialState;
+        // main.jsからBigIntに変換された状態で渡される
+        this.initialBigInt = options.initialState;
         this.onSuccess = options.onSuccess;
         this.onProgress = options.onProgress;
         this.onFailure = options.onFailure;
 
-        // 駒の文字表現が異なっても、形状と配置が同じなら同一局面とみなすため、
-        // 状態を正規化して扱う。
-        // 外部のオプションオブジェクトを変更しないよう、シャローコピーして利用する。
         this.pruningOptions = { ...options.pruningOptions };
 
-        // 状態をBigIntに変換して初期化
-        const initialBigInt = COMMON.stateToBigInt(this.initialState);
-        const initialNormalizedBigInt = COMMON.normalizeStateBigInt(initialBigInt);
+        const initialNormalizedBigInt = COMMON.normalizeStateBigInt(this.initialBigInt);
 
         this.CHUNK_SIZE = 500;
-        this.queue = [{ state: initialBigInt, path: [this.initialState] }];
+        // キューには状態(BigInt)のみを保持し、パス全体は保持しない（メモリ効率化）
+        this.queue = [this.initialBigInt];
 
         const preloadedVisited = options.preloadedVisited || new Set();
-        // preloadedVisitedもBigIntに変換する必要があるが、ここでは簡単のため省略
-        this.visited = new Set([initialNormalizedBigInt]);
+        this.visited = new Set([initialNormalizedBigInt, ...preloadedVisited]);
 
+        // 親の状態を記録するマップ。キー:正規化済みBigInt, 値:非正規化親BigInt
         this.parentMap = new Map([[initialNormalizedBigInt, null]]);
         this.head = 0;
         this.foundSolution = false;
         this.stopped = false;
     }
 
-    _reconstructPath(goalState) {
+    _reconstructPath(goalStateBigInt) {
         const path = [];
-        let current = goalState;
+        let current = goalStateBigInt;
         // currentがnullになるまで（つまり初期状態の親をたどり終わるまで）ループ
         while (current !== null) {
-            path.unshift(COMMON.bigIntToState(current));
+            // BigIntのままパスの先頭に追加
+            path.unshift(current);
             // 親の状態を取得するために、現在の状態を正規化してキーとして使用する
             const normalizedCurrent = COMMON.normalizeStateBigInt(current);
             current = this.parentMap.get(normalizedCurrent);
@@ -54,13 +52,14 @@ class BfsSolver {
 
         let processedInChunk = 0;
         while (this.head < this.queue.length && processedInChunk < this.CHUNK_SIZE) {
-            const { state: currentBigInt, path: currentPath } = this.queue[this.head++];
+            const currentBigInt = this.queue[this.head++];
 
             // ゴール判定は、駒の名前の違いを吸収した「正規化」状態で行う。
             const normalizedCurrentBigInt = COMMON.normalizeStateBigInt(currentBigInt);
             if (COMMON.isGoalStateBigInt(normalizedCurrentBigInt)) {
-                // reconstructPathはBigIntを扱うように変更する必要があるが、ここでは概念を示す
-              this.onSuccess({ path: currentPath, message: 'BFS: ' });
+                // ゴールに到達したら、parentMapを辿ってパスを復元する
+                const path = this._reconstructPath(currentBigInt);
+                this.onSuccess({ path: path, message: 'BFS: ' });
                 this.foundSolution = true;
                 return;
             }
@@ -69,11 +68,11 @@ class BfsSolver {
             for (const nextBigInt of nextStates) {
                 const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
                 if (!this.visited.has(normalizedNextBigInt)) {
-                    // if (this.handlePruning(currentBigInt, nextBigInt)) continue;
+                    if (this.handlePruning(currentBigInt, nextBigInt)) continue;
 
                     this.visited.add(normalizedNextBigInt);
                     this.parentMap.set(normalizedNextBigInt, currentBigInt);
-                    this.queue.push({ state: nextBigInt, path: [...currentPath, COMMON.bigIntToState(nextBigInt)] });
+                    this.queue.push(nextBigInt);
                 }
             }
             processedInChunk++;
@@ -91,17 +90,17 @@ class BfsSolver {
         }
     }
 
-    handlePruning(currentState, nextState) {
+    handlePruning(currentBigInt, nextBigInt) {
         const { usePruning, isStartOnOptimalPath, optimalPathSet, optimalPathArray } = this.pruningOptions;
         if (!usePruning) return false;
 
-        const normalizedNextState = COMMON.normalizeState(nextState);
+        const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
 
         if (isStartOnOptimalPath) {
-            if (!optimalPathSet.has(normalizedNextState)) return true; // 枝刈り
+            if (!optimalPathSet.has(normalizedNextBigInt)) return true; // 枝刈り
         }
 
-        // isStartOnOptimalPathがfalseの場合の「合流」ロジックは、最短性を破壊するバグがあったため削除。
+        // isStartOnOptimalPathがfalseの場合の「合流」ロジックは、最短性を破壊する可能性があるため削除。
         // このロジックは、最初に見つかった合流点で探索を打ち切るが、その経路が最適である保証がないため、
         // より手数の多い解を返してしまう可能性があった。
         return false;

@@ -61,7 +61,7 @@ class PriorityQueue {
 
 class AstarSolver {
     constructor(options) {
-        this.initialState = options.initialState;
+        this.initialState = options.initialState; // main.jsからBigIntが渡される
         this.onSuccess = options.onSuccess;
         this.onProgress = options.onProgress;
         this.onFailure = options.onFailure;
@@ -80,16 +80,17 @@ class AstarSolver {
 
         // closedSet: 探索済みの盤面を記録する。キーは正規化済み盤面。
         const preloadedVisited = options.preloadedVisited || new Set();
-        const normalizedInitial = COMMON.normalizeState(this.initialState);
+        const initialBigInt = this.initialState; // initialStateは既にBigInt
+        const normalizedInitialBigInt = COMMON.normalizeStateBigInt(initialBigInt);
         // プリロードされたデータに現在の初期盤面が含まれていると探索が即終了するため、削除しておく
-        preloadedVisited.delete(normalizedInitial);
-        this.closedSet = preloadedVisited;
+        preloadedVisited.delete(normalizedInitialBigInt);
+        this.closedSet = new Set([ ...preloadedVisited ]);
 
         // 初期状態を設定
-        this.gScore.set(normalizedInitial, 0);
-        const initialFScore = this._heuristic(this.initialState);
-        this.openSet.enqueue({ state: this.initialState, fScore: initialFScore });
-        this.parentMap.set(normalizedInitial, null);
+        this.gScore.set(normalizedInitialBigInt, 0);
+        const initialFScore = this._heuristic(initialBigInt);
+        this.openSet.enqueue({ state: initialBigInt, fScore: initialFScore });
+        this.parentMap.set(normalizedInitialBigInt, null);
 
         this.CHUNK_SIZE = 250; // A*はノード毎の処理が重いので、チャンクサイズを少し小さめに
         this.foundSolution = false;
@@ -103,10 +104,10 @@ class AstarSolver {
      * @param {string} state - 盤面状態
      * @returns {number} 推定コスト
      */
-    _heuristic(state) {
-        const normalized = COMMON.normalizeState(state);
-        // 正規化後のゴール駒 'A' の左上隅を探す
-        const piecePos = normalized.indexOf(COMMON.GOAL_PIECE);
+    _heuristic(stateBigInt) {
+        // BigIntを文字列に変換してから処理する
+        const normalizedString = COMMON.bigIntToState(COMMON.normalizeStateBigInt(stateBigInt));
+        const piecePos = normalizedString.indexOf(COMMON.GOAL_PIECE);
         if (piecePos === -1) return Infinity;
 
         const currentX = piecePos % COMMON.WIDTH;
@@ -129,7 +130,7 @@ class AstarSolver {
                 const belowPos1 = belowY * COMMON.WIDTH + currentX;
                 const belowPos2 = belowY * COMMON.WIDTH + (currentX + 1);
                 // 2マスのうち、どちらか一方でも空白でなければブロックされているとみなす
-                if (normalized[belowPos1] !== '.' || normalized[belowPos2] !== '.') {
+                if (normalizedString[belowPos1] !== '.' || normalizedString[belowPos2] !== '.') {
                     // ブロックを解消するには、最低でもブロッカーを動かす(1手)＋'A'を動かす(1手)で2手かかると推定。
                     // この「+2」のペナルティにより、A*はブロックされていない経路をより賢く優先するようになる。
                     penalty = 2;
@@ -145,7 +146,7 @@ class AstarSolver {
         let current = goalState;
         while (current !== null) {
             path.unshift(current);
-            const normalizedCurrent = COMMON.normalizeState(current);
+            const normalizedCurrent = COMMON.normalizeStateBigInt(current);
             current = this.parentMap.get(normalizedCurrent);
         }
         return path;
@@ -166,42 +167,42 @@ class AstarSolver {
         let processedInChunk = 0;
         while (!this.openSet.isEmpty() && processedInChunk < this.CHUNK_SIZE) {
             // 優先度付きキューからfScoreが最小の盤面を効率的に取り出す
-            const { state: currentState } = this.openSet.dequeue();
-            const normalizedCurrentState = COMMON.normalizeState(currentState);
+            const { state: currentBigInt } = this.openSet.dequeue();
+            const normalizedCurrentBigInt = COMMON.normalizeStateBigInt(currentBigInt);
 
             // 既に処理済みの、より良い経路が見つかっている盤面はスキップ
-            if (this.closedSet.has(normalizedCurrentState)) continue;
+            if (this.closedSet.has(normalizedCurrentBigInt)) continue;
 
-            if (COMMON.isGoalState(normalizedCurrentState)) {
-                const path = this._reconstructPath(currentState);
+            if (COMMON.isGoalStateBigInt(normalizedCurrentBigInt)) {
+                const path = this._reconstructPath(currentBigInt);
               this.onSuccess({ path, message: 'ASTAR:'});
                 this.foundSolution = true;
                 return;
             }
 
-            this.closedSet.add(normalizedCurrentState);
+            this.closedSet.add(normalizedCurrentBigInt);
             processedInChunk++;
 
-            const currentGScore = this.gScore.get(normalizedCurrentState);
-            const nextStates = COMMON.getPossibleNextStates(currentState);
+            const currentGScore = this.gScore.get(normalizedCurrentBigInt);
+            const nextStates = COMMON.getPossibleNextStatesBigInt(currentBigInt);
 
-            for (const nextState of nextStates) {
-                const normalizedNextState = COMMON.normalizeState(nextState);
-                if (this.closedSet.has(normalizedNextState)) continue;
+            for (const nextBigInt of nextStates) {
+                const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
+                if (this.closedSet.has(normalizedNextBigInt)) continue;
 
-                if (this.handlePruning(currentState, nextState)) {
+                if (this.handlePruning(currentBigInt, nextBigInt)) {
                     continue;
                 }
 
                 const tentativeGScore = currentGScore + 1;
-                const knownGScore = this.gScore.get(normalizedNextState) ?? Infinity;
+                const knownGScore = this.gScore.get(normalizedNextBigInt) ?? Infinity;
 
                 if (tentativeGScore < knownGScore) {
                     // より良い経路が見つかった
-                    this.parentMap.set(normalizedNextState, currentState);
-                    this.gScore.set(normalizedNextState, tentativeGScore);
-                    const fScore = tentativeGScore + this._heuristic(nextState);
-                    this.openSet.enqueue({ state: nextState, fScore });
+                    this.parentMap.set(normalizedNextBigInt, currentBigInt);
+                    this.gScore.set(normalizedNextBigInt, tentativeGScore);
+                    const fScore = tentativeGScore + this._heuristic(nextBigInt);
+                    this.openSet.enqueue({ state: nextBigInt, fScore });
                 }
             }
         }
@@ -222,7 +223,7 @@ class AstarSolver {
         const { usePruning, isStartOnOptimalPath, optimalPathSet } = this.pruningOptions;
         if (!usePruning) return false;
 
-        const normalizedNextState = COMMON.normalizeState(nextState);
+        const normalizedNextState = COMMON.normalizeStateBigInt(nextState);
 
         // もし探索開始地点が既知の最短経路上にある場合、その経路から外れる手はすべて枝刈りできる。
         if (isStartOnOptimalPath) {

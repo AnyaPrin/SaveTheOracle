@@ -1,10 +1,12 @@
 class IDAstarSolver {
     constructor(options) {
-        this.initialState = options.initialState;
+        // main.jsからBigIntに変換された状態で渡される
+        this.initialBigInt = options.initialState;
         this.onSuccess = options.onSuccess;
         this.onProgress = options.onProgress;
         this.onFailure = options.onFailure;
         this.onUpdateStatus = options.onUpdateStatus;
+        this.algorithm = options.algorithm || 'idastar'; // 'idastar' or 'iddfs'
         this.pruningOptions = options.pruningOptions;
 
         this.CHUNK_SIZE = 500;
@@ -15,7 +17,7 @@ class IDAstarSolver {
         this.costLimit = 0; // 現在のf(n) = g(n) + h(n) の上限値
         this.nextCostLimit = Infinity; // 次のイテレーションで使う上限値
 
-        this.queue = []; // { state, path, gScore, visitedInPath }
+        this.queue = []; // { state: BigInt, path: BigInt[], gScore, visitedInPath: Set<BigInt> }
         // 全ての深さで探索したユニークな正規化済み盤面を記録する
         const preloadedVisited = options.preloadedVisited || new Set();
         this.visited = preloadedVisited;
@@ -23,11 +25,15 @@ class IDAstarSolver {
 
     /**
      * ヒューリスティック関数。ゴールまでの推定コストを計算する。
-     * A*ソルバーから流用。
+     * IDDFSの場合は常に0を返す。
      */
-    _heuristic(state) {
-        const normalized = COMMON.normalizeState(state);
-        const piecePos = normalized.indexOf(COMMON.GOAL_PIECE);
+    _heuristic(stateBigInt) {
+        if (this.algorithm === 'iddfs') {
+            return 0;
+        }
+        // IDA* のヒューリスティック計算
+        const normalizedString = COMMON.bigIntToState(COMMON.normalizeStateBigInt(stateBigInt));
+        const piecePos = normalizedString.indexOf(COMMON.GOAL_PIECE);
         if (piecePos === -1) return Infinity;
 
         const currentX = piecePos % COMMON.WIDTH;
@@ -43,7 +49,7 @@ class IDAstarSolver {
             if (belowY < COMMON.HEIGHT) {
                 const belowPos1 = belowY * COMMON.WIDTH + currentX;
                 const belowPos2 = belowY * COMMON.WIDTH + (currentX + 1);
-                if (normalized[belowPos1] !== '.' || normalized[belowPos2] !== '.') {
+                if (normalizedString[belowPos1] !== '.' || normalizedString[belowPos2] !== '.') {
                     penalty = 2;
                 }
             }
@@ -58,21 +64,22 @@ class IDAstarSolver {
     start() {
         if (this.foundSolution || this.stopped) return;
 
-        this.costLimit = (this.costLimit === 0) ? this._heuristic(this.initialState) : this.nextCostLimit;
+        this.costLimit = (this.costLimit === 0) ? this._heuristic(this.initialBigInt) : this.nextCostLimit;
         this.nextCostLimit = Infinity;
-        this.onUpdateStatus(`探索中... (コスト制限: ${this.costLimit})`);
+        const limitType = this.algorithm === 'iddfs' ? '深さ制限' : 'コスト制限';
+        this.onUpdateStatus(`探索中... (${limitType}: ${this.costLimit})`);
 
         // 探索キューを初期化。パス内のサイクル検出のため、正規化済み盤面のSetも一緒に管理する
-        const normalizedInitial = COMMON.normalizeState(this.initialState);
+        const normalizedInitialBigInt = COMMON.normalizeStateBigInt(this.initialBigInt);
         this.queue = [{
-            state: this.initialState,
-            path: [this.initialState],
+            state: this.initialBigInt,
+            path: [this.initialBigInt],
             gScore: 0,
-            visitedInPath: new Set([normalizedInitial])
+            visitedInPath: new Set([normalizedInitialBigInt])
         }];
 
         // 探索済みセットに初期盤面を追加
-        this.visited.add(normalizedInitial);
+        this.visited.add(normalizedInitialBigInt);
 
         this.onProgress({ visited: this.visited, queue: this.queue, head: 0, algorithm: 'idastar' });
         setTimeout(() => this.processChunk(), 0);
@@ -83,10 +90,10 @@ class IDAstarSolver {
 
         let processedInChunk = 0;
         while (this.queue.length > 0 && processedInChunk < this.CHUNK_SIZE) {
-            const { state: currentState, path: currentPath, gScore, visitedInPath } = this.queue.pop();
+            const { state: currentBigInt, path: currentPath, gScore, visitedInPath } = this.queue.pop();
             processedInChunk++;
 
-            const fScore = gScore + this._heuristic(currentState);
+            const fScore = gScore + this._heuristic(currentBigInt);
 
             if (fScore > this.costLimit) {
                 this.nextCostLimit = Math.min(this.nextCostLimit, fScore);
@@ -94,33 +101,34 @@ class IDAstarSolver {
             }
 
             // ゴール判定は正規化された状態で行う
-            if (COMMON.isGoalState(COMMON.normalizeState(currentState))) {
-              this.onSuccess({ path: currentPath, message: 'IDASTAR: ' });
+            if (COMMON.isGoalStateBigInt(COMMON.normalizeStateBigInt(currentBigInt))) {
+              const message = this.algorithm.toUpperCase() + ': ';
+              this.onSuccess({ path: currentPath, message: message });
                 this.foundSolution = true;
                 return;
             }
 
             // 子ノードを展開。pop()と組み合わせるため、reverse()で自然な探索順にする
-            const nextStates = [...COMMON.getPossibleNextStates(currentState)].reverse();
-            for (const nextState of nextStates) {
-                const normalizedNextState = COMMON.normalizeState(nextState);
+            const nextStates = [...COMMON.getPossibleNextStatesBigInt(currentBigInt)].reverse();
+            for (const nextBigInt of nextStates) {
+                const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
                 // IDA*では、より深い探索で同じノードを再訪問する必要があるため、
                 // グローバルな訪問済みセット(this.visited)で枝刈りを行うと、正しい解を見つけられなくなる。
                 // そのため、現在の探索パス内でのサイクル検出(visitedInPath)のみを行う。
                 // this.visited は探索した全ノードの記録・レポート目的でのみ使用する。
-                if (!visitedInPath.has(normalizedNextState)) {
-                    if (this.handlePruning(currentState, nextState, currentPath)) {
+                if (!visitedInPath.has(normalizedNextBigInt)) {
+                    if (this.handlePruning(currentBigInt, nextBigInt, currentPath)) {
                         if (this.foundSolution) return;
                         continue;
                     }
 
-                    this.visited.add(normalizedNextState);
+                    this.visited.add(normalizedNextBigInt);
                     const newVisitedInPath = new Set(visitedInPath);
-                    newVisitedInPath.add(normalizedNextState);
+                    newVisitedInPath.add(normalizedNextBigInt);
 
                     this.queue.push({
-                        state: nextState,
-                        path: [...currentPath, nextState],
+                        state: nextBigInt,
+                        path: [...currentPath, nextBigInt],
                         gScore: gScore + 1,
                         visitedInPath: newVisitedInPath
                     });
@@ -144,27 +152,30 @@ class IDAstarSolver {
         }
     }
 
-    handlePruning(currentState, nextState, currentPath) {
+    handlePruning(currentBigInt, nextBigInt, currentPath) {
         const { usePruning, isStartOnOptimalPath, optimalPathSet, optimalPathArray } = this.pruningOptions;
         if (!usePruning) return false;
 
-        const normalizedNextState = COMMON.normalizeState(nextState);
+        const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
 
         if (isStartOnOptimalPath) {
-            if (!optimalPathSet.has(normalizedNextState)) return true; // 枝刈り
+            if (!optimalPathSet.has(normalizedNextBigInt)) return true; // 枝刈り
         } else {
             // 最短経路データとの合流を試みる（クイック回答モード）
-            if (optimalPathSet.has(normalizedNextState)) {
-                const pathToJunction = [...currentPath, nextState];
-                const junctionIndex = optimalPathArray.findIndex(state => COMMON.normalizeState(state) === normalizedNextState);
+            if (optimalPathSet.has(normalizedNextBigInt)) {
+                const pathToJunction = [...currentPath, nextBigInt];
+                // optimalPathArrayは文字列の配列なので、BigIntに変換して比較する
+                const junctionIndex = optimalPathArray.findIndex(state => COMMON.normalizeStateBigInt(COMMON.stateToBigInt(state)) === normalizedNextBigInt);
 
                 if (junctionIndex === -1) return false; // 安全策
 
-                const pathFromJunction = optimalPathArray.slice(junctionIndex);
-                const finalPath = [...pathToJunction.slice(0, -1), ...pathFromJunction];
+                const pathFromJunctionStrings = optimalPathArray.slice(junctionIndex);
+                const pathFromJunctionBigInts = pathFromJunctionStrings.map(s => COMMON.stateToBigInt(s));
+                const finalPath = [...pathToJunction.slice(0, -1), ...pathFromJunctionBigInts];
 
                 // この合流は最短を保証しないが、高速に解を見つけるために探索を打ち切る
-                this.onSuccess({ path: finalPath, message: 'ゴールに到達しました！ (最適経路に合流)' });
+                const message = `${this.algorithm.toUpperCase()}: (最適経路に合流)`;
+                this.onSuccess({ path: finalPath, message: message });
                 this.foundSolution = true;
                 return true;
             }
