@@ -49,8 +49,7 @@ const SolutionDisplay = (function() {
                 let cellContent = '';
 
                 if (piece) {
-//                    classList.push(`piece-${piece.char}`);
-                    classList.push(`piece`);		    
+                    classList.push(`piece`);
                     if (i === piece.positions[0]) cellContent = piece.char;
                     if (movedPiece && piece.id === movedPiece.id) classList.push('moved-piece');
                     // Add classes to remove inner borders

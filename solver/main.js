@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Event Listeners ---
 
 
-
   topContainer.addEventListener('click', (e) => {
     // イベント委譲(Event Delegation)パターン:
     // 個々のボタンにイベントリスナーを設定する代わりに、親要素(topContainer)でイベントを一度に受け取る。
@@ -190,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
 
   // --- Functions ---
 
