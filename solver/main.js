@@ -66,15 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // --- URLパラメータから初期盤面を読み込む ---
-    const urlParams = new URLSearchParams(window.location.search);
-    const stateFromUrl = urlParams.get('state');
-    if (stateFromUrl) {
-        // URLに 'state' パラメータがあれば、その値を初期盤面として設定
-        initialStateInput.value = stateFromUrl.toUpperCase();
-        // 既存の盤面設定処理を呼び出して、検証とUI更新を行う
-        handleSetState();
-    }
+  // --- URLパラメータから初期盤面を読み込む ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const stateFromUrl = urlParams.get('state');
+  if (stateFromUrl) {
+    // URLに 'state' パラメータがあれば、その値を初期盤面として設定
+    initialStateInput.value = stateFromUrl.toUpperCase();
+    // 既存の盤面設定処理を呼び出して、検証とUI更新を行う
+    handleSetState();
+  }
 
 
 
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const hideSummaryBtn = document.getElementById('hide-summary-btn');
   if (hideSummaryBtn) {
     hideSummaryBtn.addEventListener('click', () => {
-      if ( resultPanelDiv.hidden == true)
+      if (resultPanelDiv.hidden == true)
         resultPanelDiv.hidden = false;
       else
         resultPanelDiv.hidden = true;
@@ -592,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let pieceIdCounter = 0;
 
     for (let i = 0; i < state.length; i++) {
-      const char = state[i];
+      const char = state[i];  // 1. 盤面の各位置の文字を取得
       if (char === '.' || processed.has(i)) {
         continue;
       }
@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      pieces.push({
+      pieces.push({ // 2. 見つかった駒の情報を保存
         id: pieceIdCounter++,
         char: char,
         positions: positions.sort((a, b) => a - b), // 常にソートして一貫性を保つ

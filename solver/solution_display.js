@@ -50,6 +50,7 @@ const SolutionDisplay = (function() {
 
                 if (piece) {
                     classList.push(`piece`);
+                    // Show the piece character only in its top-left cell
                     if (i === piece.positions[0]) cellContent = piece.char;
                     if (movedPiece && piece.id === movedPiece.id) classList.push('moved-piece');
                     // Add classes to remove inner borders
