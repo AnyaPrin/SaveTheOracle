@@ -57,15 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const setStateStatusDiv = document.getElementById('set-state-status');
 
   const pruningCheckbox = document.getElementById('pruning-enabled');
-  const useLocalVisitedCheckbox = document.getElementById('use-local-visited-enabled');
+  const useLocalVisitedCheckbox = document.getElementById('use-local-visited');
   const pruningDataStatus = document.getElementById('pruning-data-status');
   const localVisitedDataStatus = document.getElementById('local-visited-data-status');
   const checkDataBtn = document.getElementById('check-data-btn');
   const idaOptionLabel = document.getElementById('ida-option-label');
 
   initialStateInput.value = INITIAL_STATE;
-
-
 
   // --- URLパラメータから初期盤面を読み込む ---
   const urlParams = new URLSearchParams(window.location.search);
@@ -340,62 +338,62 @@ document.addEventListener('DOMContentLoaded', () => {
       || (solverAlgorithm === 'idastar' && !isJunctionSolution);
     const title = isOptimal ? '最短手数' : '発見した手数';
 
-      // --- 駒の一貫性を保つためのパス修正処理 ---
-      // ソルバーは駒の形状のみを考慮するため、駒の名前（文字）がステップごとに入れ替わることがある。
-      // ここでは、1手ずつ経路をたどり、駒の移動を追跡して正しい名前を復元する。
-      const correctedPathStrings = [];
-      if (result.path && result.path.length > 0) {
-        const initialString = COMMON.bigIntToState(result.path[0]);
-        correctedPathStrings.push(initialString);
-        // 基準となる最初の盤面の駒リストを作成
-        let prevPieces = stateToPieces(initialString);
+    // --- 駒の一貫性を保つためのパス修正処理 ---
+    // ソルバーは駒の形状のみを考慮するため、駒の名前（文字）がステップごとに入れ替わることがある。
+    // ここでは、1手ずつ経路をたどり、駒の移動を追跡して正しい名前を復元する。
+    const correctedPathStrings = [];
+    if (result.path && result.path.length > 0) {
+      const initialString = COMMON.bigIntToState(result.path[0]);
+      correctedPathStrings.push(initialString);
+      // 基準となる最初の盤面の駒リストを作成
+      let prevPieces = stateToPieces(initialString);
 
-        for (let i = 1; i < result.path.length; i++) {
-          const currentRawString = COMMON.bigIntToState(result.path[i]);
-          const currentPiecesRaw = stateToPieces(currentRawString);
+      for (let i = 1; i < result.path.length; i++) {
+        const currentRawString = COMMON.bigIntToState(result.path[i]);
+        const currentPiecesRaw = stateToPieces(currentRawString);
 
-          const correctedCurrentPieces = [];
-          const unmatchedPrevPieces = [...prevPieces];
-          const unmatchedCurrentPieces = [];
+        const correctedCurrentPieces = [];
+        const unmatchedPrevPieces = [...prevPieces];
+        const unmatchedCurrentPieces = [];
 
-          // 1. 静止している駒を特定する。
-          //    前のステップと同じ位置にある駒は、名前（char）を引き継ぐ。
-          for (const currentPiece of currentPiecesRaw) {
-            const currentPosSignature = currentPiece.positions.join(',');
-            const matchIndex = unmatchedPrevPieces.findIndex(p => p.positions.join(',') === currentPosSignature);
+        // 1. 静止している駒を特定する。
+        //    前のステップと同じ位置にある駒は、名前（char）を引き継ぐ。
+        for (const currentPiece of currentPiecesRaw) {
+          const currentPosSignature = currentPiece.positions.join(',');
+          const matchIndex = unmatchedPrevPieces.findIndex(p => p.positions.join(',') === currentPosSignature);
 
-            if (matchIndex > -1) {
-              // この駒は動いていない。前のステップの駒情報（特にchar）を引き継ぐ。
-              const [prevPiece] = unmatchedPrevPieces.splice(matchIndex, 1);
-              correctedCurrentPieces.push({ ...currentPiece, char: prevPiece.char });
-            } else {
-              // この駒は移動した駒の可能性がある。
-              unmatchedCurrentPieces.push(currentPiece);
-            }
-          }
-
-          // 2. 移動した駒を特定する。
-          //    前のステップから「消えた」駒と、新しい位置に「現れた」駒がそれぞれ1つだけのはず。
-          if (unmatchedPrevPieces.length === 1 && unmatchedCurrentPieces.length === 1 &&
-              unmatchedPrevPieces[0].width === unmatchedCurrentPieces[0].width &&
-              unmatchedPrevPieces[0].height === unmatchedCurrentPieces[0].height) {
-            // 「消えた」駒の名前を、「新しい位置」の駒に引き継がせる。
-            correctedCurrentPieces.push({ ...unmatchedCurrentPieces[0], char: unmatchedPrevPieces[0].char });
+          if (matchIndex > -1) {
+            // この駒は動いていない。前のステップの駒情報（特にchar）を引き継ぐ。
+            const [prevPiece] = unmatchedPrevPieces.splice(matchIndex, 1);
+            correctedCurrentPieces.push({ ...currentPiece, char: prevPiece.char });
           } else {
-            // このケースは通常発生しない。安全策として、未修正の盤面を使い、次のステップのためにリセットする。
-            console.warn(`Path correction failed at step ${i}. Found ${unmatchedPrevPieces.length} old and ${unmatchedCurrentPieces.length} new pieces.`);
-            correctedPathStrings.push(currentRawString);
-            prevPieces = stateToPieces(currentRawString); // 状態をリセット
-            continue;
+            // この駒は移動した駒の可能性がある。
+            unmatchedCurrentPieces.push(currentPiece);
           }
-
-          // 3. 修正された駒情報から盤面文字列を再構築し、次のループのために駒情報を更新する。
-          const correctedStateString = piecesToState(correctedCurrentPieces);
-          correctedPathStrings.push(correctedStateString);
-          prevPieces = correctedCurrentPieces;
         }
+
+        // 2. 移動した駒を特定する。
+        //    前のステップから「消えた」駒と、新しい位置に「現れた」駒がそれぞれ1つだけのはず。
+        if (unmatchedPrevPieces.length === 1 && unmatchedCurrentPieces.length === 1 &&
+          unmatchedPrevPieces[0].width === unmatchedCurrentPieces[0].width &&
+          unmatchedPrevPieces[0].height === unmatchedCurrentPieces[0].height) {
+          // 「消えた」駒の名前を、「新しい位置」の駒に引き継がせる。
+          correctedCurrentPieces.push({ ...unmatchedCurrentPieces[0], char: unmatchedPrevPieces[0].char });
+        } else {
+          // このケースは通常発生しない。安全策として、未修正の盤面を使い、次のステップのためにリセットする。
+          console.warn(`Path correction failed at step ${i}. Found ${unmatchedPrevPieces.length} old and ${unmatchedCurrentPieces.length} new pieces.`);
+          correctedPathStrings.push(currentRawString);
+          prevPieces = stateToPieces(currentRawString); // 状態をリセット
+          continue;
+        }
+
+        // 3. 修正された駒情報から盤面文字列を再構築し、次のループのために駒情報を更新する。
+        const correctedStateString = piecesToState(correctedCurrentPieces);
+        correctedPathStrings.push(correctedStateString);
+        prevPieces = correctedCurrentPieces;
       }
-      const pathAsStrings = correctedPathStrings;
+    }
+    const pathAsStrings = correctedPathStrings;
 
     SolutionDisplay.displaySolution(pathAsStrings);
     statusDiv.textContent = `${result.message} 　 ${title}: ${pathAsStrings.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
@@ -1010,6 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const index = parseInt(cell.dataset.index, 10);
       const clickedPiece = targetPieces.find(p => p.positions.includes(index));
+    　const allowSubsetCheckbox = document.getElementById('allow-subset-pieces');
 
       if (clickedPiece) {
         // Restore original positions before moving it back to source
@@ -1022,13 +1021,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     applyBtn.addEventListener('click', () => {
+      // "サブセットを許す"がチェックされていない場合、全ての駒が配置されているかチェック
+      if (!allowSubsetCheckbox.checked && sourcePieces.length > 0) {
+        alert(`配置していない駒があります。全ての駒を右の盤面に配置してください。`);
+        return;
+      }
+
+      // A（大駒2x2の駒）は必須)。さもないとゴール条件が無くなってしまう。
+      if (!targetPieces.some(p => p.char === 'A')) {
+        alert(`大駒"A"が配置されていません。Aは必ず右の盤面に配置してください。`);
+        return;
+      }
+
+
+
       const finalState = piecesToState(targetPieces);
       const finalStateArray = finalState.split('');
       const emptyCount = finalStateArray.filter(c => c === '.').length;
-      if (emptyCount !== 2) {
-        alert(`配置していない駒があります`);
+      // パズルとして成立するための最低条件をチェック (空きマスが2つ以上か)
+      // (現在のボードエディターの仕様では空きマスが２つ以下になることはないが、念のため)
+      if (emptyCount < 2) {
+        alert(`空きマスが2つ未満です。駒を右クリックで盤面から取り除いてください。`);
         return;
       }
+
       initialStateInput.value = finalState;
       handleSetState();
     });

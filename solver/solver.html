@@ -14,6 +14,7 @@
       font-style: normal;
       font-display: swap;
     }
+
     @font-face {
       font-family: 'Nyashi';
       src: url('../fonts/Nyashi.woff2') format('woff2'),
@@ -67,15 +68,6 @@
       justify-content: center;
     }
 
-    .vertical-panel {
-      display: flex;
-      flex-direction: column;
-      margin: 20px 20px;
-      box-sizing: border-box;
-      align-items: center;
-      justify-content: center;
-    }
-
     .ui-panel {
       display: flex;
       flex-direction: row;
@@ -95,8 +87,6 @@
       text-align: center;
       z-index: 1;
     }
-
-
 
     .controls-container::before,
     .controls-container::after {
@@ -318,13 +308,6 @@
       flex-shrink: 0;
     }
 
-    .editor-btn {
-      padding: 8px 0 0;
-      width: 80px;
-      margin: 1px 0 0;
-      border: 1px solid var(--border-color);
-      flex-shrink: 0;
-    }
 
     #set-state-status {
       min-height: 1.2em;
@@ -362,36 +345,69 @@
       font-size: 0.9em;
     }
 
-    .separated-icon-label {
-      margin-left: 20px;
-      /* IDA*を他のアイコンから離す */
-    }
-
     .icon-btn-label {
       position: relative;
       display: inline-block;
     }
+  </style>
 
-    /* --- Settings Panel Styles --- */
-    .advanced-settings-panel {
-      background-color: rgba(44, 44, 44, 0.5);
-      backdrop-filter: blur(4px);
-      /* すりガラス */
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      width: 243px;
-      height: 200px;
-      max-width: 243px;
-      min-width: 243px;
-      max-height: 200px;
-      display: none;
-      flex-direction: column;
-      box-sizing: border-box;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  <link rel="stylesheet" href="board_editor.css">
+  <link rel="stylesheet" href="tooltips.css">
+  <link rel="stylesheet" href="solution_panel.css">
+  <style>
+    /* Icon-based UI styles */
+    .action-buttons,
+    .icon-group {
+      display: flex;
+      justify-content: flex-start;
+      gap: 0;
+      align-items: center;
     }
 
-    .advanced-settings-panel:not([hidden]) {
-      display: flex;
+    .action-buttons {
+      margin: 14px 0;
+
+    }
+
+    .icon-btn {
+      -webkit-appearance: none;
+      /* Reset default button styles */
+      -moz-appearance: none;
+      appearance: none;
+      background: none;
+      padding: 0;
+      font-family: inherit;
+      color: inherit;
+
+      width: 56px;
+      /* Icon styles */
+      height: 56px;
+      background-color: #3a3a3a;
+      border: 2px solid #5a5a5a;
+      border-radius: 6px;
+      display: inline-flex;
+      /* Use flex to center content */
+      align-items: center;
+      justify-content: center;
+
+      font-size: 2em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      margin: 0;
+    }
+
+    .action-buttons.searching .icon-btn-label:not(.active-search) {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background-color: #4a4a4a;
+      border-color: var(--primary-accent-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
     }
 
     .tab-title {
@@ -404,9 +420,7 @@
       display: inline-block;
     }
   </style>
-  <link rel="stylesheet" href="board_editor.css">
-  <link rel="stylesheet" href="tooltips.css">
-  <link rel="stylesheet" href="solution_panel.css">
+
 </head>
 
 <body>
@@ -442,8 +456,7 @@
               このパズルではBFSより遅いことが多い。
             </span>
           </label>
-
-          <label class="icon-btn-label separated-icon-label">
+          <label class="icon-btn-label" style="padding-left:20px">
             <button class="icon-btn start-algorithm-btn" value="idastar">
               <img src="../img/icon/idastar.png" alt="IDA*">
             </button>
@@ -462,7 +475,7 @@
             </button>
             <span class="tooltip-text">
               <strong>探索結果を保存</strong><br>
-              今回の探索で訪れた盤面（探索済みノード）をブラウザに保存します。次回以降の探索で再利用できます。
+              今回の探索で訪れた盤面をブラウザに保存します。次回以降の探索で再利用できます。
             </span>
           </label>
 
@@ -472,91 +485,89 @@
             </button>
             <span class="tooltip-text">
               <strong>データ整合性チェック</strong><br>
-              ブラウザに保存された探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
+              探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
             </span>
           </label>
-
           <label class="icon-btn-label">
-            <button id="advanced-settings-btn" class="icon-btn">
+            <button id="option-btn" class="icon-btn">
               <img src="../img/icon/config.png" alt="Settings">
             </button>
             <span class="tooltip-text">
-              <strong>ボードエディター</strong><br>
-              スタート配置を編集します。
+              <strong>詳細設定</strong><br>
             </span>
           </label>
-
         </div>
-
-        <style>
-          /* Icon-based UI styles */
-          .action-buttons,
-          .icon-group {
-            display: flex;
-            justify-content: flex-start;
-            gap: 0;
-            align-items: center;
-          }
-
-          .action-buttons {
-            margin: 14px 0;
-
-          }
-
-          .icon-btn {
-            -webkit-appearance: none;
-            /* Reset default button styles */
-            -moz-appearance: none;
-            appearance: none;
-            background: none;
-            padding: 0;
-            font-family: inherit;
-            color: inherit;
-
-            width: 56px;
-            /* Icon styles */
-            height: 56px;
-            background-color: #3a3a3a;
-            border: 2px solid #5a5a5a;
-            border-radius: 6px;
-            display: inline-flex;
-            /* Use flex to center content */
-            align-items: center;
-            justify-content: center;
-
-            font-size: 2em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-            margin: 0;
-          }
-
-          .action-buttons.searching .icon-btn-label:not(.active-search) {
-            opacity: 0.4;
-            pointer-events: none;
-          }
-
-          .icon-btn:hover:not(:disabled) {
-            background-color: #4a4a4a;
-            border-color: var(--primary-accent-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-          }
-        </style>
         <div id="save-status"></div>
       </div>
     </div>
+    <style>
+      /* --- Option Panel Styles --- */
+      .option-panel {
+        font-size: 0.8em;
+        font-family: sans-serif;
+        display: none;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        bottom: 20px;
+        background-color: rgba(44, 44, 44, 0.5);
+        backdrop-filter: blur(4px);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        width: 243px;
+        max-width: 243px;
+        min-width: 243px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .option-panel:not([hidden]) {
+        display: block;
+      }
+
+      .editor-btn {
+        padding: 4px 0;
+        width: 80px;
+        margin: 1px 0 0;
+        border: 1px solid #3f3f3f;
+      }
+
+      #option-panel input[type="checkbox"] {
+        appearance: none;
+        height: 14px;
+        width: 14px;
+        border: 2px solid #8f8f8f;
+        border-radius: 4px;
+        background-color: transparent;
+      }
+
+      #option-panel input[type="checkbox"]:checked {
+        background-color: #3ffff3;
+        width: 14px;
+        height: 14px;
+      }
+
+      #option-panel strong {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: var(--primary-accent-color);
+      }
+    </style>
     <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
-      <div id="advanced-settings-panel" class="advanced-settings-panel" hidden>
+      <div id="option-panel" class="option-panel" hidden>
+        <strong>OPTIONS</strong><br>
         <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
-          最短解<span id="pruning-data-status"></span>による剪定 </label>
-        <label class="checkbox-label"><input type="checkbox" id="use-local-visited-enabled" disabled>
-          探索データの利用 <span id="local-visited-data-status"></span></label>
-        <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic">
-          IDA* h関数不使用 (＝IDDFS)
-        </label>
+          最短解による剪定 </label><span id="pruning-data-status" hidden></span>
+        <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
+          探索データの利用 </label><span id="local-visited-data-status" hidden></span>
+        <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic"> IDA* h
+          関数不使用 (＝IDDFS) </label>
         <p>─</p>
-        <label style="padding-top:4px; padding-bottom:0;">BOARD EDITOR</label>
+        <strong>BOARD EDITOR</strong><br>
+        <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
+          <input type="checkbox" id="allow-subset-pieces">
+          駒のサブセットを許す
+        </label>
         <div style="margin:8px 0 0; " class="horizontal-panel">
           <div class="grid-wrapper">
             <div id="source-grid" class="editor-grid"></div>
@@ -572,10 +583,12 @@
     </div>
   </div>
 
+
+
   <div class="solution-panel">
     <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
     <div id="search-summary" hidden>
-    <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
+      <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
       <div id="status"></div>
       <div id="progress-details"></div>
     </div>
@@ -592,8 +605,8 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const advancedSettingsBtn = document.getElementById('advanced-settings-btn');
-      const advancedSettingsPanel = document.getElementById('advanced-settings-panel');
+      const advancedSettingsBtn = document.getElementById('option-btn');
+      const advancedSettingsPanel = document.getElementById('option-panel');
       const checkboxLabel = document.querySelectorAll('.checkbox-label');
       checkboxLabel.forEach(label => {
         label.style.display = 'flex';
