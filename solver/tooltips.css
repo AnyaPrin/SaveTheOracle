@@ -1,4 +1,5 @@
 .tooltip-text {
+  font-family:"IPAexGothic","Meiryo", sans-serif;
 visibility: hidden;
 width: 280px;
 background-color: rgba(44, 44, 44, 0.1); /* 半透明の背景 */

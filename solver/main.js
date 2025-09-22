@@ -174,8 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
           tooltip.classList.add('arrow-up'); // 上向きの矢印を表示
         }
 
+        const pad = 0; // ツールチップとアイコンの位置調整用の微小な余白
         // 3. 左右の位置をアイコン基準で中央揃えに計算
-        left = iconRect.left + (iconRect.width / 2) - (tooltipRect.width / 2);
+        left = iconRect.left + (iconRect.width / 2) - (tooltipRect.width / 2) + pad;
 
         // 4. 画面の左右にはみ出さないように位置を補正
         if (left < 5) { left = 5; }
@@ -186,8 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tooltip.style.setProperty('--arrow-left', `${arrowLeft}px`);
 
         // 6. 計算した最終的な位置をスタイルとして適用
-        tooltip.style.top = `${top}px`;
-        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px + 4px`; // 4pxは微調整用の余白
+        tooltip.style.left = `${left}px + 4px`; // 4pxは微調整用の余白
       }
     });
 
