@@ -201,7 +201,6 @@
 
     .action-buttons {
       margin: 14px 0;
-
     }
 
     .icon-btn {
@@ -213,7 +212,6 @@
       padding: 0;
       font-family: inherit;
       color: inherit;
-
       width: 56px;
       /* Icon styles */
       height: 56px;
@@ -224,7 +222,6 @@
       /* Use flex to center content */
       align-items: center;
       justify-content: center;
-
       font-size: 2em;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -444,7 +441,6 @@
               スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。
             </span>
           </label>
-
           <label class="icon-btn-label">
             <button class="icon-btn start-algorithm-btn" value="astar">
               <img src="../img/icon/astar.png" alt="A*">
@@ -466,9 +462,8 @@
               メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)
             </span>
           </label>
-
-          <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
-
+        </div>
+        <div class="action-buttons">
           <label class="icon-btn-label">
             <button id="save-btn" class="icon-btn" disabled>
               <img src="../img/icon/save.png" alt="Save">
@@ -478,7 +473,6 @@
               今回の探索で訪れた盤面をブラウザに保存します。次回以降の探索で再利用できます。
             </span>
           </label>
-
           <label class="icon-btn-label">
             <button id="check-data-btn" class="icon-btn">
               <img src="../img/icon/check.png" alt="Check">
@@ -496,91 +490,92 @@
               <strong>詳細設定</strong><br>
             </span>
           </label>
+      </div>
+      <div id="save-status"></div>
+    </div>
+  </div>
+
+  <style>
+    /* --- Option Panel Styles --- */
+    .option-panel {
+      font-size: 0.8em;
+      font-family: sans-serif;
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      bottom: 20px;
+      background-color: rgba(44, 44, 44, 0.5);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      width: 243px;
+      max-width: 243px;
+      min-width: 243px;
+      box-sizing: border-box;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .option-panel:not([hidden]) {
+      display: block;
+    }
+
+    .editor-btn {
+      padding: 4px 0;
+      width: 80px;
+      margin: 1px 0 0;
+      border: 1px solid #3f3f3f;
+    }
+
+    #option-panel input[type="checkbox"] {
+      appearance: none;
+      height: 14px;
+      width: 14px;
+      border: 2px solid #8f8f8f;
+      border-radius: 4px;
+      background-color: transparent;
+    }
+
+    #option-panel input[type="checkbox"]:checked {
+      background-color: #3ffff3;
+      width: 14px;
+      height: 14px;
+    }
+
+    #option-panel strong {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: var(--primary-accent-color);
+    }
+  </style>
+  <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
+    <div id="option-panel" class="option-panel" hidden>
+      <strong>OPTIONS</strong><br>
+      <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
+        最短解による剪定 </label><span id="pruning-data-status" hidden></span>
+      <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
+        探索データの利用 </label><span id="local-visited-data-status" hidden></span>
+      <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic"> IDA* h
+        関数不使用 (＝IDDFS) </label>
+      <p>─</p>
+      <strong>BOARD EDITOR</strong><br>
+      <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
+        <input type="checkbox" id="allow-subset-pieces">
+        駒のサブセットを許す
+      </label>
+      <div style="margin:8px 0 0; " class="horizontal-panel">
+        <div class="grid-wrapper">
+          <div id="source-grid" class="editor-grid"></div>
+          <button class="editor-btn" id="reset-editor-btn">RESET</button>
         </div>
-        <div id="save-status"></div>
+        <span style="padding:0px 10px 0px">⇒</span>
+        <div class="grid-wrapper">
+          <div id="target-grid" class="editor-grid"></div>
+          <button class="editor-btn" id="apply-editor-btn">OK</button>
+        </div>
       </div>
     </div>
-    <style>
-      /* --- Option Panel Styles --- */
-      .option-panel {
-        font-size: 0.8em;
-        font-family: sans-serif;
-        display: none;
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        bottom: 20px;
-        background-color: rgba(44, 44, 44, 0.5);
-        backdrop-filter: blur(4px);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        width: 243px;
-        max-width: 243px;
-        min-width: 243px;
-        box-sizing: border-box;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      .option-panel:not([hidden]) {
-        display: block;
-      }
-
-      .editor-btn {
-        padding: 4px 0;
-        width: 80px;
-        margin: 1px 0 0;
-        border: 1px solid #3f3f3f;
-      }
-
-      #option-panel input[type="checkbox"] {
-        appearance: none;
-        height: 14px;
-        width: 14px;
-        border: 2px solid #8f8f8f;
-        border-radius: 4px;
-        background-color: transparent;
-      }
-
-      #option-panel input[type="checkbox"]:checked {
-        background-color: #3ffff3;
-        width: 14px;
-        height: 14px;
-      }
-
-      #option-panel strong {
-        font-weight: bold;
-        font-size: 1.1em;
-        color: var(--primary-accent-color);
-      }
-    </style>
-    <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
-      <div id="option-panel" class="option-panel" hidden>
-        <strong>OPTIONS</strong><br>
-        <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
-          最短解による剪定 </label><span id="pruning-data-status" hidden></span>
-        <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
-          探索データの利用 </label><span id="local-visited-data-status" hidden></span>
-        <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic"> IDA* h
-          関数不使用 (＝IDDFS) </label>
-        <p>─</p>
-        <strong>BOARD EDITOR</strong><br>
-        <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
-          <input type="checkbox" id="allow-subset-pieces">
-          駒のサブセットを許す
-        </label>
-        <div style="margin:8px 0 0; " class="horizontal-panel">
-          <div class="grid-wrapper">
-            <div id="source-grid" class="editor-grid"></div>
-            <button class="editor-btn" id="reset-editor-btn">RESET</button>
-          </div>
-          <span style="padding:0px 10px 0px">⇒</span>
-          <div class="grid-wrapper">
-            <div id="target-grid" class="editor-grid"></div>
-            <button class="editor-btn" id="apply-editor-btn">OK</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
   </div>
 
 
