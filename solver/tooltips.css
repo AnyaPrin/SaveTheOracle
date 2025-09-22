@@ -1,6 +1,6 @@
 .tooltip-text {
 visibility: hidden;
-width: 280px; 
+width: 280px;
 background-color: rgba(44, 44, 44, 0.1); /* 半透明の背景 */
 backdrop-filter: blur(4px); /* すりガラス効果 */
 -webkit-backdrop-filter: blur(4px); /* Safari用 */
@@ -12,7 +12,8 @@ position: fixed; /* JSでビューポート基準の位置を計算するため 
 z-index: 1000;
 opacity: 0;
 transition: opacity 0.3s ease;
-font-size: 0.9em;
+font-size: 0.798em;
+font-weight: normal;
 line-height: 1.5;
 box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 pointer-events: none; /* ツールチップ自体がマウスイベントを妨げないようにする */
@@ -49,4 +50,3 @@ opacity: 1;
 color: var(--primary-accent-color);
 font-weight: bold;
 }
-

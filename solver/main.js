@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     panel.addEventListener('mousedown', (e) => {
       // ドラッグを開始する要素（サマリー部か、下のハンドル）
-      const dragTarget = e.target.closest('#search-summary, #drag-handle');
+      const dragTarget = e.target.closest('#search-summary, .drag-handle');
       // ドラッグ対象外の要素（ボタンやクリック可能な盤面など）
       const nonDraggable = e.target.closest('button, .clickable-board, input, a, .close-btn');
 
@@ -1002,9 +1002,10 @@ document.addEventListener('DOMContentLoaded', () => {
       isDragging = false;
       // スタイルを元に戻す
       const header = document.getElementById('search-summary');
-      const handle = document.getElementById('drag-handle');
       if (header) header.style.cursor = 'grab';
-      if (handle) handle.style.cursor = 'grab';
+      document.querySelectorAll('.drag-handle').forEach(handle => {
+        handle.style.cursor = 'grab';
+      });
       document.body.style.userSelect = '';
 
       document.removeEventListener('mousemove', onMouseMove);

@@ -1,8 +1,8 @@
 .solution-panel {
     padding: 14px 24px;
     font-size: 14px;
-    width: 1200px;
-    max-width: 1200px;
+    width: 800px;
+    max-width: 800px;
     min-width: 800px;
     background-image: url('../img/background2');
     background-color: rgba(44, 44, 44, 0.85);
@@ -40,8 +40,8 @@
     margin-top: 0;
     text-align: left;
     display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    gap: 2px;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 1px;
 }
 
 #status {
@@ -183,18 +183,41 @@
     color: var(--primary-text-color);
 }
 
+/* --- ドラッグハンドル --- */
 .drag-handle {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 12px;
     cursor: grab;
-    border-bottom-left-radius: 18px;
-    border-bottom-right-radius: 18px;
     transition: background-color 0.2s ease;
+    z-index: 10000; /* 他の要素より手前に */
 }
 
 .drag-handle:hover {
     background-color: rgba(142, 140, 142, 0.2);
+}
+
+#drag-handle-bottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+.drag-handle-side {
+    top: 0;
+    width: 12px;
+    height: 100%;
+}
+
+#drag-handle-left {
+    left: 0;
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+}
+
+#drag-handle-right {
+    right: 0;
+    border-top-right-radius: 18px;
+    border-bottom-right-radius: 18px;
 }
