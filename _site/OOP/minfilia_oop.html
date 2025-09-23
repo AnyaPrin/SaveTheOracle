@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minfilia OOP version 0</title>
+    <link rel="stylesheet" href="piece.css">
+    <link rel="stylesheet" href="minfilia.css">    
+    <style>
+      :root {
+	  --link: #92b2c8;
+	  --menu: #92b2c8;	  
+	  --bg-color: #012345;
+	  --text-color: #f0f0f0;
+	  --panel: rgba(255,255,255,0.05);
+	  --panela: rgba(0,0,0,0.15);
+	  --acc-b: #2f81f7;
+	  --acc-g: #2d333b;
+	  --border: #444c56;
+	  --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
+      }
+      .board-container {
+          background-color:var(--bg-color);
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          align-items: center;
+      }
+      .light {
+          background-color: #f7fafc;
+      }
+      .dark {
+          background-color: #01234e;
+      }
+      .block
+      {
+	  background-color: #01234e;
+      }
+      #puzzlecanvas {
+	  display:block;	  
+	  position:fixed;
+	  top: 60px;
+	  left: 30px;
+	  width:600px; 
+	  height:800px;
+	  background:black;
+	  z-index:1;
+      }
+      #info{
+	  display:block;
+	  position:fixed;
+	  top: 64px;
+	  left: 644px;
+	  width:440px;
+	  height:320px;
+	  background:var(--panel);
+	  font-size:10pt;
+	  z-index:100;
+    	  font-family: 'Nimbus Mono','IPAゴシック','courier','Ariel';
+      }
+      #graphcanvas {
+	  display:block;
+	  position:fixed;
+	  top: 60px;
+	  left: 640px; 
+	  width:1024px;
+	  height:800px;
+	  background:black;
+	  z-index:1;    
+      }
+    </style>
+    
+  </head>
+  <body>
+    <header><span style="font-size:16pt">Save The Oracle</span></header>
+    <main>
+    <div id="info">Info.</div>
+      <canvas id="puzzlecanvas">	</canvas>
+      <div id="game-board">
+	<div id="A" class="block"> A </div>
+	<div id="B" class="block"> B </div>
+	<div id="C" class="block"> C </div>
+	<div id="D" class="block"> D </div>
+	<div id="E" class="block"> E </div>
+	<div id="F" class="block"> F </div>
+	<div id="G" class="block"> G </div>
+	<div id="H" class="block"> H </div>
+	<div id="I" class="block"> I </div>
+	<div id="J" class="block"> J </div>
+	<div id="instructions" class="text-center"></div>
+	<div id="informations" class="text-left"></div>
+      </div>
+      <canvas id="graphcanvas"></canvas>
+    </main>
+    <footer>
+      <hr>
+      画像はFINAL FANTASY XIV ゲーム内で撮影、３Dモデルはミニオン[マメット・
+      リーン]を見ながら blenderで自作しました。ⒸSQUARE ENIX <br>
+      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+	mifilia.js v.1.3 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+      <span style="position:fixed;right:20px;">
+	<a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+	  <img width="20" src="img/github-mark-white.png"> GitHub </a> </span>
+    </footer>
+    
+    <script>
+      const boardElement = document.getElementById('game-board');
+      const aElement = document.getElementById('A');
+      const bElement = document.getElementById('B');
+      const cElement = document.getElementById('C');
+      const dElement = document.getElementById('D');
+      const eElement = document.getElementById('E');
+      const fElement = document.getElementById('F');
+      const gElement = document.getElementById('G');
+      const hElement = document.getElementById('H');
+      const iElement = document.getElementById('I');
+      const jElement = document.getElementById('J');
+
+      // Board dimensions
+      const boardW = 4;
+      const boardH = 5;
+      const squareSize = 100;
+
+      /**
+       * Represents a movable block on the board.
+       */
+      class Block {
+          constructor(id, element, width, height, x, y) {
+              this.id = id;
+              this.element = element;
+              this.w = width;
+              this.h = height;
+              this.x = x;
+              this.y = y;
+          }
+          /**
+           * Updates the visual position of the block on the board.
+           */
+          updatePosition(newX, newY) {
+              this.x = newX;
+              this.y = newY;
+              this.element.style.transform = `translate(${this.x * squareSize}px, ${this.y * squareSize}px)`;
+          }
+          /**
+           * Checks for collision with another block.
+           */
+          checkCollision(otherBlock, newX, newY) {
+              const newRect = {
+                  left: newX * squareSize,
+                  top: newY * squareSize,
+                  right: (newX + this.w) * squareSize,
+                  bottom: (newY + this.h) * squareSize
+              };
+              const otherRect = {
+                  left: otherBlock.x * squareSize,
+                  top: otherBlock.y * squareSize,
+                  right: (otherBlock.x + otherBlock.w) * squareSize,
+                  bottom: (otherBlock.y + otherBlock.h) * squareSize
+              };
+              return !(newRect.right <= otherRect.left ||
+                       newRect.left >= otherRect.right ||
+                       newRect.bottom <= otherRect.top ||
+                       newRect.top >= otherRect.bottom);
+          }
+      }
+
+      /**
+       * Manages the game board and all blocks.
+       */
+      class Board {
+          constructor(boardElement, blocks) {
+              this.boardElement = boardElement;
+              this.blocks = blocks;
+              this.activeBlock = null;
+              this.offsetX = 0;
+              this.offsetY = 0;
+          }
+
+          init() {
+              this.createBoardSquares();
+              this.initBlocks();
+              this.addEventListeners();
+          }
+
+          createBoardSquares() {
+              for (let y = 0; y < boardH; y++) {
+                  for (let x = 0; x < boardW; x++) {
+                      const square = document.createElement('div');
+                      square.className = `square ${(x + y) % 2 === 0 ? 'light' : 'dark'}`;
+                      this.boardElement.appendChild(square);
+                  }
+              }
+          }
+
+          initBlocks() {
+              const boardRect = this.boardElement.getBoundingClientRect();
+              this.blocks.forEach(b => {
+                  b.element.style.left = `${boardRect.left}px`;
+                  b.element.style.top = `${boardRect.top}px`;
+                  b.updatePosition(b.x, b.y);
+              });
+          }
+
+          addEventListeners() {
+              this.blocks.forEach(b => {
+                  b.element.addEventListener('mousedown', this.dragStart.bind(this));
+                  b.element.addEventListener('touchstart', this.dragStart.bind(this));
+              });
+              document.addEventListener('mousemove', this.dragMove.bind(this));
+              document.addEventListener('mouseup', this.dragEnd.bind(this));
+              document.addEventListener('touchmove', this.dragMove.bind(this));
+              document.addEventListener('touchend', this.dragEnd.bind(this));
+          }
+          dragStart(e) {
+              e.preventDefault();
+              this.activeBlock = this.blocks.find(b => b.element === e.target);
+              if (!this.activeBlock) return;
+
+              const clientX = e.clientX || e.touches[0].clientX;
+              const clientY = e.clientY || e.touches[0].clientY;
+
+              const rect = this.activeBlock.element.getBoundingClientRect();
+              this.offsetX = clientX - rect.left;
+              this.offsetY = clientY - rect.top;
+
+              this.activeBlock.element.style.cursor = 'grabbing';
+              this.activeBlock.element.style.transition = 'none';
+          }
+
+          dragMove(e) {
+              if (!this.activeBlock) return;
+
+              const clientX = e.clientX || e.touches[0].clientX;
+              const clientY = e.clientY || e.touches[0].clientY;
+
+              const boardRect = this.boardElement.getBoundingClientRect();
+
+              let newX = clientX - boardRect.left - this.offsetX;
+              let newY = clientY - boardRect.top - this.offsetY;
+
+              const snappedX = Math.max(0, Math.min(Math.round(newX / squareSize),
+						    boardW - this.activeBlock.w));
+              const snappedY = Math.max(0, Math.min(Math.round(newY / squareSize),
+						    boardH - this.activeBlock.h));
+              const otherBlocks = this.blocks.filter(p => p.id !== this.activeBlock.id);
+              for (const blocks of otherBlocks) {
+                  if (this.activeBlock.checkCollision(blocks, snappedX, snappedY)) {
+                      return; // Collision detected, do not move
+                  }
+              }
+
+              this.activeBlock.updatePosition(snappedX, snappedY);
+          }
+
+          dragEnd() {
+              if (!this.activeBlock) return;
+              this.activeBlock.element.style.cursor = 'grab';
+              this.activeBlock.element.style.transition = 'transform 0.2s ease-out';
+              this.activeBlock = null;
+          }
+      }
+
+      window.onload = () => {
+          const blocksData = [
+              new Block('A', aElement, 2, 2, 1, 0),
+              new Block('B', bElement, 1, 2, 0, 0),
+              new Block('C', cElement, 1, 2, 3, 0),
+              new Block('D', dElement, 1, 2, 0, 2),
+              new Block('E', eElement, 1, 2, 3, 2),
+              new Block('F', fElement, 2, 1, 1, 2),
+              new Block('G', gElement, 1, 1, 0, 4),
+              new Block('H', hElement, 1, 1, 3, 4),
+              new Block('I', iElement, 1, 1, 1, 3),
+              new Block('J', jElement, 1, 1, 2, 3)
+          ];
+          const gameBoard = new Board(boardElement, blocksData);
+          gameBoard.init();
+      };
+
+    </script>
+  </body>
+</html>

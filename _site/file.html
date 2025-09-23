@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="mikoto_speech.css" >
+    <title>Save The Oracle Solver (Klotski Solver)</title>
+    <style>
+      @font-face {
+	  font-family: 'MeiryoB';
+	  src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
+	       url('../fonts/MeiryoUI-Bold.woff') format('woff');
+	  font-weight: bold;
+	  font-style: normal;
+      font-display: swap;
+      }
+
+      :root {
+          --bg-color: #1a1a1a;
+          --surface-color: #2c2c2c;
+          --button-color: #3c3c3c;
+          --button-accent-color: #8e8c8e;
+          --primary-text-color: #e0e0e0;
+          --secondary-text-color: #a0a0a0;
+          --primary-accent-color: #8c9eff;
+          --secondary-accent-color: #5c6bc0;
+          --success-color: #66bb6a;
+          --error-color: #ef5350;
+          --border-color: #424242;
+      }
+      html {
+          height: 100%;
+      }
+      body {
+          font-family: 'MeryoB', sans-serif;
+          padding: 10px;
+          margin: 10px;
+          display: flex;
+          height: 100vh;
+          min-width: 700px;
+          min-height: 100vh;
+          flex-direction: column;
+          background-color: var(--bg-color);
+          color: var(--primary-text-color);
+          overflow: hidden;
+      }
+      .top-panel {
+          padding-top: 10px;
+          overflow-y: auto;
+          flex-shrink: 0;
+          font-size: 14px;
+      }
+      .solution-panel {
+          flex-grow: 1;
+          overflow-y: auto;
+          padding-bottom: 20px;
+      }
+      .container {
+          position: relative;
+	  margin: 25px;
+	  padding: 14px 25px 0px 25px;
+	  width: 800px;
+	  max-width: 800px;
+	  justify-content: left;
+	  background-color: rgba(44, 44, 44, 0.85);
+	  border-radius: 18px;
+	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	  box-sizing: border-box;
+	  text-align: left;
+	  z-index: 1;
+      }
+      .top-panel .container {
+	  background-size: cover;
+	  background-repeat: no-repeat;
+	  background-position: left;
+	  background-image:
+	      linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0));
+      }
+      .solution-panel .container {
+	       background-image: none;
+	       background: none;
+	       background-color: none;
+	       box-shadow: none;
+	       justify-content: center;
+	       margin-bottom: 25px;
+	       margin-bottom: 25px;
+      }
+
+      .container::before, .container::after {
+	  content: '';
+	  position: absolute;
+	  top: 0; left: 0; right: 0; bottom: 0;
+	  background-size: cover;
+	  background-repeat: no-repeat;
+	  background-position: left;
+	  border-radius: 18px;  /* Match containers border-radius */
+	  z-index: -1;
+      }
+
+      .container::before {
+	  background-image: url(bg_solver.jpg);
+      }
+      .container::after {
+	  background-image: var(--after-bg-image, none);
+	  opacity: 0;
+	  transition: opacity 0.4s ease-in-out;
+      }
+      .container.bg-active::after {
+	  opacity: 1;
+      }
+
+
+      h1 {
+	  color: var(--primary-text-color);
+	  margin-bottom: 24px;
+      }
+
+      .info {
+	  background-color: rgba(92, 107, 192, 0.15);
+	  border-left: 5px solid var(--secondary-accent-color);
+	  padding: 15px;
+	  margin-bottom: 20px;
+	  border-radius: 4px;
+	  text-align: left;
+      }
+
+      .info p {
+	  margin: 0;
+	  line-height: 1.6;
+      }
+
+      .board {
+	  white-space: pre;
+	  font-family: monospace;
+	  line-height: 1.1;
+	  font-size: 1.5em;
+	  margin-bottom: 20px;
+	  text-align: left;
+	  border: 2px solid var(--border-color);
+	  display: inline-block;
+	  padding: 4px;
+	  border-radius: 4px;
+	  background-color: var(--bg-color);
+      }
+
+      button {
+	  background-color: var(--secondary-accent-color);
+	  color: white;
+	  padding: 12px 24px;
+	  border: none;
+	  border-radius: 5px;
+	  font-size: 1em;
+	  cursor: pointer;
+	  transition: background-color 0.3s, transform 0.2s;
+	  margin-bottom: 20px;
+	  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      button:hover {
+	  background-color: var(--primary-accent-color);
+	  transform: translateY(-2px);
+      }
+
+      button:disabled {
+	  background-color: #424242;
+	  color: #757575;
+	  cursor: not-allowed;
+	  box-shadow: none;
+	  transform: none;
+      }
+      .icon-btn img {
+	  width: 64px;
+	  height: 64px;
+      }
+      /* Icon-based UI styles */
+      .action-buttons, .icon-group {
+	  display: flex;
+	  justify-content: flex-start;
+	  gap: 0;
+	  align-items: center;
+      }
+      .action-buttons {
+	  margin-bottom: 10px; /* 繝懊ち繝ｳ荳九・繝槭・繧ｸ繝ｳ */
+      }
+
+      .icon-btn {
+	  /* Reset default button styles */
+	  -webkit-appearance: none;
+	  -moz-appearance: none;
+	  appearance: none;
+	  background: none;
+	  padding: 0;
+	  font-family: inherit;
+	  color: inherit;
+
+	  /* Icon styles */
+	  width: 56px;
+	  height: 56px;
+	  background-color: #3a3a3a;
+	  border: 2px solid #5a5a5a;
+	  border-radius: 6px;
+	  display: inline-flex; /* Use flex to center content */
+	  align-items: center;
+	  justify-content: center;
+
+	  font-size: 2em;
+	  cursor: pointer;
+	  transition: all 0.2s ease;
+	  user-select: none;
+	  margin: 0;
+      }
+
+      #start-buttons-group {
+	  display: flex;
+	  align-items: center;
+	  gap: 0;
+      }
+
+      .action-buttons.searching .icon-btn-label:not(.active-search) {
+	  opacity: 0.4;
+	  pointer-events: none;
+      }
+
+      .icon-btn:hover:not(:disabled) {
+	  background-color: #4a4a4a;
+	  border-color: var(--primary-accent-color);
+	  transform: translateY(-2px);
+	  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .icon-btn:disabled {
+	  background-color: #2a2a2a;
+	  border-color: #424242;
+	  color: #666;
+	  cursor: not-allowed;
+	  transform: none;
+	  box-shadow: none;
+      }
+
+      /* Hide the actual radio/checkbox input */
+      .icon-group input {
+	  position: absolute;
+	  opacity: 0;
+	  width: 0;
+	  height: 0;
+      }
+
+      #status {
+	  font-size: 1em;
+	  font-weight: bold;
+	  color: var(--primary-accent-color);
+      }
+
+      #search-summary {
+	  background-color: rgba(44, 44, 44, 0.5);
+	  backdrop-filter: blur(4px);
+	  -webkit-backdrop-filter: blur(4px);
+	  border-radius: 8px;
+	  padding: 15px 25px;
+	  margin-bottom: 20px;
+	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	  border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      #progress-details {
+	  font-size: 0.7em;
+	  color: var(--secondary-text-color);
+	  margin-top: 0;
+      }
+
+      #save-status {
+	  font-size: 0.9em;
+	  color: var(--error-color);
+	  margin-top: 10px;
+	  min-height: 20px;
+      }
+      #save-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
+	  color: var(--success-color) !important;
+      }
+      #solution-path {
+	  margin-top: 0;
+	  text-align: left;
+	  display: grid;
+	  grid-template-columns: repeat(15, 1fr);
+	  gap: 2px;
+      }
+      .step {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  gap: 2px;
+      }
+
+      .step-number {
+	  font-size: 0.78em;
+	  font-weight: bold;
+	  align-items: left;
+	  color: var(--secondary-text-color);
+      }
+      .step-board {
+	  font-family:MeiryoB;
+	  border: 1px solid var(--border-color);
+	  padding: 4px 8px;
+	  border-radius: 4px;
+	  background-color: var(--bg-color);
+	  justify-content: left;
+	  white-space: pre;
+	  font-family: monospace;
+	  line-height: 1.1;
+	  font-size: 1.1em;
+	  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Style for when the hidden input is disabled */
+      .icon-group input:disabled + .icon-label {
+	  background-color: #2a2a2a;
+	  border-color: #424242;
+	  color: #666;
+	  cursor: not-allowed;
+	  box-shadow: none;
+      }
+
+      .step-board.clickable-board {
+	  cursor: pointer;
+	  transition: border-color 0.2s ease;
+      }
+      .step-board.clickable-board:hover {
+	  border-color: var(--primary-accent-color);
+      }
+      .moved-piece {
+	  color: var(--success-color);
+	  font-weight: bold;
+      }
+      .board-input-container {
+	  display: flex;
+	  align-items: center;
+	  gap: 10px;
+
+      }
+      #initial-state-input {
+	  /* flex-grow: 1; */
+	  font-family: monospace;
+	  width: 22ch;
+	  font-size: 1em;
+	  padding: 7px;
+	  border: 1px solid var(--border-color);
+	  border-radius: 8px;
+	  background-color: var(--bg-color);
+	  color: var(--primary-text-color);
+      }
+      #set-state-btn {
+	  padding: 4px 35px ;
+	  margin: 0;
+	  border: 1px solid var(--border-color);
+	  flex-shrink: 0;
+      }
+      #set-state-status {
+	  min-height: 1.2em;
+	  font-size: 0.9em;
+	  text-align: left;
+	  margin-top: 5px;
+      }
+      #set-state-status[style*="color: rgb(76, 175, 80)"] { /* For success message */
+	  color: var(--success-color) !important;
+      }
+      .pruning-selection {
+	  margin-bottom: 20px;
+	  /* text-align: center; */
+      }
+      .pruning-selection label {
+	  margin: 0 10px;
+	  font-size: 1em;
+	  cursor: pointer;
+      }
+      #pruning-status {
+	  color: var(--secondary-text-color);
+	  margin-left: 10px;
+	  font-size: 0.9em;
+      }
+      .separated-icon-label {
+	  margin-left: 20px;
+      }
+      .icon-btn-label {
+	  position: relative;
+	  display: inline-block;
+      }
+
+      /* --- Tooltip Styles --- */
+      .tooltip-text {
+	  visibility: hidden;
+	  width: 280px;
+	  background-color: rgba(44, 44, 44, 0.1);
+	  backdrop-filter: blur(4px);
+	  -webkit-backdrop-filter: blur(4px);
+	  color: var(--primary-text-color);
+	  text-align: left;
+	  border-radius: 6px;
+	  padding: 10px 15px;
+	  position: fixed;
+	  z-index: 1000;
+	  opacity: 0;
+	  transition: opacity 0.3s ease;
+	  font-size: 0.9em;
+	  line-height: 1.5;
+	  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+	  pointer-events: none;
+	  --arrow-left: 50%;
+      }
+      .tooltip-text::after {
+	  content: "";
+	  position: absolute;
+	  left: var(--arrow-left);
+	  transform: translateX(-50%);
+	  border-width: 5px;
+	  border-style: solid;
+      }
+      .tooltip-text.arrow-down::after {
+	  top: 100%;
+	  border-color:rgba(44, 44, 44, 0.85) transparent transparent transparent;
+      }
+      .tooltip-text.arrow-up::after {
+	  bottom: 100%;
+	  border-color: transparent transparent rgba(44, 44, 44, 0.85) transparent;
+      }
+      .tooltip-text.visible {
+	  visibility: visible;
+	  opacity: 1;
+      }
+      .tooltip-text strong {
+	  color: var(--primary-accent-color);
+	  font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-panel">
+      <div class="container">
+        <h1>SAVE THE ORACLE SOLVER</h1>
+        <div class="board-input-container">
+          <strong>蛻晄悄逶､髱｢:</strong>
+          <input type="text" id="initial-state-input" maxlength="20" minlength="20"
+		 title="20譁・ｭ励・逶､髱｢迥ｶ諷・(A-Z, .)">
+          <button id="set-state-btn">OK </button> <div id="set-state-status"></div>
+        </div>
+        <div class="pruning-selection" style="text-align: left">
+	  <br>
+          <input type="checkbox" id="pruning-enabled" disabled> 譛遏ｭ隗｣繝・・繧ｿ縺ｫ繧医ｋ譫晏・繧・          <input type="checkbox" id="use-local-visited" disabled> 菫晏ｭ俶ｸ医∩謗｢邏｢繝・・繧ｿ縺ｮ蛻ｩ逕ｨ
+	  <br>
+          <span id="pruning-status"></span>
+        </div>
+        <div class="action-buttons">
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="bfs">
+              <img src="../img/icon/bfs.png" alt="BFS">
+            </button>
+            <span class="tooltip-text">
+              <strong>Brave Forwards Search (BFS)</strong><br>
+              繧｢繝ｫ繝輔ぅ繝弱′繧ｷ繝｣繝ｼ繝ｬ繧｢繝ｳ鬲疲ｳ募､ｧ蟄ｦ蝨ｨ蟄ｦ荳ｭ縺ｫ髢狗匱縺励◆縺ｨ縺輔ｌ繧区怙繧ょ渕譛ｬ逧・↑謗｢邏｢繧｢繝ｫ繧ｴ繝ｪ繧ｺ繝縲・	      繧ｹ繧ｿ繝ｼ繝医°繧芽ｿ代＞鬆・↓蜈ｨ縺ｦ縺ｮ繝弱・繝峨ｒ邯ｲ鄒・噪縺ｫ謗｢邏｢縺吶ｋ縺溘ａ縲∝ｿ・★譛遏ｭ謇区焚隗｣繧定ｦ九▽縺代∪縺吶・            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="astar">
+              <img src="../img/icon/astar.png" alt="A*">
+            </button>
+            <span class="tooltip-text">
+              <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
+              繝阪Ο縺後い繝ｩ繧ｰ縺ｮ雜・橿陦薙ｒ蛻ｩ逕ｨ縺励※髢狗匱縺励◆繧峨＠縺・爾邏｢繧｢繝ｫ繧ｴ繝ｪ繧ｺ繝縲・	      繧ｴ繝ｼ繝ｫ縺ｾ縺ｧ縺ｮ謗ｨ螳壹さ繧ｹ繝医ｒ蛻ｩ逕ｨ縺励※謗｢邏｢繧貞柑邇・喧縲。FS縺ｨ蜷梧ｧ倥↓譛遏ｭ謇区焚隗｣繧剃ｿ晁ｨｼ縺励▽縺､縲・	      繧医ｊ鬮倬溘↓隗｣繧定ｦ九▽縺代ｋ縺薙→縺後〒縺阪∪縺吶・            </span>
+          </label>
+          <label class="icon-btn-label separated-icon-label">
+            <button class="icon-btn start-algorithm-btn" value="idastar">
+              <img src="../img/icon/idastar.png" alt="IDA*">
+            </button>
+            <span class="tooltip-text">
+              <strong>Ironworks Designed Astar (IDA*)</strong><br>
+              繧ｷ繝峨′髢狗匱縺励◆縺九ｂ縺励ｌ縺ｪ縺Б*謗｢邏｢縺ｮ謾ｹ濶ｯ迚医ゅΓ繝｢繝ｪ菴ｿ逕ｨ驥上ｒ謚代∴繧峨ｌ縺ｾ縺吶′縲・	      縺薙・繝代ぜ繝ｫ縺ｮ繧医≧縺ｫ蜷後§迥ｶ諷九↓菴募ｺｦ繧ょ芦驕斐☆繧句撫鬘後〒縺ｯ謗｢邏｢蜉ｹ邇・′闡励＠縺丈ｽ惹ｸ九☆繧句ｴ蜷医′縺ゅｊ縺ｾ縺吶・隧ｦ鬨鍋噪螳溯｣・
+            </span>
+          </label>
+
+          <span style="border-left: 2px solid var(--border-color); height: 40px; margin: 0 15px;"></span>
+
+          <label class="icon-btn-label">
+            <button id="save-btn" class="icon-btn" disabled>
+              <img src="../img/icon/save.png" alt="Save">
+            </button>
+            <span class="tooltip-text">
+              <strong>謗｢邏｢邨先棡繧剃ｿ晏ｭ・/strong><br>
+              莉雁屓縺ｮ謗｢邏｢縺ｧ險ｪ繧後◆逶､髱｢・域爾邏｢貂医∩繝弱・繝会ｼ峨ｒ繝悶Λ繧ｦ繧ｶ縺ｫ菫晏ｭ倥＠縺ｾ縺吶よｬ｡蝗樔ｻ･髯阪・謗｢邏｢縺ｧ蜀榊茜逕ｨ縺ｧ縺阪∪縺吶・            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button id="check-data-btn" class="icon-btn">
+              <img src="../img/icon/check.png" alt="Check">
+            </button>
+            <span class="tooltip-text">
+              <strong>繝・・繧ｿ謨ｴ蜷域ｧ繝√ぉ繝・け</strong><br>
+              繝悶Λ繧ｦ繧ｶ縺ｫ菫晏ｭ倥＆繧後◆謗｢邏｢貂医∩繝・・繧ｿ縺ｫ驥崎､・′縺ｪ縺・°繝√ぉ繝・け縺励∝ｿ・ｦ√〒縺ゅｌ縺ｰ繧ｯ繝ｪ繝ｼ繝ｳ繧｢繝・・縺励∪縺吶・            </span>
+          </label>
+        </div>
+        <div id="save-status"></div>
+      </div>
+    </div>
+    <div class="solution-panel">
+      <div class="container">
+        <div id="search-summary" hidden>
+          <div id="status"></div>
+          <div id="progress-details"></div>
+        </div>
+        <div id="solution-path"></div>
+      </div>
+    </div>
+
+    <!-- Mikoto's Speech Modal -->
+    <div id="mikoto-modal">
+      <div class="mikoto-modal-content" title="繧ｯ繝ｪ繝・け縺励※騾ｲ繧">
+        <button id="mikoto-modal-close" aria-label="髢峨§繧・>&times;</button>
+        <div class="mikoto-slide slide-0 is-active"></div>
+        <div class="mikoto-slide slide-1"></div>
+        <div class="mikoto-slide slide-2"></div>
+        <div class="mikoto-slide slide-3"></div>
+        <div class="mikoto-slide slide-4"></div>
+        <div class="mikoto-slide slide-5"></div>
+        <div id="mikoto-speech-container">
+          <p id="mikoto-speech"></p>
+        </div>
+        <span id="mikoto-continue-indicator">笆ｼ</span>
+      </div>
+    </div>
+
+    <script content-type="text/javascript" src="../lib/common.js"></script>
+    <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
+    <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
+    <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
+
+    <script src="main.js"></script>
+  </body>
+</html>

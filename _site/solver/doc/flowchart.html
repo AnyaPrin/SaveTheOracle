@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>ソルバーの処理フロー</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+      :root {
+      --bg-color: #121218;
+      --panel-color: #2d333b;
+      --text-color: #ffffff;
+      --accent-blue: #2f81f7;
+      --accent-green: seagreen;
+      --border-color: #444c56;
+      --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Save The Oracle</h1>
+    </header>
+    <main>
+      <h1 id="ソルバーの処理フロー">ソルバーの処理フロー</h1>
+
+<p>このドキュメントは、ユーザーが探索開始ボタンを押してから、解の経路が画面に表示されるまでの一連の処理の流れをまとめたものです。</p>
+
+<h2 id="1-主要な概念定義">1. 主要な概念定義</h2>
+
+<p>アプリケーション内では、盤面の状態を効率的に扱うために2つの主要なデータ形式を使用しています。</p>
+
+<h3 id="盤面状態文字列-state-string">盤面状態文字列 (State String)</h3>
+
+<ul>
+  <li><strong>定義</strong>: 盤面の状態を表現する20文字の文字列です。各文字が盤上の駒または空白マス (<code class="language-plaintext highlighter-rouge">.</code>) に対応します。</li>
+  <li><strong>例</strong>: <code class="language-plaintext highlighter-rouge">"BAACBAACDFFEDIJEG..H"</code></li>
+  <li><strong>用途</strong>:
+    <ul>
+      <li>ユーザーによる初期盤面の入力。</li>
+      <li>最終的な解の経路を画面に表示する際の形式。</li>
+      <li>人間が直感的に理解しやすい。</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="盤面状態整数-state-integer--bigint">盤面状態整数 (State Integer / <code class="language-plaintext highlighter-rouge">BigInt</code>)</h3>
+
+<ul>
+  <li><strong>定義</strong>: 盤面状態文字列を、計算機が扱いやすい巨大な整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>) に変換したものです。</li>
+  <li><strong>例</strong>: <code class="language-plaintext highlighter-rouge">11221122344536789001n</code> (あくまで概念的な例です)</li>
+  <li><strong>用途</strong>:
+    <ul>
+      <li>探索アルゴリズム（ソルバー）内部での盤面状態の管理。</li>
+      <li><code class="language-plaintext highlighter-rouge">Set</code> や <code class="language-plaintext highlighter-rouge">Map</code> を使った探索済みノードの高速な検索。</li>
+      <li>メモリ効率と計算速度を重視する場面で使用されます。</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="2-処理フロー-mainjs視点">2. 処理フロー (<code class="language-plaintext highlighter-rouge">main.js</code>視点)</h2>
+
+<h3 id="フェーズ1-初期化-ページ読み込み時">フェーズ1: 初期化 (ページ読み込み時)</h3>
+
+<p>探索を開始する前に、<code class="language-plaintext highlighter-rouge">main.js</code> は必要なデータを非同期で準備します。</p>
+
+<ol>
+  <li><strong>データファイルの取得</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">fetch</code> APIを使い、2種類のデータファイルを非同期で読み込みます。
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">optimal_path.json</code>: 最短解の経路データ。枝刈り（Pruning）に使用されます。</li>
+          <li><code class="language-plaintext highlighter-rouge">shared_visited.dat</code>: 開発者が事前に用意した探索済み盤面のデータ。ファイルサイズを最小化するため、<strong>状態整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>) を直接10バイトのバイナリ形式で保存</strong>しています。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>ローカルデータの読み込み</strong>:
+    <ul>
+      <li>ユーザーのブラウザの <code class="language-plaintext highlighter-rouge">localStorage</code> から、過去の探索で保存された探索済みデータを読み込みます。</li>
+    </ul>
+  </li>
+  <li><strong>データの前処理と保持</strong>:
+    <ul>
+      <li>読み込んだデータは、探索で効率的に利用するために <strong>状態整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>)</strong> 形式に変換され、<code class="language-plaintext highlighter-rouge">Set</code> オブジェクトとしてメモリ上に保持されます。
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">optimalPathData</code>: <code class="language-plaintext highlighter-rouge">optimal_path.json</code> の内容を保持。</li>
+          <li><code class="language-plaintext highlighter-rouge">localVisitedData</code>: <code class="language-plaintext highlighter-rouge">shared_visited.dat</code> (バイナリ) と <code class="language-plaintext highlighter-rouge">localStorage</code> のデータをマージして保持。</li>
+        </ul>
+      </li>
+      <li>これらのデータ準備が完了すると、UI上の関連チェックボックスが有効化されます。</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="フェーズ2-探索の開始-ユーザー操作">フェーズ2: 探索の開始 (ユーザー操作)</h3>
+
+<p>ユーザーがアルゴリズムボタン（BFS, A<em>, IDA</em>）をクリックすると、<code class="language-plaintext highlighter-rouge">startSearch()</code> 関数が呼び出され、以下の処理が実行されます。</p>
+
+<ol>
+  <li><strong>UIの更新</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">setUIState(true, ...)</code> を呼び出し、画面を「探索中」の状態に切り替えます。</li>
+      <li>押されたボタンは「停止」ボタンに変化し、他の操作は無効化されます。</li>
+      <li>探索アルゴリズムに応じた背景画像が表示されます。</li>
+    </ul>
+  </li>
+  <li><strong>探索オプションの準備</strong>:
+    <ul>
+      <li>現在の盤面 <strong>状態文字列</strong> を <strong>状態整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>)</strong> に変換します。</li>
+      <li>「枝刈り」や「探索データの利用」チェックボックスの状態を確認し、ソルバーに渡すオプションを決定します。</li>
+    </ul>
+  </li>
+  <li><strong>ソルバーの起動</strong>:
+    <ul>
+      <li>選択されたアルゴリズムに対応するソルバー（<code class="language-plaintext highlighter-rouge">BfsSolver</code>, <code class="language-plaintext highlighter-rouge">AstarSolver</code>, <code class="language-plaintext highlighter-rouge">IDAstarSolver</code>）のインスタンスを生成します。</li>
+      <li>このとき、オプションオブジェクトとして以下の情報をソルバーに渡します。
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">initialState</code>: <strong>探索開始地点の状態整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>)</strong></li>
+          <li><code class="language-plaintext highlighter-rouge">onSuccess</code>, <code class="language-plaintext highlighter-rouge">onFailure</code>, <code class="language-plaintext highlighter-rouge">onProgress</code>: 探索の状況を <code class="language-plaintext highlighter-rouge">main.js</code> に通知するためのコールバック関数。</li>
+          <li><code class="language-plaintext highlighter-rouge">pruningOptions</code>, <code class="language-plaintext highlighter-rouge">preloadedVisited</code>: フェーズ1で準備したデータ。</li>
+        </ul>
+      </li>
+      <li>生成したソルバーの <code class="language-plaintext highlighter-rouge">.start()</code> メソッドを呼び出し、探索処理を開始します。</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="フェーズ3-探索の実行-ソルバー内部">フェーズ3: 探索の実行 (ソルバー内部)</h3>
+
+<p>ソルバーは <code class="language-plaintext highlighter-rouge">main.js</code> から独立して、バックグラウンドで探索処理を実行します。</p>
+
+<ol>
+  <li><strong>チャンク処理</strong>: UIのフリーズを防ぐため、探索は一度に数百ノードずつ処理され、<code class="language-plaintext highlighter-rouge">setTimeout</code> を介して次のチャンク処理を呼び出す、というサイクルを繰り返します。</li>
+  <li><strong>進捗通知</strong>: チャンク処理の合間に <code class="language-plaintext highlighter-rouge">onProgress</code> コールバックを呼び出し、探索済みノード数などの進捗を <code class="language-plaintext highlighter-rouge">main.js</code> に通知します。<code class="language-plaintext highlighter-rouge">main.js</code> の <code class="language-plaintext highlighter-rouge">handleProgress</code> 関数がこれを受け取り、UIをリアルタイムで更新します。</li>
+  <li><strong>解の発見</strong>: ゴール状態に到達すると、ソルバーは <code class="language-plaintext highlighter-rouge">onSuccess</code> コールバックを呼び出します。このとき、解の経路（スタートからゴールまでの一連の盤面）を <strong>状態整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>) の配列</strong> として <code class="language-plaintext highlighter-rouge">main.js</code> に返します。</li>
+</ol>
+
+<h3 id="フェーズ4-結果の受け取りと表示-mainjs内">フェーズ4: 結果の受け取りと表示 (<code class="language-plaintext highlighter-rouge">main.js</code>内)</h3>
+
+<p>ソルバーから <code class="language-plaintext highlighter-rouge">onSuccess</code> が呼び出されると、<code class="language-plaintext highlighter-rouge">main.js</code> の <code class="language-plaintext highlighter-rouge">handleSuccess()</code> 関数が実行されます。</p>
+
+<ol>
+  <li><strong>UIの更新</strong>: <code class="language-plaintext highlighter-rouge">setUIState(false)</code> を呼び出し、画面を「探索終了」状態に戻します。</li>
+  <li><strong>経路データの整形</strong>:
+    <ul>
+      <li>ソルバーから返された <code class="language-plaintext highlighter-rouge">result.path</code>（<strong>状態整数の配列</strong>）を受け取ります。</li>
+      <li><strong>【駒の一貫性復元処理】</strong>:
+        <ul>
+          <li>探索アルゴリズ厶は効率化のため、駒の「形」と「大きさ」のみを区別し、駒の名前（A, B, C…）は区別しません。そのため、ソルバーから返ってきた経路をそのまま表示すると、一手ごとに駒の名前が入れ替わってしまう問題が発生します。</li>
+          <li>この問題を解決するため、<code class="language-plaintext highlighter-rouge">handleSuccess</code> 内で経路を1ステップずつ検証します。</li>
+          <li>前のステップの盤面と現在のステップの盤面を比較し、「動かなかった駒」と「動いた駒」を特定します。</li>
+          <li>「動いた駒」に対して、前のステップでの名前を正しく引き継がせることで、駒のアイデンティティを復元します。</li>
+          <li>この処理をゴールまでの全ステップで繰り返し、<strong>状態文字列による一貫性のとれた最適解経路</strong>（<code class="language-plaintext highlighter-rouge">correctedPathStrings</code>）を生成します。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>画面への描画</strong>:
+    <ul>
+      <li>最終的に整形された <strong>状態文字列の配列</strong> を <code class="language-plaintext highlighter-rouge">SolutionDisplay.displaySolution()</code> に渡し、解の経路を画面のソリューションパネルに描画させます。</li>
+      <li>手数や探索時間などのサマリー情報を画面に表示します。</li>
+    </ul>
+  </li>
+</ol>
+
+    </main>
+    <footer>
+      <hr>
+      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+    &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+      <span style="position:fixed;right:20px;">
+    <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+      <img width="20" src="/img/github-mark-white.png" alt="GitHub logo"> GitHub </a> </span>
+    </footer>
+  </body>
+</html>
+

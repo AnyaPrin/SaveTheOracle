@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minfilia OOP version 0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="piece.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        .light {
+            background-color: #f7fafc;
+        }
+        .dark {
+            background-color: #cbd5e0;
+        }
+    </style>
+    
+</head>
+<body class="bg-gray-800 text-gray-100 flex items-center justify-center p-4">
+    <div class="board-container bg-gray-700 p-8 rounded-lg shadow-2xl">
+        <h1 class="text-3xl font-bold mb-4 text-center">SAVE THE ORACLE OOP v.0</h1>
+        <div id="game-board"></div>
+        <div id="piece1" class="piece">
+            1
+        </div>
+        <div id="piece2" class="piece">
+            2
+        </div>
+        <div id="piece3" class="piece">
+            3
+        </div>
+        <div id="piece4" class="piece">
+            4
+        </div>
+        <div id="piece5" class="piece">
+            5
+        </div>
+        <div id="piece6" class="piece">
+            6
+        </div>
+        <div id="piece7" class="piece">
+            7
+        </div>
+        <div id="piece8" class="piece">
+            8
+        </div>
+        <div id="piece9" class="piece">
+            9
+        </div>
+        <div id="piece10" class="piece">
+            10
+        </div>
+        <div id="instructions" class="text-center text-sm mt-4 text-gray-400">
+            駒をドラッグして動かしてください。
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+      const boardElement = document.getElementById('game-board');
+      const piece1Element = document.getElementById('piece1');
+      const piece2Element = document.getElementById('piece2');
+      const piece3Element = document.getElementById('piece3');
+      const piece4Element = document.getElementById('piece4');
+      const piece5Element = document.getElementById('piece5');
+      const piece6Element = document.getElementById('piece6');
+      const piece7Element = document.getElementById('piece7');
+      const piece8Element = document.getElementById('piece8');
+      const piece9Element = document.getElementById('piece9');
+      const piece10Element = document.getElementById('piece10');
+
+      // Board dimensions
+      const boardWidth = 4;
+      const boardHeight = 5;
+      const squareSize = 80;
+
+        /**
+         * Represents a movable block on the board.
+         */
+        class Piece {
+            constructor(id, element, width, height, x, y) {
+                this.id = id;
+                this.element = element;
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;
+            }
+
+            /**
+             * Updates the visual position of the piece on the board.
+             */
+            updatePosition(newX, newY) {
+                this.x = newX;
+                this.y = newY;
+                this.element.style.transform = `translate(${this.x * squareSize}px, ${this.y * squareSize}px)`;
+            }
+
+            /**
+             * Checks for collision with another piece.
+             */
+            checkCollision(otherPiece, newX, newY) {
+                const newRect = {
+                    left: newX * squareSize,
+                    top: newY * squareSize,
+                    right: (newX + this.width) * squareSize,
+                    bottom: (newY + this.height) * squareSize
+                };
+
+                const otherRect = {
+                    left: otherPiece.x * squareSize,
+                    top: otherPiece.y * squareSize,
+                    right: (otherPiece.x + otherPiece.width) * squareSize,
+                    bottom: (otherPiece.y + otherPiece.height) * squareSize
+                };
+
+                return !(newRect.right <= otherRect.left ||
+                         newRect.left >= otherRect.right ||
+                         newRect.bottom <= otherRect.top ||
+                         newRect.top >= otherRect.bottom);
+            }
+        }
+
+        /**
+         * Manages the game board and all pieces.
+         */
+        class Board {
+            constructor(boardElement, pieces) {
+                this.boardElement = boardElement;
+                this.pieces = pieces;
+                this.activePiece = null;
+                this.offsetX = 0;
+                this.offsetY = 0;
+            }
+
+            init() {
+                this.createBoardSquares();
+                this.initPieces();
+                this.addEventListeners();
+            }
+
+            createBoardSquares() {
+                for (let y = 0; y < boardHeight; y++) {
+                    for (let x = 0; x < boardWidth; x++) {
+                        const square = document.createElement('div');
+                        square.className = `square ${(x + y) % 2 === 0 ? 'light' : 'dark'}`;
+                        this.boardElement.appendChild(square);
+                    }
+                }
+            }
+
+            initPieces() {
+                const boardRect = this.boardElement.getBoundingClientRect();
+                this.pieces.forEach(piece => {
+                    piece.element.style.left = `${boardRect.left}px`;
+                    piece.element.style.top = `${boardRect.top}px`;
+                    piece.updatePosition(piece.x, piece.y);
+                });
+            }
+
+            addEventListeners() {
+                this.pieces.forEach(piece => {
+                    piece.element.addEventListener('mousedown', this.dragStart.bind(this));
+                    piece.element.addEventListener('touchstart', this.dragStart.bind(this));
+                });
+                document.addEventListener('mousemove', this.dragMove.bind(this));
+                document.addEventListener('mouseup', this.dragEnd.bind(this));
+                document.addEventListener('touchmove', this.dragMove.bind(this));
+                document.addEventListener('touchend', this.dragEnd.bind(this));
+            }
+
+            dragStart(e) {
+                e.preventDefault();
+                this.activePiece = this.pieces.find(p => p.element === e.target);
+                if (!this.activePiece) return;
+
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                const rect = this.activePiece.element.getBoundingClientRect();
+                this.offsetX = clientX - rect.left;
+                this.offsetY = clientY - rect.top;
+
+                this.activePiece.element.style.cursor = 'grabbing';
+                this.activePiece.element.style.transition = 'none';
+            }
+
+            dragMove(e) {
+                if (!this.activePiece) return;
+
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+
+                const boardRect = this.boardElement.getBoundingClientRect();
+
+                let newX = clientX - boardRect.left - this.offsetX;
+                let newY = clientY - boardRect.top - this.offsetY;
+
+                const snappedX = Math.max(0, Math.min(Math.round(newX / squareSize), boardWidth - this.activePiece.width));
+                const snappedY = Math.max(0, Math.min(Math.round(newY / squareSize), boardHeight - this.activePiece.height));
+
+                const otherPieces = this.pieces.filter(p => p.id !== this.activePiece.id);
+                for (const piece of otherPieces) {
+                    if (this.activePiece.checkCollision(piece, snappedX, snappedY)) {
+                        return; // Collision detected, do not move
+                    }
+                }
+
+                this.activePiece.updatePosition(snappedX, snappedY);
+            }
+
+            dragEnd() {
+                if (!this.activePiece) return;
+                this.activePiece.element.style.cursor = 'grab';
+                this.activePiece.element.style.transition = 'transform 0.2s ease-out';
+                this.activePiece = null;
+            }
+        }
+
+        window.onload = () => {
+            const piecesData = [
+                new Piece('piece1', piece1Element, 2, 2, 1, 0),
+                new Piece('piece2', piece2Element, 1, 2, 0, 0),
+                new Piece('piece3', piece3Element, 1, 2, 3, 0),
+                new Piece('piece4', piece4Element, 1, 2, 0, 2),
+                new Piece('piece5', piece5Element, 1, 2, 3, 2),
+                new Piece('piece6', piece6Element, 2, 1, 1, 2),
+                new Piece('piece7', piece7Element, 1, 1, 0, 4),
+                new Piece('piece8', piece8Element, 1, 1, 1, 4),
+                new Piece('piece9', piece9Element, 1, 1, 2, 4),
+                new Piece('piece10', piece10Element, 1, 1, 0, 3)
+            ];
+            const gameBoard = new Board(boardElement, piecesData);
+            gameBoard.init();
+        };
+
+    </script>
+</body>
+</html>

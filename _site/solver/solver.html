@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save The Oracle Solver (Klotski Solver)</title>
+  <style>
+    @font-face {
+      font-family: 'MeiryoB';
+      src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
+        url('../fonts/MeiryoUI-Bold.woff') format('woff');
+      font-weight: bold;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Nyashi';
+      src: url('../fonts/Nyashi.woff2') format('woff2'),
+        url('../fonts/Nyashi.woff') format('woff');
+      font-weight: bold;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg-color: rgb(0, 0, 0, 0.9);
+      --surface-color: rgb(76, 75, 80, 0.8);
+      --button-color: #3c3c3c;
+      --button-hover-color: #8e8c8e;
+      --button-disabled-color: rgb(76, 75, 80, 0.1);
+      --primary-text-color: #e0e0e0;
+      --secondary-text-color: #a0a0a0;
+      --primary-accent-color: #8cfeff;
+      --secondary-accent-color: #2cfbc0;
+      --success-color: #46f4bb;
+      --error-color: #ef5350;
+      --border-color: #424242;
+      --state-status-color: rgb(76, 175, 260);
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'MeiryoB', sans-serif;
+      padding: 10px;
+      margin: 10px;
+      display: flex;
+      height: 100vh;
+      min-width: 700px;
+      min-height: 100vh;
+      flex-direction: column;
+      background-color: var(--bg-color);
+      color: var(--primary-text-color);
+      overflow-y: hidden;
+    }
+
+    .horizontal-panel {
+      display: flex;
+      flex-direction: row;
+      margin: 20px 20px;
+      box-sizing: border-box;
+      padding: 0px 0px 0px 0px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ui-panel {
+      display: flex;
+      flex-direction: row;
+      position: absolute;
+      padding: 14px 24px;
+      font-size: 14px;
+      width: 800px;
+      max-width: 800px;
+      min-width: 800px;
+      height: 400px;
+      max-height: 400px;
+      min-height: 400px;
+      background-color: rgba(44, 44, 44, 0.85);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      box-sizing: border-box;
+      border-radius: 18px;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .controls-container::before,
+    .controls-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: left;
+      border-radius: 18px;
+      /* Match container's border-radius */
+      background-image: var(--before-bg-image,
+          linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
+          url('../img/bg_solver.jpg'));
+      z-index: -1;
+    }
+
+    .controls-container::before {
+      opacity: 0.75;
+      backdrop-filter: blur(4px);
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: left;
+    }
+
+    .controls-container::after {
+      background-image: var(--after-bg-image, none);
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      /* じわっと変わるように調整 */
+    }
+
+    .controls-container.bg-active::after {
+      opacity: 1;
+    }
+
+    h1 {
+      color: var(--primary-text-color);
+      margin-bottom: 24px;
+    }
+
+    .info {
+      background-color: rgba(92, 107, 192, 0.15);
+      border-left: 5px solid var(--secondary-accent-color);
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      text-align: left;
+    }
+
+    .info p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .board {
+      white-space: pre;
+      font-family: monospace;
+      line-height: 1.1;
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      text-align: left;
+      border: 2px solid var(--border-color);
+      display: inline-block;
+      padding: 4px;
+      border-radius: 4px;
+      background-color: var(--bg-color);
+    }
+
+    button {
+      background-color: var(--button-color);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      background-color: var(--button-hover-color);
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background-color: var(--button-disabled-color);
+      color: #757575;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .icon-btn img {
+      width: 64px;
+      height: 64px;
+    }
+
+    /* Icon-based UI styles */
+    .action-buttons,
+    .icon-group {
+      display: flex;
+      justify-content: flex-start;
+      gap: 0;
+      align-items: center;
+    }
+
+    .action-buttons {
+      margin: 14px 0;
+    }
+
+    .icon-btn {
+      -webkit-appearance: none;
+      /* Reset default button styles */
+      -moz-appearance: none;
+      appearance: none;
+      background: none;
+      padding: 0;
+      font-family: inherit;
+      color: inherit;
+      width: 56px;
+      /* Icon styles */
+      height: 56px;
+      background-color: #3a3a3a;
+      border: 2px solid #5a5a5a;
+      border-radius: 6px;
+      display: inline-flex;
+      /* Use flex to center content */
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      margin: 0;
+    }
+
+    #start-buttons-group {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .action-buttons.searching .icon-btn-label:not(.active-search) {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background-color: #4a4a4a;
+      border-color: var(--primary-accent-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .icon-btn:disabled {
+      background-color: #2a2a2a;
+      border-color: #424242;
+      color: #666;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Hide the actual radio/checkbox input */
+    .icon-group input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    #save-status {
+      font-size: 0.9em;
+      color: var(--error-color);
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    #save-status[style*="color: rgb(76, 175, 80)"] {
+      /* For success message */
+      color: var(--success-color) !important;
+    }
+
+    .board-input-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 0 10px 0;
+      margin-bottom: 10px;
+
+    }
+
+    #initial-state-input {
+      /* flex-grow: 1; */
+      font-family: monospace;
+      width: 22ch;
+      /* 20文字とパディング分を考慮 */
+      font-size: 1em;
+      padding: 7px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--bg-color);
+      color: var(--primary-text-color);
+    }
+
+    #set-state-btn {
+      padding: 4px 35px;
+      margin: 0;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+
+    #set-state-status {
+      min-height: 1.2em;
+      font-size: 0.9em;
+      text-align: left;
+      margin-top: 5px;
+    }
+
+    #set-state-status[style*="color: rgb(76, 175, 80)"] {
+      /* For success message */
+      color: var(--success-color) !important;
+    }
+
+    .pruning-selection {
+      margin-bottom: 20px;
+      /* text-align: center; */
+    }
+
+    .pruning-selection label {
+      margin: 0 10px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    #pruning-data-status {
+      color: var(--secondary-text-color);
+      margin-left: 0px;
+    }
+
+    ;
+
+    #local-visited-data-status {
+      color: var(--secondary-text-color);
+      margin-left: 10px;
+      font-size: 0.9em;
+    }
+
+    .icon-btn-label {
+      position: relative;
+      display: inline-block;
+    }
+  </style>
+
+
+  <link rel="stylesheet" href="board_editor.css">
+  <link rel="stylesheet" href="tooltips.css">
+  <link rel="stylesheet" href="solution_panel.css">
+  <style>
+    /* Icon-based UI styles */
+    .action-buttons,
+    .icon-group {
+      display: flex;
+      justify-content: flex-start;
+      gap: 0;
+      align-items: center;
+    }
+
+    .action-buttons {
+      margin: 14px 0;
+
+    }
+
+    .icon-btn {
+      -webkit-appearance: none;
+      /* Reset default button styles */
+      -moz-appearance: none;
+      appearance: none;
+      background: none;
+      padding: 0;
+      font-family: inherit;
+      color: inherit;
+
+      width: 56px;
+      /* Icon styles */
+      height: 56px;
+      background-color: #3a3a3a;
+      border: 2px solid #5a5a5a;
+      border-radius: 6px;
+      display: inline-flex;
+      /* Use flex to center content */
+      align-items: center;
+      justify-content: center;
+
+      font-size: 2em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      margin: 0;
+    }
+
+    .action-buttons.searching .icon-btn-label:not(.active-search) {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background-color: #4a4a4a;
+      border-color: var(--primary-accent-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .tab-title {
+      font-size: 15px;
+      position: absolute;
+      top: 120px;
+      left: 0;
+      transform: rotate(-90deg);
+      transform-origin: left top;
+      display: inline-block;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class="ui-panel">
+    <div class="tab-title">SOLVER</div>
+    <div class="horizontal-panel">
+      <div class="controls-container">
+        <div class="board-input-container">
+          <input type="text" id="initial-state-input" maxlength="20" minlength="20" title="state string">
+          <button id="set-state-btn">OK</button>
+          <div id="set-state-status"></div>
+        </div>
+        <div class="action-buttons">
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="bfs">
+              <img src="../img/icon/bfs.png" alt="BFS">
+            </button>
+            <span class="tooltip-text">
+              <strong>Brave Forwards Search (BFS)</strong><br>
+              アルフィノが開発したとされる最も基本的な探索アルゴリズム。
+              スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button class="icon-btn start-algorithm-btn" value="astar">
+              <img src="../img/icon/astar.png" alt="A*">
+            </button>
+            <span class="tooltip-text">
+              <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
+              ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。
+              ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、
+              このパズルではBFSより遅いことが多い。
+            </span>
+          </label>
+          <label class="icon-btn-label" style="padding-left:20px">
+            <button class="icon-btn start-algorithm-btn" value="idastar">
+              <img src="../img/icon/idastar.png" alt="IDA*">
+            </button>
+            <span class="tooltip-text">
+              <strong>Ironworks Designed Astar (IDA*)</strong><br>
+              ヒューリステッィク法を取り入れたIDDFS改良版。IDDFS, IDA*ともにシドが開発したのかもしれない。
+              メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)
+            </span>
+          </label>
+        </div>
+        <div class="action-buttons">
+          <label class="icon-btn-label">
+            <button id="save-btn" class="icon-btn" disabled>
+              <img src="../img/icon/save.png" alt="Save">
+            </button>
+            <span class="tooltip-text">
+              <strong>探索結果を保存 (Save)</strong><br>
+              今回の探索で訪れた盤面データを、ブラウザのローカルストレージに保存します。
+              既に保存されているデータがある場合は、新しいデータが追加（マージ）されます。
+              保存したデータは「探索データの利用」オプションを有効にすることで、次回以降の探索を高速化するために利用できます。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button id="check-data-btn" class="icon-btn">
+              <img src="../img/icon/check.png" alt="Check">
+            </button>
+            <span class="tooltip-text">
+              <strong>データ整合性チェック</strong><br>
+              探索済みデータに重複がないかチェックし、必要であればクリーンアップします。
+            </span>
+          </label>
+          <label class="icon-btn-label">
+            <button id="option-btn" class="icon-btn">
+              <img src="../img/icon/config.png" alt="Settings">
+            </button>
+            <span class="tooltip-text">
+              <strong>詳細設定</strong><br>
+            </span>
+          </label>
+      </div>
+      <div id="save-status"></div>
+    </div>
+  </div>
+
+  <style>
+    /* --- Option Panel Styles --- */
+    .option-panel {
+      font-size: 0.8em;
+      font-family: sans-serif;
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      bottom: 20px;
+      background-color: rgba(44, 44, 44, 0.5);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      width: 243px;
+      max-width: 243px;
+      min-width: 243px;
+      box-sizing: border-box;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .option-panel:not([hidden]) {
+      display: block;
+    }
+
+    .editor-btn {
+      padding: 4px 0;
+      width: 80px;
+      margin: 1px 0 0;
+      border: 1px solid #3f3f3f;
+    }
+
+    #option-panel input[type="checkbox"] {
+      appearance: none;
+      height: 14px;
+      width: 14px;
+      border: 2px solid #8f8f8f;
+      border-radius: 4px;
+      background-color: transparent;
+    }
+
+    #option-panel input[type="checkbox"]:checked {
+      background-color: #3ffff3;
+      width: 14px;
+      height: 14px;
+    }
+
+    #option-panel strong {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: var(--primary-accent-color);
+    }
+  </style>
+  <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
+    <div id="option-panel" class="option-panel" hidden>
+      <strong>OPTIONS</strong><br>
+      <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
+        最短解による剪定 </label><span id="pruning-data-status" hidden></span>
+      <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
+        探索データの利用 </label><span id="local-visited-data-status" hidden></span>
+      <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic"> IDA* h
+        関数不使用 (＝IDDFS) </label>
+      <p>─</p>
+      <strong>BOARD EDITOR</strong><br>
+      <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
+        <input type="checkbox" id="allow-subset-pieces">
+        駒のサブセットを許す
+      </label>
+      <div style="margin:8px 0 0; " class="horizontal-panel">
+        <div class="grid-wrapper">
+          <div id="source-grid" class="editor-grid"></div>
+          <button class="editor-btn" id="reset-editor-btn">RESET</button>
+        </div>
+        <span style="padding:0px 10px 0px">⇒</span>
+        <div class="grid-wrapper">
+          <div id="target-grid" class="editor-grid"></div>
+          <button class="editor-btn" id="apply-editor-btn">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+
+
+  <div class="solution-panel">
+    <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
+    <div id="search-summary" hidden>
+      <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
+      <div id="status"></div>
+      <div id="progress-details"></div>
+    </div>
+    <div id="solution-path"></div>
+    <div id="drag-handle-right" class="drag-handle drag-handle-side" title="Drag to move"></div>
+    <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
+  </div>
+
+  <script content-type="text/javascript" src="../lib/common.js"></script>
+  <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
+  <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
+  <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>
+  <script content-type="text/javascript" src="solution_display.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const advancedSettingsBtn = document.getElementById('option-btn');
+      const advancedSettingsPanel = document.getElementById('option-panel');
+      const checkboxLabel = document.querySelectorAll('.checkbox-label');
+      checkboxLabel.forEach(label => {
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '8px';
+      });
+      if (advancedSettingsBtn && advancedSettingsPanel) {
+        advancedSettingsBtn.addEventListener('click', () => {
+          advancedSettingsPanel.hidden = !advancedSettingsPanel.hidden;
+        });
+      }
+    });
+  </script>
+  <script src="main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>状態表現に関する覚え書き (String vs BigInt)</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+      :root {
+      --bg-color: #121218;
+      --panel-color: #2d333b;
+      --text-color: #ffffff;
+      --accent-blue: #2f81f7;
+      --accent-green: seagreen;
+      --border-color: #444c56;
+      --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Save The Oracle</h1>
+    </header>
+    <main>
+      <h1 id="状態表現に関する覚え書き-string-vs-bigint">状態表現に関する覚え書き (String vs BigInt)</h1>
+
+<p>このドキュメントは、パズルの盤面状態を表現する方法について、従来の「状態文字列」と新しい「状態整数 (BigInt)」を比較し、その設計思想と実装についてまとめたものです。</p>
+
+<h2 id="1-概要">1. 概要</h2>
+
+<p>探索アルゴリズム（特にBFSやA*）では、<code class="language-plaintext highlighter-rouge">visited</code> セットに数百万から数千万の盤面状態を保存する必要があります。このとき、各状態のデータ表現がメモリ使用量と処理速度に直接影響します。</p>
+
+<ul>
+  <li><strong>状態文字列 (String)</strong>: 人間が読みやすいが、メモリ効率と処理速度に課題がある。</li>
+  <li><strong>状態整数 (BigInt)</strong>: メモリ効率と処理速度に優れるが、可読性が低い。</li>
+</ul>
+
+<p>パフォーマンスを最大化するため、探索のコア部分では「状態整数」を利用し、UI表示やデバッグ時には「状態文字列」に変換するハイブリッドなアプローチを採用します。</p>
+
+<hr />
+
+<h2 id="2-状態文字列-string-表現">2. 状態文字列 (String) 表現</h2>
+
+<h3 id="形式">形式</h3>
+<p>盤面を左上から右下へスキャンした20文字の文字列で表現します。</p>
+
+<ul>
+  <li><strong>例</strong>: <code class="language-plaintext highlighter-rouge">"BAACBAACDFFEDIJEG..H"</code></li>
+</ul>
+
+<h3 id="長所">長所</h3>
+<ul>
+  <li><strong>可読性</strong>: 人間が直接読んで盤面を理解できるため、デバッグが非常に容易です。</li>
+  <li><strong>実装の容易さ</strong>: 文字列操作は直感的で、初期実装に適しています。</li>
+</ul>
+
+<h3 id="短所">短所</h3>
+<ul>
+  <li><strong>メモリ消費</strong>: JavaScriptの文字列は内部的にUTF-16で、1文字あたり2バイトを消費します。
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">20文字 * 2バイト/文字 = 40バイト</code> + オブジェクトのオーバーヘッド。<code class="language-plaintext highlighter-rouge">visited</code>セットに100万件保存すると約40MBを消費します。</li>
+    </ul>
+  </li>
+  <li>
+    <h2 id="処理速度-駒の移動や正規化のために-split-join-replace-などの文字列操作を繰り返すと新しい文字列が頻繁に生成されパフォーマンスのボトルネックになります"><strong>処理速度</strong>: 駒の移動や正規化のために <code class="language-plaintext highlighter-rouge">split</code>, <code class="language-plaintext highlighter-rouge">join</code>, <code class="language-plaintext highlighter-rouge">replace</code> などの文字列操作を繰り返すと、新しい文字列が頻繁に生成され、パフォーマンスのボトルネックになります。</h2>
+  </li>
+  <li><strong>処理速度</strong>: 駒の移動や正規化のために <code class="language-plaintext highlighter-rouge">split</code>, <code class="language-plaintext highlighter-rouge">join</code>, <code class="language-plaintext highlighter-rouge">replace</code> などの文字列操作を繰り返すと、新しい文字列が頻繁に生成され、パフォーマンスのボトルネックになります。</li>
+</ul>
+
+<hr />
+
+<h2 id="3-状態整数-bigint-表現">3. 状態整数 (BigInt) 表現</h2>
+
+<h3 id="形式-1">形式</h3>
+<p>盤面の20マスを80ビットの単一の整数 (<code class="language-plaintext highlighter-rouge">BigInt</code>) で表現します。</p>
+
+<h3 id="エンコード方法">エンコード方法</h3>
+
+<ol>
+  <li><strong>4ビット/マス</strong>: 盤面の各マスは、駒10種 (<code class="language-plaintext highlighter-rouge">A</code>~<code class="language-plaintext highlighter-rouge">J</code>) と空きマス (<code class="language-plaintext highlighter-rouge">.</code>) の最大11種類の状態を取ります。これを表現するには4ビット (<code class="language-plaintext highlighter-rouge">2^4 = 16</code>) あれば十分です。</li>
+  <li><strong>マッピング</strong>: 各駒の文字を0から10の数値にマッピングします。
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">CHAR_TO_VALUE</span> <span class="o">=</span> <span class="p">{</span> <span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="dl">'</span><span class="s1">B</span><span class="dl">'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="p">...</span> <span class="p">,</span> <span class="dl">'</span><span class="s1">J</span><span class="dl">'</span><span class="p">:</span> <span class="mi">10</span> <span class="p">};</span>
+</code></pre></div>    </div>
+  </li>
+  <li><strong>ビット配置</strong>: 20マス分の状態（各4ビット）を、左のマスほど上位ビットになるように配置します。これにより、80ビットの整数が完成します。
+    <ul>
+      <li>マス 0 (左上) → ビット 76-79</li>
+      <li>マス 1 → ビット 72-75</li>
+      <li>…</li>
+      <li>マス 19 (右下) → ビット 0-3</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="長所-1">長所</h3>
+<ul>
+  <li><strong>メモリ効率</strong>: 80ビットは <strong>10バイト</strong> です。文字列表現に比べてメモリ使用量を約75%削減できます。<code class="language-plaintext highlighter-rouge">visited</code>セットに100万件保存しても約10MBで済み、ブラウザのメモリ上限に達しにくくなります。</li>
+  <li><strong>処理速度</strong>: <code class="language-plaintext highlighter-rouge">visited.has(state)</code>のような検索処理や、盤面全体を操作する正規化処理を、文字列操作よりもはるかに高速なビット演算で行うことができます。これにより、探索ループ全体のパフォーマンスが向上します。</li>
+</ul>
+
+<h3 id="短所-1">短所</h3>
+<ul>
+  <li><strong>可読性の低下</strong>: <code class="language-plaintext highlighter-rouge">151136570413640633063936</code> のような数値から盤面を即座に理解することは困難です。</li>
+  <li><strong>コードの複雑化</strong>: ビット演算を多用するため、コードが直感的でなくなり、デバッグやメンテナンスの難易度が上がります。</li>
+</ul>
+
+<hr />
+
+<h2 id="4-相互変換関数">4. 相互変換関数</h2>
+
+<p>状態文字列と状態整数を相互に変換するためのユーティリティ関数です。これらの関数は、<code class="language-plaintext highlighter-rouge">BigInt</code>表現への移行における心臓部となります。</p>
+
+<h3 id="statetobigintstatestring"><code class="language-plaintext highlighter-rouge">stateToBigInt(stateString)</code></h3>
+
+<p>文字列を<code class="language-plaintext highlighter-rouge">BigInt</code>にエンコードします。入力文字列の検証（長さ、使用文字）も行います。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">CHAR_TO_VALUE</span> <span class="o">=</span> <span class="p">{</span> <span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="dl">'</span><span class="s1">B</span><span class="dl">'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="dl">'</span><span class="s1">C</span><span class="dl">'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="dl">'</span><span class="s1">D</span><span class="dl">'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="dl">'</span><span class="s1">E</span><span class="dl">'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="dl">'</span><span class="s1">F</span><span class="dl">'</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="dl">'</span><span class="s1">G</span><span class="dl">'</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="dl">'</span><span class="s1">H</span><span class="dl">'</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="dl">'</span><span class="s1">I</span><span class="dl">'</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span> <span class="dl">'</span><span class="s1">J</span><span class="dl">'</span><span class="p">:</span> <span class="mi">10</span> <span class="p">};</span>
+
+<span class="kd">function</span> <span class="nx">stateToBigInt</span><span class="p">(</span><span class="nx">stateString</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">stateString</span><span class="p">.</span><span class="nx">length</span> <span class="o">!==</span> <span class="mi">20</span><span class="p">)</span> <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+
+    <span class="kd">let</span> <span class="nx">bigIntState</span> <span class="o">=</span> <span class="mi">0</span><span class="nx">n</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">stateString</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">char</span> <span class="o">=</span> <span class="nx">stateString</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+        <span class="kd">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">CHAR_TO_VALUE</span><span class="p">[</span><span class="nx">char</span><span class="p">];</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">value</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">)</span> <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+        
+        <span class="nx">bigIntState</span> <span class="o">|=</span> <span class="p">(</span><span class="nx">BigInt</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="nx">BigInt</span><span class="p">((</span><span class="mi">19</span> <span class="o">-</span> <span class="nx">i</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span><span class="p">));</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">bigIntState</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="biginttostatebigintstate"><code class="language-plaintext highlighter-rouge">bigIntToState(bigIntState)</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">BigInt</code>をデコードして文字列に戻します。UIでの結果表示などに使用します。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">VALUE_TO_CHAR</span> <span class="o">=</span> <span class="p">[</span><span class="dl">'</span><span class="s1">.</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">A</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">B</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">C</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">D</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">E</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">F</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">G</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">H</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">I</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">J</span><span class="dl">'</span><span class="p">];</span>
+
+<span class="kd">function</span> <span class="nx">bigIntToState</span><span class="p">(</span><span class="nx">bigIntState</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">stateString</span> <span class="o">=</span> <span class="dl">''</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">shift</span> <span class="o">=</span> <span class="nx">BigInt</span><span class="p">((</span><span class="mi">19</span> <span class="o">-</span> <span class="nx">i</span><span class="p">)</span> <span class="o">*</span> <span class="mi">4</span><span class="p">);</span>
+        <span class="kd">const</span> <span class="nx">value</span> <span class="o">=</span> <span class="nb">Number</span><span class="p">((</span><span class="nx">bigIntState</span> <span class="o">&gt;&gt;</span> <span class="nx">shift</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mb">0b1111</span><span class="nx">n</span><span class="p">);</span>
+        <span class="nx">stateString</span> <span class="o">+=</span> <span class="nx">VALUE_TO_CHAR</span><span class="p">[</span><span class="nx">value</span><span class="p">]</span> <span class="o">||</span> <span class="dl">'</span><span class="s1">?</span><span class="dl">'</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">stateString</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="5-今後の展望">5. 今後の展望</h2>
+
+<p>この<code class="language-plaintext highlighter-rouge">BigInt</code>表現を基盤として、以下の改善を進めます。</p>
+
+<ul>
+  <li><strong>コアロジックの最適化</strong>: <code class="language-plaintext highlighter-rouge">getPossibleNextStates</code> や <code class="language-plaintext highlighter-rouge">normalizeState</code> などの関数を、ビット演算を全面的に使用するように書き換え、探索速度を向上させます。</li>
+  <li><strong>PDB (パターンデータベース) の構築</strong>: IDA*アルゴリズムのヒューリスティック関数を改善するため、特定の駒の配置パターンとその最短手数を事前計算したデータベースを構築します。この際、コンパクトな<code class="language-plaintext highlighter-rouge">BigInt</code>表現がキーとして非常に有効に機能します。</li>
+</ul>
+
+    </main>
+    <footer>
+      <hr>
+      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+    &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+      <span style="position:fixed;right:20px;">
+    <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+      <img width="20" src="/img/github-mark-white.png" alt="GitHub logo"> GitHub </a> </span>
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAVE THE ORACLE Datbase Tools</title>
+    <style>
+      body {
+          font-family: 'Meiryo', sans-serif;
+          font-size: 14px;
+          background-color: #121212;
+          color: #e0e0e0;
+          padding: 10px 20px;
+      }
+
+      h1, h2 {
+          color: #8cfeff;
+      }
+      h1 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.8em;
+      }
+      h2 {
+        margin-top: 15px;
+        margin-bottom: 10px;
+        font-size: 1.4em;
+      }
+
+      #summary {
+          font-size: 1.1em;
+          margin-bottom: 15px;
+          border-left: 4px solid #8cfeff;
+          padding-left: 10px;
+      }
+
+      #local-storage-actions {
+          margin-bottom: 15px;
+          padding: 15px;
+          background-color: #2a2a2a;
+          border-radius: 8px;
+      }
+
+      #local-storage-actions button {
+          padding: 5px 12px;
+          cursor: pointer;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          font-family: 'Meiryo', sans-serif;
+      }
+
+      #local-storage-actions button:not(:disabled) {
+          background-color: #8cfeff;
+          color: #121212;
+      }
+
+      #local-storage-actions button:disabled {
+          background-color: #3a3a3a;
+          color: #666;
+          cursor: not-allowed;
+      }
+
+      #boards-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+      }
+
+      .board-wrapper {
+          background-color: #2a2a2a;
+          border: 1px solid #424242;
+          border-radius: 8px;
+          padding: 10px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      .board-number {
+          font-weight: bold;
+          color: #8cfeff;
+          margin-bottom: 5px;
+          font-size: 1em;
+      }
+
+      .board {
+          white-space: pre;
+          font-family: monospace;
+          font-size: 1.2em;
+          line-height: 1.1;
+          border: 2px solid #5a5a5a;
+          display: inline-block;
+          padding: 4px;
+          border-radius: 4px;
+          background-color: #1e1e1e;
+      }
+
+      .board-info {
+          margin-top: 5px;
+          font-size: 0.8em;
+          color: #a0a0a0;
+          word-break: break-all;
+      }
+
+      hr {
+          margin: 25px 0;
+          border-color: #424242;
+      }
+
+      p {
+        margin-top: 5px;
+        margin-bottom: 10px;
+      }
+
+      /* --- Converter Styles --- */
+      #converter-container {
+          display: flex;
+          gap: 15px;
+          align-items: center;
+          margin-top: 10px;
+      }
+
+      .converter-panel {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+      }
+
+      .converter-panel h3 {
+          margin-top: 0;
+          color: #8cfeff;
+      }
+
+      .converter-panel textarea {
+          width: 100%;
+          box-sizing: border-box;
+          background-color: #1e1e1e;
+          color: #e0e0e0;
+          border: 1px solid #424242;
+          border-radius: 4px;
+          padding: 8px;
+          font-family: monospace;
+          font-size: 1em;
+          resize: vertical;
+      }
+
+      .convert-buttons {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+      }
+
+      .converter-buttons button {
+          padding: 5px 12px;
+          cursor: pointer;
+          background-color: #03dac6;
+          color: #121212;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          width: 180px;
+      }
+
+      #local-storage-actions #clear-local-storage-btn {
+          background-color: #d32f2f;
+          color: white;
+      }
+
+      .converter-buttons button:not(:disabled) {
+          background-color: #8cfeff;
+
+      }
+
+      .converter-buttons button:disabled {
+          background-color: #3a3a3a;
+          color: #666;
+          cursor: not-allowed;
+      }
+
+      #converter-status {
+          margin-top:10px;
+          font-size:0.9em;
+          color: #a0a0a0;
+          min-height:1.2em;
+      }
+
+      /* --- DAT Checker Styles --- */
+      #dat-checker-container {
+          margin-top: 10px;
+          padding: 15px;
+          background-color: #2a2a2a;
+          border-radius: 8px;
+      }
+
+      #dat-checker-container button {
+          padding: 5px 12px;
+          cursor: pointer;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          font-family: 'Meiryo', sans-serif;
+          background-color: #8cfeff;
+          color: #121212;
+      }
+
+      #dat-checker-status {
+          margin-top: 10px;
+          font-size: 0.9em;
+          min-height: 1.2em;
+      }
+
+
+    </style>
+  </head>
+
+  <body>
+    <h1>探索データ管理ツール (PDB &amp; Storage Tools)</h1>
+
+    <h2>localStorage データ管理</h2>
+    <div id="summary">データを読み込んでいます...</div>
+    <div id="local-storage-actions">
+      <div style="margin-bottom: 10px;">
+        <strong>対象データ:</strong>
+        <input type="radio" name="storage-type" value="fullset" id="radio-fullset" checked>
+        <label for="radio-fullset" style="cursor:pointer; margin-right: 15px;">Full Set (STQVisited_fullset)</label>
+        <input type="radio" name="storage-type" value="subset" id="radio-subset">
+        <label for="radio-subset" style="cursor:pointer;">Subset (STQVisited_subset)</label>
+      </div>
+      <button id="load-local-storage-btn">選択したlocalStorageのデータを読み込む</button>
+      <button id="convert-local-to-dat-btn" disabled>選択したデータをDATに変換して保存</button>
+      <button id="clear-local-storage-btn">選択したlocalStorageの探索済みデータを削除</button>
+      <span id="local-convert-status" style="margin-left: 10px; font-size: 0.9em;"></span>
+    </div>
+
+    <hr>
+
+    <h2>DATファイル整合性チェック/マージツール</h2>
+    <p>1つまたは複数の <code>.dat</code> ファイルを読み込み、重複する盤面データがないかチェックします。<br>
+      重複が見つかった場合や複数ファイルをマージした場合、それらをクリーンアップした新しい <code>.dat</code> ファイルとして保存できます。<br>
+      <small>※対応ブラウザ (Chrome, Edgeなど) でのみ動作します。</small>
+    </p>
+    <div id="dat-checker-container">
+      <button id="check-dat-btn">DATファイルを開いてチェック/マージ</button>
+      <label style="margin-left: 20px; cursor: pointer; user-select: none;">
+        <input type="checkbox" id="display-dat-boards-checkbox" style="vertical-align: middle;"> 盤面を表示する
+      </label>
+      <div id="dat-checker-status"></div>
+    </div>
+
+    <hr>
+
+    <h2>盤面文字列JSON ⇒ バイナリDAT 変換ツール</h2>
+    <p><code>shared_visited.json</code> のような盤面文字列のJSONファイルを、アプリケーションが使用するコンパクトなバイナリ形式 (<code>.dat</code>) に変換します。<br>
+      <small>※対応ブラウザ (Chrome, Edgeなど) でのみ動作します。</small>
+    </p>
+    <div id="converter-container">
+      <div class="converter-panel">
+        <h3>入力 / オリジナル</h3>
+        <textarea id="converter-input" rows="10"
+                  placeholder="ここにJSONデータを貼り付けるか、下のボタンからファイルを開いてください。"></textarea>
+        <button id="load-file-btn" style="margin-top: 10px;">JSONファイルを開く</button>
+      </div>
+      <div class="converter-buttons">
+        <button id="convert-and-save-btn">DATに変換して保存</button>
+        <div id="converter-status"></div>
+      </div>
+      <div class="converter-panel">
+        <h3>出力 / 変換結果</h3>
+        <textarea id="converter-output" rows="10" readonly placeholder="変換結果がここにプレビューされます。"></textarea>
+      </div>
+    </div>
+
+    <hr>
+    <h2>盤面表示</h2>
+    <div id="boards-container"></div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          // --- 共通ロジック（common.jsから一部を抜粋）---
+          const COMMON = {
+              WIDTH: 4,
+              HEIGHT: 5,
+              PIECE_MAP: {
+                  '.': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5,
+                  'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10, 'K': 11,
+                  'L': 12, 'M': 13, 'N': 14, 'O': 15
+              },
+              PIECE_MAP_INV: {
+                  0: '.', 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E',
+                  6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'K',
+                  12: 'L', 13: 'M', 14: 'N', 15: 'O'
+              },
+              bigIntToState: function (bigIntValue) {
+                  let state = '';
+                  let tempBigInt = bigIntValue;
+                  const pieceCodeWidth = 4n;
+                  const mask = (1n << pieceCodeWidth) - 1n;
+
+                  for (let i = 0; i < this.WIDTH * this.HEIGHT; i++) {
+                      const pieceCode = Number(tempBigInt & mask);
+                      state = this.PIECE_MAP_INV[pieceCode] + state;
+                      tempBigInt >>= pieceCodeWidth;
+                  }
+                  return state;
+              },
+              stateToBigInt: function (state) {
+                  let bigIntValue = 0n;
+                  const pieceCodeWidth = 4n;
+                  for (let i = 0; i < state.length; i++) {
+                      const char = state[i];
+                      // Mapにない文字が来た場合のエラーハンドリングは省略
+                      const pieceCode = BigInt(this.PIECE_MAP[char]);
+                      bigIntValue = (bigIntValue << pieceCodeWidth) | pieceCode;
+                  }
+                  return bigIntValue;
+              }
+          };
+
+          // --- 駒の構成をチェックする関数 ---
+          COMMON.getPiecesSignature = function(state) {
+              const pieceCounts = {};
+              for (const char of state) {
+                  if (char !== '.') {
+                      pieceCounts[char] = (pieceCounts[char] || 0) + 1;
+                  }
+              }
+              return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
+          };
+          const FULL_SET_SIGNATURE = COMMON.getPiecesSignature("BAACBAACDFFEDIJEG..H");
+
+          // --- メイン処理 ---
+          const boardsContainer = document.getElementById('boards-container');
+          const summaryDiv = document.getElementById('summary');
+          const loadLocalStorageBtn = document.getElementById('load-local-storage-btn');
+
+          function formatBoardString(state) {
+              let formatted = '';
+              for (let y = 0; y < COMMON.HEIGHT; y++) {
+                  formatted += state.substring(y * COMMON.WIDTH, (y + 1) * COMMON.WIDTH) + '\n';
+              }
+              return formatted;
+          }
+
+          function displayBoardStates(stateValues, sourceName) {
+              boardsContainer.innerHTML = ''; // Clear previous display
+
+              if (!Array.isArray(stateValues) || stateValues.length === 0) {
+                  summaryDiv.textContent = `${sourceName}のデータは空、または不正な形式です。`;
+                  return;
+              }
+              summaryDiv.textContent = `${sourceName}から${stateValues.length.toLocaleString()}件の盤面データを読み込みました。`;
+
+              stateValues.forEach((stateValue, index) => {
+                  let stateStr = '';
+                  let bigIntStr = '';
+
+                  // データ形式（古い盤面文字列か、新しい整数文字列か、BigIntか）を判別
+                  if (typeof stateValue === 'bigint' || !isNaN(stateValue)) {
+                      const bigIntValue = BigInt(stateValue);
+                      bigIntStr = bigIntValue.toLocaleString();
+                      stateStr = COMMON.bigIntToState(bigIntValue);
+                  } else {
+                      stateStr = stateValue;
+                      bigIntStr = 'N/A (旧形式)';
+                  }
+
+                  const wrapper = document.createElement('div');
+                  wrapper.className = 'board-wrapper';
+
+                  const numberDiv = document.createElement('div');
+                  numberDiv.className = 'board-number';
+                  numberDiv.textContent = `No. ${index + 1}`;
+
+                  const boardPre = document.createElement('pre');
+                  boardPre.className = 'board';
+                  boardPre.textContent = formatBoardString(stateStr);
+
+                  const infoDiv = document.createElement('div');
+                  infoDiv.className = 'board-info';
+                  infoDiv.innerHTML = `State: ${stateStr}<br>BigInt: ${bigIntStr}`;
+
+                  wrapper.appendChild(numberDiv);
+                  wrapper.appendChild(boardPre);
+                  wrapper.appendChild(infoDiv);
+                  boardsContainer.appendChild(wrapper);
+              });
+          }
+
+          function getSelectedStorageInfo() {
+              const selectedType = document.querySelector('input[name="storage-type"]:checked').value;
+              return {
+                  key: 'STQVisited_' + selectedType,
+                  name: selectedType === 'fullset' ? 'Full Set' : 'Subset'
+              };
+          }
+
+          function loadAndDisplayLocalStorage() {
+              try {
+                  const { key, name } = getSelectedStorageInfo();
+                  const savedDataJSON = localStorage.getItem(key);
+
+                  if (!savedDataJSON) {
+                      boardsContainer.innerHTML = '';
+                      summaryDiv.textContent = `localStorageに \`${key}\` データが見つかりません。`;
+                      if (convertLocalToDatBtn) convertLocalToDatBtn.disabled = true;
+                      return;
+                  }
+
+                  const savedStates = JSON.parse(savedDataJSON);
+                  displayBoardStates(savedStates, `localStorage (${name})`);
+                  if (window.showSaveFilePicker && Array.isArray(savedStates) && savedStates.length > 0) {
+                      convertLocalToDatBtn.disabled = false;
+                  } else {
+                      if (convertLocalToDatBtn) convertLocalToDatBtn.disabled = true;
+                  }
+
+              } catch (e) {
+                  summaryDiv.textContent = 'データの解析中にエラーが発生しました: ' + e.message;
+                  console.error(e);
+              }
+          }
+
+          // --- localStorage Converter Elements ---
+          const convertLocalToDatBtn = document.getElementById('convert-local-to-dat-btn');
+          const localConvertStatus = document.getElementById('local-convert-status');
+          const clearLocalStorageBtn = document.getElementById('clear-local-storage-btn');
+          if (!window.showSaveFilePicker) {
+              convertLocalToDatBtn.disabled = true;
+          }
+
+          // 初期メッセージを設定（旧キーの移行案内）
+          const oldKey = 'klotskiVisitedStates';
+          if (localStorage.getItem(oldKey)) {
+              summaryDiv.innerHTML = '古い形式のデータ (`klotskiVisitedStates`) が見つかりました。<br>このデータを "Full Set" または "Subset" のどちらかに移行してください。';
+              const migrationDiv = document.createElement('div');
+              migrationDiv.style.marginTop = '10px';
+              migrationDiv.innerHTML = `
+            <button id="migrate-to-fullset">Full Setとして移行</button>
+            <button id="migrate-to-subset">Subsetとして移行</button>
+        `;
+              summaryDiv.after(migrationDiv);
+              document.getElementById('migrate-to-fullset').addEventListener('click', () => migrateOldData('fullset'));
+              document.getElementById('migrate-to-subset').addEventListener('click', () => migrateOldData('subset'));
+          } else {
+              summaryDiv.textContent = '上のラジオボタンで対象を選択し、データを読み込んでください。';
+          }
+
+          // localStorage読み込みボタンのイベントリスナー
+          if (loadLocalStorageBtn) {
+              loadLocalStorageBtn.addEventListener('click', loadAndDisplayLocalStorage);
+          }
+
+          // --- localStorage to DAT Converter Logic ---
+          if (convertLocalToDatBtn) {
+              convertLocalToDatBtn.addEventListener('click', async () => {
+                  localConvertStatus.textContent = '変換中...';
+                  try {
+                      const { key, name } = getSelectedStorageInfo();
+                      const savedDataJSON = localStorage.getItem(key);
+                      if (!savedDataJSON) {
+                          localConvertStatus.textContent = `localStorageに ${name} データがありません。`;
+                          return;
+                      }
+
+                      const stateBigIntStrings = JSON.parse(savedDataJSON);
+                      if (!Array.isArray(stateBigIntStrings) || stateBigIntStrings.length === 0) {
+                          localConvertStatus.textContent = `localStorageの ${name} データは空です。`;
+                          return;
+                      }
+
+                      const bigInts = stateBigIntStrings.map(s => BigInt(s));
+                      const handle = await saveBigIntsToDat(bigInts, `STQVisited_${document.querySelector('input[name="storage-type"]:checked').value}.dat`);
+                      localConvertStatus.textContent = `「${handle.name}」として保存しました。 (${bigInts.length.toLocaleString()}件)`;
+                  } catch (err) {
+                      if (err.name !== 'AbortError') {
+                          localConvertStatus.textContent = 'エラー: ' + err.message;
+                          console.error(err);
+                      } else {
+                          localConvertStatus.textContent = ''; // User cancelled
+                      }
+                  }
+              });
+          }
+
+          // --- localStorage Clear Logic ---
+          if (clearLocalStorageBtn) {
+              clearLocalStorageBtn.addEventListener('click', () => {
+                  const { key, name } = getSelectedStorageInfo();
+                  if (confirm(`本当にlocalStorageの ${name} データ (\`${key}\`) をすべて削除しますか？\nこの操作は元に戻せません。`)) {
+                      try {
+                          localStorage.removeItem(key);
+                          summaryDiv.textContent = 'localStorageのデータを削除しました。ページをリロードしてください。';
+                          boardsContainer.innerHTML = ''; // 表示されている盤面をクリア
+                          if (convertLocalToDatBtn) convertLocalToDatBtn.disabled = true; // 変換ボタンを無効化
+                          localConvertStatus.textContent = 'データが削除されました。';
+                          converterInput.value = '';
+                          converterOutput.value = '';
+                      } catch (e) {
+                          summaryDiv.textContent = 'localStorageの削除中にエラーが発生しました: ' + e.message;
+                          console.error(e);
+                      }
+                  }
+              });
+          }
+
+          function migrateOldData(targetType) {
+              const oldKey = 'klotskiVisitedStates';
+              const newKey = 'STQVisited_' + targetType;
+              const oldData = localStorage.getItem(oldKey);
+              if (oldData) {
+                  if (localStorage.getItem(newKey) && !confirm(`「${newKey}」には既にデータが存在します。上書きしますか？`)) {
+                      return;
+                  }
+                  localStorage.setItem(newKey, oldData);
+                  localStorage.removeItem(oldKey);
+                  alert(`データを「${newKey}」に移行しました。ページをリロードします。`);
+                  location.reload();
+              }
+          }
+
+          // --- Converter Logic ---
+          const loadFileBtn = document.getElementById('load-file-btn');
+          const convertAndSaveBtn = document.getElementById('convert-and-save-btn');
+          const converterInput = document.getElementById('converter-input');
+          const converterOutput = document.getElementById('converter-output');
+          const converterStatus = document.getElementById('converter-status');
+
+          // --- DAT File Checker Logic ---
+          const checkDatBtn = document.getElementById('check-dat-btn');
+          const datCheckerStatus = document.getElementById('dat-checker-status');
+          const displayDatBoardsCheckbox = document.getElementById('display-dat-boards-checkbox');
+
+          if (!window.showOpenFilePicker || !window.showSaveFilePicker) {
+              checkDatBtn.disabled = true;
+              datCheckerStatus.textContent = 'お使いのブラウザはこの機能に対応していません。';
+              datCheckerStatus.style.color = 'orange';
+          } else {
+              checkDatBtn.addEventListener('click', async () => {
+                  datCheckerStatus.innerHTML = ''; // Clear previous status
+                  try {
+                      const fileHandles = await window.showOpenFilePicker({
+                          types: [{ description: 'DAT Files', accept: { 'application/octet-stream': ['.dat'] } }],
+                          multiple: true, // 複数選択を許可
+                      });
+
+                      if (fileHandles.length === 0) return;
+
+                      datCheckerStatus.textContent = `ファイル読み込み中... (0/${fileHandles.length})`;
+
+                      const fullsetBigInts = [];
+                      const subsetBigInts = [];
+
+                      for (let i = 0; i < fileHandles.length; i++) {
+                          const fileHandle = fileHandles[i];
+                          const file = await fileHandle.getFile();
+                          datCheckerStatus.textContent = `ファイル読み込み中... (${i + 1}/${fileHandles.length}) 「${file.name}」`;
+
+                          const buffer = await file.arrayBuffer();
+
+                          if (buffer.byteLength === 0) {
+                              console.warn(`ファイル「${file.name}」は空です。スキップします。`);
+                              continue;
+                          }
+                          if (buffer.byteLength % 10 !== 0) {
+                              console.warn(`エラー: ファイル「${file.name}」のサイズが不正です。スキップします。`);
+                              continue;
+                          }
+
+                          const dataView = new DataView(buffer);
+                          const numStates = buffer.byteLength / 10;
+
+                          for (let j = 0; j < numStates; j++) {
+                              const offset = j * 10;
+                              const high_part = dataView.getBigUint64(offset, false);
+                              const low_part = BigInt(dataView.getUint16(offset + 8, false));
+                              const bigIntValue = (high_part << 16n) | low_part;
+
+                              const stateStr = COMMON.bigIntToState(bigIntValue);
+                              const signature = COMMON.getPiecesSignature(stateStr);
+                              if (signature === FULL_SET_SIGNATURE) {
+                                  fullsetBigInts.push(bigIntValue);
+                              } else {
+                                  subsetBigInts.push(bigIntValue);
+                              }
+                          }
+                      }
+
+                      if (fullsetBigInts.length === 0 && subsetBigInts.length === 0) {
+                          datCheckerStatus.textContent = '有効なデータを含むファイルがありませんでした。';
+                          return;
+                      }
+
+                      const uniqueFullset = new Set(fullsetBigInts);
+                      const uniqueSubset = new Set(subsetBigInts);
+
+                      if (displayDatBoardsCheckbox.checked) {
+                          const allUniqueBigInts = [...uniqueFullset, ...uniqueSubset];
+                          displayBoardStates(allUniqueBigInts, `${fileHandles.length}個のファイル (重複削除後)`);
+                      } else {
+                          boardsContainer.innerHTML = '';
+                          summaryDiv.textContent = 'DATファイルのチェックが完了しました。盤面は表示されていません。';
+                      }
+
+                      // --- 結果表示と保存ボタンの生成 ---
+                      let resultHTML = '';
+                      const fileDescription = fileHandles.length > 1 ? `${fileHandles.length}個のファイルをマージ/チェックしました。` : `ファイル「${fileHandles[0].name}」をチェックしました。`;
+                      resultHTML += fileDescription + '<br><br>';
+
+                      const buttonContainer = document.createElement('div');
+                      buttonContainer.style.marginTop = '10px';
+
+                      // Full Setの結果
+                      if (fullsetBigInts.length > 0) {
+                          const originalCount = fullsetBigInts.length;
+                          const uniqueCount = uniqueFullset.size;
+                          const duplicateCount = originalCount - uniqueCount;
+                          resultHTML += `<strong>Full Set:</strong> ${uniqueCount.toLocaleString()}件`;
+                          if (duplicateCount > 0) {
+                              resultHTML += ` (重複${duplicateCount.toLocaleString()}件を削除: ${originalCount.toLocaleString()}件 → ${uniqueCount.toLocaleString()}件)`;
+                          }
+                          resultHTML += '<br>';
+
+                          const saveBtn = document.createElement('button');
+                          saveBtn.textContent = 'Full Set をDATとして保存';
+                          saveBtn.onclick = async () => {
+                              try {
+                                  const handle = await saveBigIntsToDat(Array.from(uniqueFullset), `merged_fullset.dat`);
+                                  saveBtn.textContent = `「${handle.name}」として保存しました。`;
+                                  saveBtn.disabled = true;
+                              } catch (saveErr) {
+                                  if (saveErr.name !== 'AbortError') {
+                                      saveBtn.textContent = '保存エラー';
+                                      console.error(saveErr);
+                                  }
+                              }
+                          };
+                          buttonContainer.appendChild(saveBtn);
+                      }
+
+                      // Subsetの結果
+                      if (subsetBigInts.length > 0) {
+                          const originalCount = subsetBigInts.length;
+                          const uniqueCount = uniqueSubset.size;
+                          const duplicateCount = originalCount - uniqueCount;
+                          resultHTML += `<strong>Subset:</strong> ${uniqueCount.toLocaleString()}件`;
+                          if (duplicateCount > 0) {
+                              resultHTML += ` (重複${duplicateCount.toLocaleString()}件を削除: ${originalCount.toLocaleString()}件 → ${uniqueCount.toLocaleString()}件)`;
+                          }
+                          resultHTML += '<br>';
+
+                          const saveBtn = document.createElement('button');
+                          saveBtn.textContent = 'Subset をDATとして保存';
+                          saveBtn.style.marginLeft = '10px';
+                          saveBtn.onclick = async () => {
+                              try {
+                                  const handle = await saveBigIntsToDat(Array.from(uniqueSubset), `merged_subset.dat`);
+                                  saveBtn.textContent = `「${handle.name}」として保存しました。`;
+                                  saveBtn.disabled = true;
+                              } catch (saveErr) {
+                                  if (saveErr.name !== 'AbortError') {
+                                      saveBtn.textContent = '保存エラー';
+                                      console.error(saveErr);
+                                  }
+                              }
+                          };
+                          buttonContainer.appendChild(saveBtn);
+                      }
+
+                      datCheckerStatus.innerHTML = resultHTML;
+                      if (buttonContainer.hasChildNodes()) {
+                          datCheckerStatus.appendChild(buttonContainer);
+                      }
+                      datCheckerStatus.style.color = '#8cfeff';
+
+                  } catch (err) {
+                      if (err.name !== 'AbortError') {
+                          datCheckerStatus.textContent = 'ファイルのチェックに失敗しました: ' + err.message;
+                          console.error(err);
+                      }
+                  }
+              });
+          }
+
+          // APIが使えるかチェック
+          if (!window.showOpenFilePicker || !window.showSaveFilePicker) {
+              const elementsToDisable = [loadFileBtn, convertAndSaveBtn];
+              elementsToDisable.forEach(el => el.disabled = true);
+              converterStatus.textContent = 'お使いのブラウザはこの機能に対応していません。';
+              converterStatus.style.color = 'orange';
+          }
+
+          loadFileBtn.addEventListener('click', async () => {
+              try {
+                  const [fileHandle] = await window.showOpenFilePicker({
+                      types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }],
+                  });
+                  const file = await fileHandle.getFile();
+                  const contents = await file.text();
+                  converterInput.value = contents;
+                  converterStatus.textContent = `「${file.name}」を読み込みました。`;
+              } catch (err) {
+                  if (err.name !== 'AbortError') {
+                      converterStatus.textContent = 'ファイルの読み込みに失敗しました。';
+                      console.error(err);
+                  }
+              }
+          });
+
+          async function saveBigIntsToDat(bigIntArray, suggestedName) {
+              const numStates = bigIntArray.length;
+              const buffer = new ArrayBuffer(numStates * 10); // 80 bits = 10 bytes
+              const dataView = new DataView(buffer);
+
+              bigIntArray.forEach((bigIntValue, index) => {
+                  const offset = index * 10;
+                  const high_part = bigIntValue >> 16n;
+                  const low_part = Number(bigIntValue & 0xFFFFn);
+                  dataView.setBigUint64(offset, high_part, false); // Big-endian
+                  dataView.setUint16(offset + 8, low_part, false); // Big-endian
+              });
+
+              const blob = new Blob([buffer], { type: 'application/octet-stream' });
+              const handle = await window.showSaveFilePicker({
+                  suggestedName: suggestedName,
+                  types: [{ description: 'DAT Files', accept: { 'application/octet-stream': ['.dat'] } }],
+              });
+              const writable = await handle.createWritable();
+              await writable.write(blob);
+              await writable.close();
+              return handle;
+          }
+
+          convertAndSaveBtn.addEventListener('click', async () => {
+              try {
+                  const inputJSON = converterInput.value;
+                  if (!inputJSON.trim()) {
+                      converterStatus.textContent = 'エラー: 入力が空です。';
+                      return;
+                  }
+
+                  const data = JSON.parse(inputJSON);
+
+                  if (!Array.isArray(data) || data.length === 0) {
+                      converterStatus.textContent = 'エラー: 入力は空でないJSON配列である必要があります。';
+                      return;
+                  }
+
+                  // 入力は盤面文字列の配列であることを確認
+                  if (typeof data[0] !== 'string' || !isNaN(data[0])) {
+                      converterStatus.textContent = 'エラー: 入力は盤面文字列のJSON配列である必要があります。';
+                      converterStatus.style.color = 'orange';
+                      return;
+                  }
+
+                  converterStatus.textContent = '盤面文字列 → 80-bit整数バイナリに変換中...';
+
+                  const bigInts = data.map(stateStr => COMMON.stateToBigInt(stateStr));
+
+                  converterOutput.value = `${bigInts.length}件の盤面をバイナリデータに変換しました。`;
+
+                  const handle = await saveBigIntsToDat(bigInts, 'shared_visited.dat');
+
+                  converterStatus.textContent = `「${handle.name}」として保存しました。`;
+
+              } catch (err) {
+                  if (err.name !== 'AbortError') {
+                      converterStatus.textContent = 'エラー: ' + err.message;
+                      console.error(err);
+                  }
+              }
+          });
+      });
+    </script>
+  </body>
+
+</html>
