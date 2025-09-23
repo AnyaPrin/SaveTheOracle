@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
       getAlgoIcon: (algo) => `../img/icon/${algo}.png`
     },
     DATA_FILES: {
-      optimalPath: 'data/data.json',
-      sharedVisited: 'data/shared_visited.json'
+      optimalPath: 'data/optimal_path.json',
+      sharedVisited: 'data/shared_visited.dat'
     },
     MIKOTO_SLIDES: [
       '../img/mikoto_speech/slide_0.webp',
@@ -33,7 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
   let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
-  let localVisitedData = { set: null, status: '未読込' };
+  let localVisitedData = {
+    fullset: { set: new Set(), status: '未読込' },
+    subset: { set: new Set(), status: '未読込' }
+  };
   let searchStartTime, timerInterval, mikotoTimer = null;
   let currentSolver = null;
 
@@ -96,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle action buttons
     if (button.closest('.action-buttons')) {
       if (button.classList.contains('start-algorithm-btn')) {
-        if (currentSolver) return; // A search is already running
         let algorithm = button.value;
         // IDA*の場合、チェックボックスの状態に応じてアルゴリズムを決定
         if (algorithm === 'idastar' && document.getElementById('ida-no-heuristic').checked) {
@@ -207,27 +209,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Functions ---
 
+  /**
+   * 盤面文字列から駒の構成に基づいた一意のシグネチャ文字列を生成する。
+   * @param {string} state 盤面文字列
+   * @returns {string} 駒の種類と数をアルファベット順に並べたシグネチャ (例: "A:4,B:2,C:2,...")
+   */
+  function getPiecesSignature(state) {
+    const pieceCounts = {};
+    for (const char of state) {
+      if (char !== '.') {
+        pieceCounts[char] = (pieceCounts[char] || 0) + 1;
+      }
+    }
+    return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
+  }
+  const FULL_SET_SIGNATURE = getPiecesSignature("BAACBAACDFFEDIJEG..H");
+
   function startSearch(selectedAlgorithm) {
-    // 実際のソルバーに渡すアルゴリズム名（'idastar' or 'iddfs'）
+    // 新しい探索を開始する前に、以前の探索セッションが残っていればクリアする。
+    // これにより、探索成功後に別の探索を開始した場合でも、前のソルバーが正しく破棄される。
+    if (currentSolver) {
+      currentSolver.stop(); // 念のため停止
+      currentSolver = null;
+      console.log('currentSolverを初期化(null)');
+    }
+    // 実際のソルバーに渡すアルゴリズム名（'bfs', 'astar', 'idastar' or 'iddfs'）
     const solverAlgorithm = selectedAlgorithm;
+    console.log('solverAlgorithm:', solverAlgorithm);
     // UI上の選択アルゴリズム名（'idastar' or 'bfs' or 'astar'）
     const uiSelectedAlgorithm = (solverAlgorithm === 'iddfs') ? 'idastar' : solverAlgorithm;
+    console.log('uiSelectedAlgorithm:', uiSelectedAlgorithm);
+
+    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
+    const dataType = isFullSet ? 'fullset' : 'subset';
+    const dataStore = localVisitedData[dataType];
 
     const usePruning = pruningCheckbox.checked && optimalPathData.normalizedSet !== null;
-    const useLocalVisited = useLocalVisitedCheckbox.checked && localVisitedData.set !== null;
+    const useLocalVisited = useLocalVisitedCheckbox.checked && dataStore.set !== null;
     const initialStateBigInt = COMMON.stateToBigInt(INITIAL_STATE);
     const normalizedInitialStateBigInt = COMMON.normalizeStateBigInt(initialStateBigInt);
 
     let preloadedDataForSolver = null;
     if (useLocalVisited) {
-      // 開始局面が保存済みデータに含まれている場合、そのデータを使うと探索が即座に終了してしまう可能性がある。
-      // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)
-      // この場合、安全策として保存済みデータの利用を一時的に無効にする。
-      if (localVisitedData.set.has(normalizedInitialStateBigInt)) {
+      // 開始局面が保存済みデータに含まれている場合、そのデータセットを使うと探索が即座に終了してしまう可能性がある。
+      // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)。この場合、安全策として保存済みデータの利用を一時的に無効にする。
+      if (dataStore.set.has(normalizedInitialStateBigInt)) {
         console.warn('初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。');
         statusDiv.textContent = '情報: 初期盤面が保存済みデータに含まれていたため、保存データは利用されません。';
       } else {
-        preloadedDataForSolver = localVisitedData.set;
+        preloadedDataForSolver = dataStore.set;
       }
     }
 
@@ -296,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (solverAlgorithm) {
       case 'bfs':
         currentSolver = new BfsSolver(options);
+        console.log('currentSolverに代入:', currentSolver, 'アルゴリズム:', solverAlgorithm);
         break;
       case 'astar':
         currentSolver = new AstarSolver(options);
@@ -305,6 +337,9 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'iddfs':
         currentSolver = new IDAstarSolver(options); // IDDFSもIDAstarSolverクラスを使用
+        break;
+      default:
+        console.error('Unknown algorithm:', solverAlgorithm);
         break;
     }
     currentSolver.algorithm = solverAlgorithm;
@@ -398,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
     SolutionDisplay.displaySolution(pathAsStrings);
     statusDiv.textContent = `${result.message} 　 ${title}: ${pathAsStrings.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
     setUIState(false);
-    currentSolver = null;
   }
 
   function handleFailure() {
@@ -409,7 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalTime = (performance.now() - searchStartTime) / 1000;
     statusDiv.textContent = `解が見つかりませんでした。 (探索時間: ${totalTime.toFixed(2)}秒)`;
     setUIState(false);
-    currentSolver = null;
   }
 
   function handleProgress(progress) {
@@ -479,7 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setStateBtn.disabled = isSearching;
     initialStateInput.disabled = isSearching;
     pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
-    useLocalVisitedCheckbox.disabled = isSearching || localVisitedData.status !== '読込完了';
+
+    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
+    const dataStore = localVisitedData[isFullSet ? 'fullset' : 'subset'];
+    useLocalVisitedCheckbox.disabled = isSearching || dataStore.status !== '読込完了';
+
     if (isSearching) {
       resultPanelDiv.hidden = false;
       searchSummaryDiv.hidden = false;
@@ -528,27 +566,61 @@ document.addEventListener('DOMContentLoaded', () => {
         pruningDataStatus.textContent = `(注意: 初期盤面は最短経路上にありません)`;
       }
     }
+
+    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
+    const dataType = isFullSet ? 'fullset' : 'subset';
+    const dataStore = localVisitedData[dataType];
+    useLocalVisitedCheckbox.disabled = dataStore.status !== '読込完了';
   }
 
   function handleSave() {
     if (!currentSolver || !currentSolver.visited || currentSolver.visited.size === 0) {
-      saveStatusDiv.textContent = '保存する探索データがありません。';
+      saveStatusDiv.textContent = '保存するデータがありません。';
       return;
     }
+
     try {
-      // 既存のデータと新しいデータをマージする
-      const existingData = localVisitedData.set ? [...localVisitedData.set] : [];
-      const newData = [...currentSolver.visited];
-      const mergedSet = new Set([...existingData, ...newData]);
+      const currentSignature = getPiecesSignature(INITIAL_STATE);
+      const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
+      const dataType = isFullSet ? 'fullset' : 'subset';
+      const dataStore = localVisitedData[dataType];
+      const storageKey = isFullSet ? 'STQVisited_fullset' : 'STQVisited_subset';
 
-      const visitedArray = Array.from(mergedSet);
+      const existingSet = dataStore.set || new Set();
+      const existingSize = existingSet.size;
+
+      const mergedSet = new Set([...existingSet, ...currentSolver.visited]);
+
+      // 1. 新しく追加するデータがあるかチェック
+      if (mergedSet.size === existingSize) {
+        saveStatusDiv.style.color = COLORS.info;
+        // メッセージをより具体的にし、何と比較して追加データがなかったのかを明確にする
+        saveStatusDiv.textContent = '今回の探索結果は、読み込み済みのデータ(共有データ含む)に全て含まれていました。';
+        setTimeout(() => { saveStatusDiv.textContent = ''; }, 5000); // 少し長めに表示
+        return;
+      }
+
+      // 2. BigIntは直接JSONに変換できないため、文字列に変換
+      //    (例: 12345n -> "12345")
+      const visitedArray = Array.from(mergedSet).map(bigint => bigint.toString());
+
+      // 3. 文字列の配列としてJSONに変換し、localStorageに保存
       const visitedJson = JSON.stringify(visitedArray);
-      localStorage.setItem('klotskiVisitedStates', visitedJson);
+      localStorage.setItem(storageKey, visitedJson);
 
-      // 保存後、グローバル変数も更新
-      localVisitedData.set = mergedSet;
-      localVisitedData.status = '読込完了';
+      // 4. メモリ上のデータもマージ後のもので更新
+      dataStore.set = mergedSet;
+      dataStore.status = '読込完了';
+      saveStatusDiv.style.color = COLORS.success;
       saveStatusDiv.textContent = `探索済みノードをlocalStorageに保存しました。(合計: ${mergedSet.size.toLocaleString()}件)`;
+
+      const fullSetSize = localVisitedData.fullset.set.size;
+      const subsetSize = localVisitedData.subset.set.size;
+      let statusText = [];
+      if (fullSetSize > 0) statusText.push(`Full: ${fullSetSize.toLocaleString()}`);
+      if (subsetSize > 0) statusText.push(`Sub: ${subsetSize.toLocaleString()}`);
+      localVisitedDataStatus.textContent = `(${statusText.join(', ')}件)`;
     } catch (e) {
       if (e instanceof DOMException && e.name === 'QuotaExceededError') {
         saveStatusDiv.textContent = `エラー: localStorageの容量制限を超えました。`;
@@ -568,21 +640,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (oldCleanupBtn) oldCleanupBtn.parentElement.removeChild(oldCleanupBtn);
 
     try {
-      const savedVisitedJson = localStorage.getItem('klotskiVisitedStates');
+      const currentSignature = getPiecesSignature(INITIAL_STATE);
+      const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
+      const dataType = isFullSet ? 'fullset' : 'subset';
+      const dataStore = localVisitedData[dataType];
+      const storageKey = isFullSet ? 'STQVisited_fullset' : 'STQVisited_subset';
+
+      const savedVisitedJson = localStorage.getItem(storageKey);
       if (!savedVisitedJson) {
-        saveStatusDiv.textContent = 'チェックするlocalStorageデータがありません。';
+        saveStatusDiv.textContent = `チェックするlocalStorageデータ(${dataType})がありません。`;
         return;
       }
 
-      const savedVisitedArray = JSON.parse(savedVisitedJson);
-      const originalCount = savedVisitedArray.length;
-      const uniqueSet = new Set(savedVisitedArray);
-      const uniqueCount = uniqueSet.size;
+      // localStorageにはBigIntを文字列化したものが保存されている
+      const savedVisitedStrings = JSON.parse(savedVisitedJson);
+      const originalCount = savedVisitedStrings.length;
+      // 文字列のSetを作成して重複をチェック
+      const uniqueSetOfStrings = new Set(savedVisitedStrings);
+      const uniqueCount = uniqueSetOfStrings.size;
 
       if (originalCount === uniqueCount) {
         saveStatusDiv.style.color = COLORS.success;
         saveStatusDiv.textContent = `データは正常です。重複するノードはありませんでした。(${originalCount.toLocaleString()}件)`;
       } else {
+        // 重複が見つかった場合の処理
         const duplicateCount = originalCount - uniqueCount;
         saveStatusDiv.style.color = COLORS.warning;
 
@@ -595,10 +676,19 @@ document.addEventListener('DOMContentLoaded', () => {
         cleanupBtn.style.marginLeft = '10px';
         cleanupBtn.style.padding = '2px 8px';
         cleanupBtn.onclick = () => {
-          localStorage.setItem('klotskiVisitedStates', JSON.stringify(Array.from(uniqueSet)));
-          localVisitedData.set = uniqueSet; // メモリ上のデータも更新
+          localStorage.setItem(storageKey, JSON.stringify(Array.from(uniqueSetOfStrings)));
+          // メモリ上のデータもクリーンアップ後のもので更新する
+          // localStorageから読み込み直すのと同じように、文字列からBigIntのSetに変換する
+          dataStore.set = new Set(Array.from(uniqueSetOfStrings).map(s => BigInt(s)));
           saveStatusDiv.style.color = COLORS.success;
           saveStatusDiv.textContent = `データをクリーンアップしました。 (重複${duplicateCount.toLocaleString()}件を削除 → ${uniqueCount.toLocaleString()}件)`;
+          // UIのステータス表示を更新
+          const fullSetSize = localVisitedData.fullset.set.size;
+          const subsetSize = localVisitedData.subset.set.size;
+          let statusText = [];
+          if (fullSetSize > 0) statusText.push(`Full: ${fullSetSize.toLocaleString()}`);
+          if (subsetSize > 0) statusText.push(`Sub: ${subsetSize.toLocaleString()}`);
+          localVisitedDataStatus.textContent = `(${statusText.join(', ')}件)`;
         };
         saveStatusDiv.textContent = '';
         saveStatusDiv.appendChild(messageSpan);
@@ -632,41 +722,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 共有＆ローカルの探索済みデータを読み込む ---
   localVisitedDataStatus.textContent = '(読込中...)';
-  // 1. まず共有された探索済みデータ(shared_visited.json)を非同期で読み込む
+  // 1. まず共有された探索済みデータ(shared_visited.dat)を非同期で読み込む
   fetch(ASSET_PATHS.DATA_FILES.sharedVisited)
     .then(response => {
-      // ファイルが存在し、レスポンスが正常ならJSONとして解析する
-      if (response.ok) return response.json();
-      // ファイルが存在しない等の場合は、空の配列として扱う
-      return [];
+      // ファイルが存在し、レスポンスが正常ならArrayBufferとして解析する
+      if (response.ok) return response.arrayBuffer();
+      // ファイルが存在しない等の場合は、空のArrayBufferとして扱う
+      return Promise.resolve(new ArrayBuffer(0));
     })
     .catch(error => {
       // ネットワークエラーなど、読み込み自体に失敗した場合
-      console.warn('shared_visited.jsonの読み込みに失敗しました。', error);
-      return [];
+      console.warn('shared_visited.datの読み込みに失敗しました。', error);
+      return new ArrayBuffer(0);
     })
-    .then(sharedVisited => {
-      // 2. 次に個人のlocalStorageからデータを読み込む
-      let localVisited = [];
-      try {
-        const savedVisitedJson = localStorage.getItem('klotskiVisitedStates');
-        if (savedVisitedJson) {
-          localVisited = JSON.parse(savedVisitedJson);
+    .then(buffer => { // shared_visited.datから読み込んだArrayBuffer
+      // 1. 共有バイナリデータ(fullset)をBigIntの配列に変換
+      const sharedBigInts = [];
+      if (buffer.byteLength > 0 && buffer.byteLength % 10 === 0) {
+        const dataView = new DataView(buffer);
+        const numStates = buffer.byteLength / 10;
+        for (let i = 0; i < numStates; i++) {
+          const offset = i * 10;
+          const high_part = dataView.getBigUint64(offset, false); // Big-endian
+          const low_part = BigInt(dataView.getUint16(offset + 8, false)); // Big-endian
+          const bigIntValue = (high_part << 16n) | low_part;
+          sharedBigInts.push(bigIntValue);
         }
-      } catch (e) {
-        console.error('localStorageからのデータ読み込みに失敗しました。', e);
+        localVisitedData.fullset.set = new Set(sharedBigInts);
+      } else if (buffer.byteLength > 0) {
+        console.error('shared_visited.datのファイルサイズが不正です。');
       }
 
-      // 3. 共有データと個人データをマージして、ユニークなSetを作成する
-      const mergedBigIntSet = new Set([...sharedVisited, ...localVisited].map(s => COMMON.stateToBigInt(s)));
+      // 2. localStorageから個人データを読み込む
+      const keys = {
+        fullset: 'STQVisited_fullset',
+        subset: 'STQVisited_subset'
+      };
 
-      if (mergedBigIntSet.size > 0) {
-        localVisitedData.set = mergedBigIntSet;
-        localVisitedData.status = '読込完了';
+      // 旧キーからの移行処理
+      const oldKey = 'klotskiVisitedStates';
+      const oldDataJSON = localStorage.getItem(oldKey);
+      if (oldDataJSON) {
+        console.log('古いキー "klotskiVisitedStates" のデータを検出しました。STQVisited_fullset に移行します。');
+        localStorage.setItem(keys.fullset, oldDataJSON);
+        localStorage.removeItem(oldKey);
+      }
+
+      // 3. 各セットを読み込んでマージする
+      for (const type in keys) { // 'fullset', 'subset'
+        const key = keys[type];
+        let localBigInts = [];
+        try {
+          const savedVisitedJson = localStorage.getItem(key);
+          if (savedVisitedJson) {
+            const localVisitedStrings = JSON.parse(savedVisitedJson);
+            localBigInts = localVisitedStrings.map(s => BigInt(s)); // 新フォーマットのみ想定
+          }
+        } catch (e) {
+          console.error(`localStorageからのデータ(${key})読み込みに失敗しました。`, e);
+        }
+
+        if (localBigInts.length > 0) {
+          // 既存のSetにマージ
+          localVisitedData[type].set = new Set([...localVisitedData[type].set, ...localBigInts]);
+        }
+      }
+
+      // 4. UIの更新
+      const fullSetSize = localVisitedData.fullset.set.size;
+      const subsetSize = localVisitedData.subset.set.size;
+
+      if (fullSetSize > 0 || subsetSize > 0) {
         useLocalVisitedCheckbox.disabled = false;
-        localVisitedDataStatus.textContent = `(${mergedBigIntSet.size.toLocaleString()}件)`;
+        let statusText = [];
+        if (fullSetSize > 0) {
+          localVisitedData.fullset.status = '読込完了';
+          statusText.push(`Full: ${fullSetSize.toLocaleString()}`);
+        }
+        if (subsetSize > 0) {
+          localVisitedData.subset.status = '読込完了';
+          statusText.push(`Sub: ${subsetSize.toLocaleString()}`);
+        }
+        localVisitedDataStatus.textContent = `(${statusText.join(', ')}件)`;
       } else {
-        localVisitedData.status = 'データなし';
         localVisitedDataStatus.textContent = '(データなし)';
       }
     });
@@ -745,6 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const applyBtn = document.getElementById('apply-editor-btn');
     const resetBtn = document.getElementById('reset-editor-btn');
+    const allowSubsetCheckbox = document.getElementById('allow-subset-pieces');
 
     const highlightOverlay = document.createElement('div');
     highlightOverlay.id = 'selection-highlight';
@@ -1008,7 +1147,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const index = parseInt(cell.dataset.index, 10);
       const clickedPiece = targetPieces.find(p => p.positions.includes(index));
-    　const allowSubsetCheckbox = document.getElementById('allow-subset-pieces');
 
       if (clickedPiece) {
         // Restore original positions before moving it back to source
@@ -1032,8 +1170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`大駒"A"が配置されていません。Aは必ず右の盤面に配置してください。`);
         return;
       }
-
-
 
       const finalState = piecesToState(targetPieces);
       const finalStateArray = finalState.split('');

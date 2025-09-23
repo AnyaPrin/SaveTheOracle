@@ -34,14 +34,14 @@
 
 1.  **データファイルの取得**:
     -   `fetch` APIを使い、2種類のデータファイルを非同期で読み込みます。
-        -   `data.json`: 最短解の経路データ。枝刈り（Pruning）に使用されます。
-        -   `shared_visited.json`: 開発者が事前に用意した探索済み盤面のデータ。
+        -   `optimal_path.json`: 最短解の経路データ。枝刈り（Pruning）に使用されます。
+        -   `shared_visited.dat`: 開発者が事前に用意した探索済み盤面のデータ。ファイルサイズを最小化するため、**状態整数 (`BigInt`) を直接10バイトのバイナリ形式で保存**しています。
 2.  **ローカルデータの読み込み**:
     -   ユーザーのブラウザの `localStorage` から、過去の探索で保存された探索済みデータを読み込みます。
 3.  **データの前処理と保持**:
     -   読み込んだデータは、探索で効率的に利用するために **状態整数 (`BigInt`)** 形式に変換され、`Set` オブジェクトとしてメモリ上に保持されます。
-        -   `optimalPathData`: `data.json` の内容を保持。
-        -   `localVisitedData`: `shared_visited.json` と `localStorage` のデータをマージして保持。
+        -   `optimalPathData`: `optimal_path.json` の内容を保持。
+        -   `localVisitedData`: `shared_visited.dat` (バイナリ) と `localStorage` のデータをマージして保持。
     -   これらのデータ準備が完了すると、UI上の関連チェックボックスが有効化されます。
 
 ### フェーズ2: 探索の開始 (ユーザー操作)
