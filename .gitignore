@@ -29,3 +29,19 @@ sample/
 *.log
 
 py/
+# Jekyllが生成する出力フォルダ
+_site/
+
+# ローカル環境用の依存ファイル
+.bundle/
+vendor/
+
+# Rubyの依存ファイル
+Gemfile.lock
+
+# OS・エディタ系の一時ファイル
+.DS_Store
+Thumbs.db
+
+# VSCodeの設定（必要に応じて）
+.vscode/
