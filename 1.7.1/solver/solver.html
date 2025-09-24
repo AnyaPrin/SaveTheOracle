@@ -1,15 +1,18 @@
+---
+lib: /lib
+---
 <!DOCTYPE html>
 <html lang="ja">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Save The Oracle Solver (Klotski Solver)</title>
+  <title>Save The Oracle Solver</title>
   <style>
     @font-face {
       font-family: 'MeiryoB';
-      src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
-        url('../fonts/MeiryoUI-Bold.woff') format('woff');
+      src: url('{{ site.fonts-path }}/MeiryoUI-Bold.woff2') format('woff2'),
+      url('{{ site.fonts-path }}/MeiryoUI-Bold.woff') format('woff');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
@@ -17,8 +20,8 @@
 
     @font-face {
       font-family: 'Nyashi';
-      src: url('../fonts/Nyashi.woff2') format('woff2'),
-        url('../fonts/Nyashi.woff') format('woff');
+      src: url('{{ site.fonts-path }}/Nyashi.woff2') format('woff2'),
+      url('{{ site.fonts }}/Nyashi.woff') format('woff');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
@@ -87,7 +90,6 @@
       text-align: center;
       z-index: 1;
     }
-
     .controls-container::before,
     .controls-container::after {
       content: '';
@@ -103,7 +105,7 @@
       /* Match container's border-radius */
       background-image: var(--before-bg-image,
           linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
-          url('../img/bg_solver.jpg'));
+          url('../../img/bg_solver.jpg'));
       z-index: -1;
     }
 
@@ -441,7 +443,7 @@
           </label>
           <label class="icon-btn-label">
             <button class="icon-btn start-algorithm-btn" value="astar">
-              <img src="../img/icon/astar.png" alt="A*">
+              <img src="../../img/icon/astar.png" alt="A*">
             </button>
             <span class="tooltip-text">
               <strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>
@@ -452,7 +454,7 @@
           </label>
           <label class="icon-btn-label" style="padding-left:20px">
             <button class="icon-btn start-algorithm-btn" value="idastar">
-              <img src="../img/icon/idastar.png" alt="IDA*">
+              <img src="../../img/icon/idastar.png" alt="IDA*">
             </button>
             <span class="tooltip-text">
               <strong>Ironworks Designed Astar (IDA*)</strong><br>
@@ -464,7 +466,7 @@
         <div class="action-buttons">
           <label class="icon-btn-label">
             <button id="save-btn" class="icon-btn" disabled>
-              <img src="../img/icon/save.png" alt="Save">
+              <img src="../../img/icon/save.png" alt="Save">
             </button>
             <span class="tooltip-text">
               <strong>探索結果を保存 (Save)</strong><br>
@@ -475,7 +477,7 @@
           </label>
           <label class="icon-btn-label">
             <button id="check-data-btn" class="icon-btn">
-              <img src="../img/icon/check.png" alt="Check">
+              <img src="../../img/icon/check.png" alt="Check">
             </button>
             <span class="tooltip-text">
               <strong>データ整合性チェック</strong><br>
@@ -484,7 +486,7 @@
           </label>
           <label class="icon-btn-label">
             <button id="option-btn" class="icon-btn">
-              <img src="../img/icon/config.png" alt="Settings">
+              <img src="../../img/icon/config.png" alt="Settings">
             </button>
             <span class="tooltip-text">
               <strong>詳細設定</strong><br>
@@ -577,9 +579,6 @@
     </div>
   </div>
   </div>
-
-
-
   <div class="solution-panel">
     <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
     <div id="search-summary" hidden>
@@ -592,7 +591,7 @@
     <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
   </div>
 
-  <script content-type="text/javascript" src="../lib/common.js"></script>
+  <script content-type="text/javascript" src="{{site.lib-path}}/common.js"></script>
   <script content-type="text/javascript" src="solvers/idastar_solver.js"></script>
   <script content-type="text/javascript" src="solvers/astar_solver.js"></script>
   <script content-type="text/javascript" src="solvers/bfs_solver.js"></script>

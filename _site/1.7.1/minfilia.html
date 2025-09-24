@@ -5,16 +5,16 @@
     <style>
         @font-face {
       font-family: 'MeiryoB';
-      src: url('../fonts/MeiryoUI-Bold.woff2') format('woff2'),
-        url('../fonts/MeiryoUI-Bold.woff') format('woff');
+      src: url("/fonts/MeiryoUI-Bold.woff2") format('woff2'),
+      url('"/fonts"/MeiryoUI-Bold.woff') format('woff');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Nyashi';
-      src: url('../fonts/Nyashi.woff2') format('woff2'),
-        url('../fonts/Nyashi.woff') format('woff');
+      src: url('/fonts/Nyashi.woff2') format('woff2'),
+      url('/fonts/Nyashi.woff') format('woff');
       font-weight: bold;
       font-style: normal;
       font-display: swap;
@@ -251,13 +251,13 @@
           z-index: 2000;
       }
     </style>
-    <script src="../lib/three.min.js"></script>
-    <script src="../lib/GLTFLoader.js"></script>
-    <script src="../lib/OrbitControls.js"></script>
-    <script src="../lib/common.js"></script>
+    <script src="/lib/three.min.js"></script>
+    <script src="/lib/GLTFLoader.js"></script>
+    <script src="/lib/OrbitControls.js"></script>
+    <script src="/lib/common.js"></script>
     <title>Save The Oracle WEB v1.7</title>
     <button id="clipboard" class="icon-btn">
-      <img src="../img/icon/clipboard.png" alt="statStr copy to Clipboard">
+      <img src="/img/icon/clipboard.png" alt="statStr copy to Clipboard">
     </button>
   </head>
 
@@ -287,10 +287,10 @@
       画像:FINAL FANTASY XIV ⒸSQUARE ENIX <br>
       効果音: windows10 microsoft<br>
       <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
-        mifilia.js v.1.7 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+        mifilia.js  &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
       <span style="position:fixed;right:20px;">
         <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
-          <img width="20" src="../img/github-mark-white.png"> GitHub </a> </span>
+          <img width="20" src="/img/github-mark-white.png"> GitHub </a> </span>
     </footer>
   </body>
   <script src="puzzle.js"></script>
@@ -304,7 +304,7 @@
                 // より堅牢にするなら、puzzle.js内で現在の盤面を返すグローバル関数
                 // (例: window.puzzle.getCurrentState()) を用意するのがおすすめです。
                 const stateString = encodeURIComponent(statStr);
-                const solverURL = `../solver/solver.html?state=${stateString}`;
+                const solverURL = `solver/solver.html?state=${stateString}`;
 
                 // split.html内のiframe(id="solver")を探す
                 const solverIframe = parent.document.getElementById("solver");

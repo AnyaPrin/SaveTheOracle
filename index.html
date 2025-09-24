@@ -4,75 +4,83 @@ title: Save The Oracle
 ---
 <style>
   main {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: left;
-      justify-content: left;
-      font-size: 0.75rem;
-      border: 0px;
-      background: none;
-      color: var(--text-color);
-      padding: 24px 24px 24px;
-      margin-bottom: 24px 24px 24px;
-      text-align: left;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: left;
+    font-size: 0.75rem;
+    border: 0px;
+    color: var(--text-color);
+    padding: 2px 24px 24px;
+    margin: 2px 24px 24px;
+    text-align: left;
   }
 
   .usageimage {
-      background: var(--panel);
-      display: block;
-      overflow: hidden;
-      line-height: 0;
-      box-shadow: var(--shadow);
-      border: 2px solid var(--border);
-      border-color: var(--border);
-      border-radius: 16px;
-      padding: 0px;
-      margin: 0px;
+    background-image:
+        url('img/background2.png'),
+        linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
+        url('img/bg_solver.jpg');
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    border-color: var(--border);
+    box-shadow: var(--shadow);
+    width: 400px;
+    display: block;
+    overflow: hidden;
+    line-height: 0;
+    width: 400px;
+    padding: 0px;
+    margin: 0px;
   }
 
   .menu {
-      padding: 24px 24px 24px;
-      margin-bottom: 24px 24px 24px;
+    padding: 24px 24px 24px;
+    margin: 2px 24px 24px;
   }
+
   .horizontal {
-      display: flex;
-      align-items: center;
-      flex-direction: row;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
   }
 
   .vertical {
-      display: flex;
-      align-items: right;
-      flex-direction: column;
+    display: flex;
+    align-items: right;
+    flex-direction: column;
   }
 
   .btn {
-      display: inner-block;
-      padding: 14px 20px;
-      margin: 1px 20px;
-      display: inline-block;
-      width: 80%;
-      height: 100%;
-      background-color:transparent;
+    display: inner-block;
+    padding: 14px 20px;
+    margin: 1px 20px;
+    display: inline-block;
+    width: 80%;
+    height: 100%;
+    background-color: transparent;
   }
 
   #stable.btn {
-      background-color:#026352;
+    background-color: #127392;
   }
 
   #stable.btn:hover,
   #stable.btn:focus {
-  background: #1269af;
-  outline: none;
+    background: #e2f9ff;
+    color: #127392;
+    outline: none;
   }
 
   a {
-      display: inline-block;
+    display: inline-block;
   }
 </style>
 
 <main>
+  <h1>ゲームの説明</h1>
+  <p>駒をマウスドラッグして光の巫女を外へだすのが目的です。<br>
   <img class="usageimage" src="./SaveTheOracleUsage.png" alt="Save The Oracle game usage instructions">
 
   <div class="menu">
@@ -81,13 +89,10 @@ title: Save The Oracle
       <div class="vertical">
         <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
           Source Code (GitHub)</a>
-        <a id="stable" class="btn"  href="1.6/minfilia.html" target="_blank" rel="noopener">
-          minfilia 1.6 (そこそこSTABLE)</a>
-        <a class="btn" href="1.7/minfilia.html" target="_blank" rel="noopener">minfilia 1.7 (試験的) </a>
+        <a class="btn" id="stable" href="1.7.1/minfilia.html" target="_blank" rel="noopener">minfilia 1.7.1 (TEST) </a>
       </div>
       <div class="vertical">
-        <a class="btn" href="solver/solver.html" target="_blank" rel="noopener">Solver (standalone)</a>
-        <a class="btn" href="1.7/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a>
+        <a class="btn" href="1.7.1/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a>
         <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version ver.1.1 ZIP </a>
       </div>
     </div>

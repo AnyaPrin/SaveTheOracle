@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイドパネルのサンプル</title>
+    <style>
+      body {
+          font-family: 'Inter', sans-serif;
+          overflow: hidden;
+          background-color: #1a202c; /* ダークな背景色 */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          position: relative;
+      }
+      .info-panel {
+          position: fixed;
+          top: 120px;	 /* キャンバスに合わせる */
+          left: 20px; /* パネルの非表示位置 端だけ見えるように調整*/
+          width: 600px; /* キャンバスの幅に合わせる */
+          height: 100px;
+          color: white;
+          padding: 24px;
+          transition: left 0.3s ease-in-out;
+          border-radius: 0 12px 12px 0;
+          border-right: 11px solid #3a3a3a;
+          box-sizing: border-box; /* パディングを含めて幅を計算 */
+          box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+	  background-color: #010101;
+          border-right: 21px solid #013a1a;
+	  z-index: 300;
+      }
+      .info-panel.active {
+          left: 600px; /* パネルの表示位置 */
+      }
+      .solver-panel {
+          position: fixed;
+          top: 210px;	 /* タブを少し重ねる */
+          left: 20px; /* パネルの非表示位置 端だけ見えるように調整*/
+          width: 600px; /* キャンバスの幅に合わせる */
+          height: 100px;
+          color: white;
+          padding: 24px;
+          box-shadow: 4px 0 10px rgba(0, 0, 25, 0.2);
+          transition: left 0.3s ease-in-out;
+	  border-radius: 0 12px 12px 0;
+	  box-sizing: border-box; /* パディングを含めて幅を計算 */
+	  cursor: pointer;
+	  background-color: #000000;
+	  border-right: 21px solid #113388;
+	  z-index: 200;
+      }
+
+      .solver-panel.active {
+	  left: 600px; /* パネルの表示位置 */
+      }
+
+      .side-panel h2 {
+	  font-size: 1.5rem;
+	  font-weight: bold;
+	  margin-bottom: 16px;
+	  text-align: center;
+	  color: #ecc94b;
+      }
+      .game-canvas-container {
+	  position: fixed;
+	  top: 100px;
+	  left: 0;
+	  width: 600px;
+	  height: 800px;
+	  background-color: #f0f0f0;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  border-radius: 12px;
+	  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+	  border: 1px solid #4a5568;
+	  z-index:1000;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-800 text-white">
+    <!-- ゲーム画面のコンテナ（左端に配置） -->
+    <div class="game-canvas-container">
+      <h1 class="text-3xl text-gray-700">パズルゲームのメイン画面 (600x800)</h1>
+    </div>
+    <!-- 情報パネル -->
+    <div id="info-panel" class="info-panel side-panel">
+      <button class="panel-close-btn">&times;</button>
+      <h2>情報表示</h2>
+      <p>ここにゲームに関する情報が入ります。</p>
+      <p>キーボードの 'I' キーで表示/非表示</p>
+    </div>
+    <!-- ソルバーパネル -->
+    <div id="solver-panel" class="solver-panel side-panel">
+      <button class="panel-close-btn">&times;</button>
+      <h2>ソルバー機能</h2>
+      <p>ここにソルバーのコンテンツが入ります。</p>
+      <p>キーボードの 'S' キーで表示/非表示</p>
+    </div>
+    <script>
+      const panels = {
+          's': document.getElementById('solver-panel'),
+          'i': document.getElementById('info-panel')
+      };
+      const panelElements = Object.values(panels);
+
+      // 指定されたパネルを開き、他を閉じる
+      function openPanel(targetPanel) {
+          panelElements.forEach(p => {
+              if (p !== targetPanel) {
+                  p.classList.remove('active');
+              }
+          });
+	  targetPanel.classList.add('active');
+      }
+
+      // 指定されたパネルを閉じる
+      function closePanel(targetPanel) {
+          targetPanel.classList.remove('active');
+      }
+
+      // 指定されたパネルの表示/非表示を切り替える
+      function togglePanel(targetPanel) {
+          const isActive = targetPanel.classList.contains('active');
+          if (isActive) {
+              closePanel(targetPanel);
+          } else {
+              openPanel(targetPanel);
+          }
+      }
+
+      // キーボード操作
+      document.addEventListener('keydown', (event) => {
+          const key = event.key.toLowerCase();
+          if (panels[key]) {
+              togglePanel(panels[key]);
+          }
+      });
+
+      // パネルのはみ出し部分をクリックしたときの操作
+      panelElements.forEach(panel => {
+          panel.addEventListener('click', (event) => {
+              // 閉じるボタンがクリックされた場合や、すでにパネルが開いている場合は何もしない
+              if (event.target.closest('.panel-close-btn') || panel.classList.contains('active')) {
+                  return;
+              }
+              openPanel(panel);
+          });
+      });
+
+      // 閉じるボタンの操作
+      document.querySelectorAll('.panel-close-btn').forEach(button => {
+          button.addEventListener('click', (event) => {
+              closePanel(event.target.closest('.side-panel'));
+          });
+      });
+    </script>
+  </body>
+</html>
