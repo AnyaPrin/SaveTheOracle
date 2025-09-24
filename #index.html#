@@ -56,7 +56,7 @@ title: Save The Oracle
       height: 100%;
       background-color:transparent;
   }
-
+  
   #stable.btn {
       background-color:#026352;
   }

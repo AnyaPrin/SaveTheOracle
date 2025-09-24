@@ -1,0 +1,40 @@
+カーソル移動に関する主なコマンドID一覧（keybindings.json で使う）
+
+機能	コマンドID (command)	デフォルト (Windows/Linux)
+
+基本的な移動
+上に移動	cursorUp	UpArrow
+下に移動	cursorDown	DownArrow
+左に移動	cursorLeft	LeftArrow
+右に移動	cursorRight	RightArrow
+
+行単位の移動
+行頭へ移動	cursorHome	Home
+行末へ移動	cursorEnd	End
+テキストの先頭へ移動 (インデント無視)	cursorLineStart	(なし)
+テキストの末尾へ移動	cursorLineEnd	(なし)
+
+単語単位の移動
+次の単語の先頭へ移動	cursorWordRight	Ctrl+RightArrow
+前の単語の先頭へ移動	cursorWordLeft	Ctrl+LeftArrow
+
+ファイル/ページ単位の移動
+ファイルの先頭へ移動	cursorTop	Ctrl+Home
+ファイルの末尾へ移動	cursorBottom	Ctrl+End
+1ページ上に移動	cursorPageUp	PageUp
+1ページ下に移動	cursorPageDown	PageDown
+
+選択しながら移動
+選択しながら下に移動	cursorDownSelect	Shift+DownArrow
+選択しながら行末まで移動	cursorEndSelect	Shift+End
+選択しながら次の単語まで移動	cursorWordRightSelect	Ctrl+Shift+RightArrow
+
+その他
+対応する括弧へ移動	editor.action.jumpToBracket	Ctrl+Shift+\
+特定の行へ移動...	workbench.action.gotoLine	Ctrl+G
+
+cursorLineEnd ... 行の最後の文字へ移動（インデントや末尾の空白は無視）
+cursorEnd ... 行の本当の末尾（末尾に空白があればそのさらに後ろ）へ移動
+
+
+

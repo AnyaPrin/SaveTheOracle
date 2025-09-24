@@ -1,55 +1,149 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8">
-    <title>Save The Oracle</title>
-    <link rel="stylesheet" href="/styles.css">
-    <style>
-      :root {
-      --bg-color: #121218;
-      --panel-color: #2d333b;
-      --text-color: #ffffff;
-      --accent-blue: #2f81f7;
-      --accent-green: seagreen;
-      --border-color: #444c56;
-      --shadow: 0 4px 24px 0 rgba(0,0,0,0.15);
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>Save The Oracle</h1>
-    </header>
-    <main>
-      <img width="400" src="./SaveTheOracleUsage.png" alt="Save The Oracle game usage instructions"> <br>
-画像:Final Fantasy XIV ©SQUARE ENIX<br>
+<head>
+  <style>
+      @font-face {
+    font-family: 'MeiryoB';
+    src: url('/fonts/MeiryoUI-Bold.woff2') format('woff2'),
+      url('/fonts/MeiryoUI-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Nyashi';
+    src: url('/fonts/Nyashi.woff2') format('woff2'),
+      url('/fonts/Nyashi.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+  }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save The Oracle</title>
+  <link rel="stylesheet" href="/minfilia.css">
+  <style>
+    :root {
+        --link: #92b2c8;
+        --menu: #92b2c8;
+        --bg-color: #000001;
+        --text-color: #f0f0f0;
+        --panel: rgba(255, 255, 255, 0.05);
+        --panela: rgba(0, 0, 0, 0.15);
+        --acc-b: #1269bf;
+        --acc-g: #2d333b;
+        --border: #444c56;
+        --shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span style="font-size:16pt">Save The Oracle</span>
+    <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
+  </header>
+  <style>
+  main {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: left;
+      font-size: 0.75rem;
+      border: 0px;
+      background: none;
+      color: var(--text-color);
+      padding: 24px 24px 24px;
+      margin-bottom: 24px 24px 24px;
+      text-align: left;
+  }
 
+  .usageimage {
+      background: var(--panel);
+      display: block;
+      overflow: hidden;
+      line-height: 0;
+      box-shadow: var(--shadow);
+      border: 2px solid var(--border);
+      border-color: var(--border);
+      border-radius: 16px;
+      padding: 0px;
+      margin: 0px;
+  }
 
-<a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle"
-   target="_blank" rel="noopener">ソースコード GitHub</a><br><br>
+  .menu {
+      padding: 24px 24px 24px;
+      margin-bottom: 24px 24px 24px;
+  }
+  .horizontal {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+  }
 
-<h2>web version</h2>
-<p><a class="btn" href="1.6/minfilia.html" target="_blank" rel="noopener">minfilia 1.6 (そこそこSTABLE)</a>
-<p><a class="btn" href="1.7/minfilia.html" target="_blank" rel="noopener">minfilia 1.7 (試験的) </a>
-  <br>
+  .vertical {
+      display: flex;
+      align-items: right;
+      flex-direction: column;
+  }
 
-<p><a class="btn" href="solver/solver.html" target="_blank" rel="noopener">Solver (standalone)</a>
-<p><a class="btn" href="1.7/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a>
+  .btn {
+      display: inner-block;
+      padding: 14px 20px;
+      margin: 1px 20px;
+      display: inline-block;
+      width: 80%;
+      height: 100%;
+      background-color:transparent;
+  }
 
+  #stable.btn {
+      background-color:#026352;
+  }
 
-<h2>python (pygame) version</h2>
-		Minfilia ver.1.1<br>
-<a class="btn" href="./Minfilia.zip" download="Minfilia.zip">ダウンロード (Minifilia.zip)</a>
+  #stable.btn:hover,
+  #stable.btn:focus {
+  background: #1269af;
+  outline: none;
+  }
 
-    </main>
-    <footer>
-      <hr>
-      <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
-    &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
-      <span style="position:fixed;right:20px;">
-    <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
-      <img width="20" src="/img/github-mark-white.png" alt="GitHub logo"> GitHub </a> </span>
-    </footer>
-  </body>
+  a {
+      display: inline-block;
+  }
+</style>
+
+<main>
+  <img class="usageimage" src="./SaveTheOracleUsage.png" alt="Save The Oracle game usage instructions">
+
+  <div class="menu">
+
+    <div class="horizontal">
+      <div class="vertical">
+        <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
+          Source Code (GitHub)</a>
+        <a id="stable" class="btn"  href="1.6/minfilia.html" target="_blank" rel="noopener">
+          minfilia 1.6 (そこそこSTABLE)</a>
+        <a class="btn" href="1.7/minfilia.html" target="_blank" rel="noopener">minfilia 1.7 (試験的) </a>
+      </div>
+      <div class="vertical">
+        <a class="btn" href="solver/solver.html" target="_blank" rel="noopener">Solver (standalone)</a>
+        <a class="btn" href="1.7/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a>
+        <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version ver.1.1 ZIP </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+  <footer>
+    <hr>
+    画像:FINAL FANTASY XIV ⒸSQUARE ENIX <br>
+    効果音: windows10 microsoft<br>
+    <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+      mifilia.js v.1.7 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+    <span style="position:fixed;right:20px;">
+      <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+        <img width="20" src="/img/github-mark-white.png"> GitHub </a> </span>
+  </footer>
+</body>
 </html>
-
