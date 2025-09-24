@@ -1,7 +1,7 @@
 ---
 fonts: /fonts
-lib: /lib
-img: /img
+lib: /lib-path
+img: /img-path
 version: 1.7.1
 ---
 <!DOCTYPE html>
@@ -257,14 +257,11 @@ version: 1.7.1
           z-index: 2000;
       }
     </style>
-    <script src="{{ page.lib }}/three.min.js"></script>
-    <script src="{{ page.lib }}/GLTFLoader.js"></script>
-    <script src="{{ page.lib }}/OrbitControls.js"></script>
-    <script src="{{ page.lib }}/common.js"></script>
+    <script src="{{ page.lib-path | default: site.lib-path}}/three.min.js"></script>
+    <script src="{{ page.lib-path | default: site.lib-path}}/GLTFLoader.js"></script>
+    <script src="{{ page.lib-path | default: site.lib-path}}/OrbitControls.js"></script>
+    <script src="{{ page.lib-path | default: site.lib-path}}/common.js"></script>
     <title>Save The Oracle WEB v1.7</title>
-    <button id="clipboard" class="icon-btn">
-      <img src="{{page.img}}/icon/clipboard.png" alt="statStr copy to Clipboard">
-    </button>
   </head>
 
   <body>
