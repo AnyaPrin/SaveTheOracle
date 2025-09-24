@@ -265,7 +265,6 @@
     <header>
       <span style="font-size:16pt">Save The Oracle</span>
       <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
-      <button id="open-solver-btn">ソルバーにデータを送る</button>
     </header>
     <main>
       <canvas id="puzzlecanvas" class="fade"></canvas>
@@ -287,7 +286,7 @@
       画像:FINAL FANTASY XIV ⒸSQUARE ENIX <br>
       効果音: windows10 microsoft<br>
       <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
-        mifilia.js  &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+        mifilia.js 1.7.1 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
       <span style="position:fixed;right:20px;">
         <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
           <img width="20" src="/img/github-mark-white.png"> GitHub </a> </span>
@@ -296,35 +295,10 @@
   <script src="puzzle.js"></script>
   <script src="nodegraph.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const openSolverBtn = document.getElementById('open-solver-btn');
-        if (openSolverBtn) {
-            openSolverBtn.addEventListener('click', () => {
-                // puzzle.js がグローバルに statStr を公開していると仮定します。
-                // より堅牢にするなら、puzzle.js内で現在の盤面を返すグローバル関数
-                // (例: window.puzzle.getCurrentState()) を用意するのがおすすめです。
-                const stateString = encodeURIComponent(statStr);
-                const solverURL = `solver/solver.html?state=${stateString}`;
-
-                // split.html内のiframe(id="solver")を探す
-                const solverIframe = parent.document.getElementById("solver");
-                if (solverIframe) {
-                    // iframe が見つかれば、そのsrcを更新
-                    solverIframe.src = solverURL;
-                } else {
-                    // 見つからなければ（単体で開かれた場合）、新しいタブで開く
-                    window.open(solverURL, '_blank');
-                }
-            });
-        }
-    });
     function toggleFade() {
         const canvas = document.getElementById("graphcanvas");
         canvas.classList.toggle("visible");
     }
-
-
-
   </script>
 
 </html>

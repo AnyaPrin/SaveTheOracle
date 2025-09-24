@@ -7,7 +7,6 @@ const COMMON = {
   HEIGHT: 5,
   GOAL_PIECE: 'A',
 
-
   /**
    * 盤面文字列から駒の構成に基づいた一意のシグネチャ文字列を生成する。
    * @param {string} state 盤面文字列
@@ -22,8 +21,6 @@ const COMMON = {
     }
     return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
   },
-
-
 
   /**
    * ランダムな「完全な」盤面状態の文字列を生成する
@@ -238,4 +235,5 @@ const COMMON = {
     }
     return newBoard.join('');
   }
+
 };

@@ -77,6 +77,7 @@ const FLSH_EFF_DUR = 20;
 const FLSH_COL = "rgba(255,255,200,";
 const initStr="BAACBAACDFFEDIJEG..H";
 let statStr=initStr;
+let statInt=COMMON.stateToBigInt(statStr);
 
 const INIT_BRD = [
     [2, 1,   1, 3],
@@ -579,11 +580,8 @@ function canMove(bid,mv) {
     default:
         return false;
     }
-
     const a = (shiftedBlockBm & hallBm);
     const b =  a === shiftedBlockBm;
-
-
     return b;// 3. 移動後の位置がすべて空白マスであるか判定
 }
 
@@ -617,7 +615,8 @@ function move(bid,mv) {
             newChars[(ny + y) * W + (nx + x)] = pieceCode;
         }
     }
-    statStr = newChars.join('');
+  statStr = newChars.join('');
+
     // --- 状態更新ロジックここまで ---
 
     if (bid == 1 && mv in OrclIdx) {
@@ -626,8 +625,8 @@ function move(bid,mv) {
     }
     if (snd_move)
 	snd_move.currentTime = 0, snd_move.play();
-
 }
+
 
 function blkBuster(bid) {
     if (!(bid in Blks) || bid == 1 || bid == 7)
@@ -693,12 +692,14 @@ const onMouseMove = (e) => {
     if (mv) {
         if (PClr && Selected == 1 && mv == "down") {
 	    startClrAni();
-        } else if ( canMove(Selected,mv) ) {
-	    move(Selected, mv);
-	    DSMP = [x, y];                   //  Selected position
-	    blkPos = [...Blks[Selected].pos];  //  Selected block position
+          //        } else if ( canMove(Selected,mv) ) {
+        } else if ( COMMON.canMove(statInt, Selected, mv) ) {
+          console.log("COMMON worked");
+	  move(Selected, mv);
+	  DSMP = [x, y];                        //  Selected position
+	  blkPos = [...Blks[Selected].pos];     //  Selected block position
         } else {
-	    DSMP = [x, y];                   //  Selected position
+	    DSMP = [x, y];                     //  Selected position
 	    blkPos = [...Blks[Selected].pos];  //
         }
     }
@@ -828,11 +829,11 @@ window.onload = async function() {
         }
     });
 
-
     const windowsClipboard = document.getElementById('clipboard');
     if (windowsClipboard) {
         windowsClipboard.addEventListener('click', statStrClipboard);
     }
+
 
     puzzleCanvas.addEventListener("mousedown", onMouseDown);
     puzzleCanvas.addEventListener("mousemove", onMouseMove);
