@@ -22,6 +22,7 @@ const COMMON = {
     return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
   },
 
+
   /**
    * ランダムな「完全な」盤面状態の文字列を生成する
    * @returns {string}

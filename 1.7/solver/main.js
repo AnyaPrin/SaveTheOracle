@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
       sharedVisited: 'data/shared_visited.dat'
     },
     MIKOTO_SLIDES: [
-      '../img/mikoto_speech/slide_0.webp',
-      '../img/mikoto_speech/slide_1.webp',
-      '../img/mikoto_speech/slide_2.webp',
-      '../img/mikoto_speech/slide_3.webp',
-      '../img/mikoto_speech/slide_4.webp',
-      '../img/mikoto_speech/slide_5.webp'
+      '../img/mikoto/slide_0.webp',
+      '../img/mikoto/slide_1.webp',
+      '../img/mikoto/slide_2.webp',
+      '../img/mikoto/slide_3.webp',
+      '../img/mikoto/slide_4.webp',
+      '../img/mikoto/slide_5.webp'
     ]
   };
 
@@ -69,18 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initialStateInput.value = INITIAL_STATE;
 
-  // --- URLパラメータから初期盤面を読み込む ---
+  const FULL_SET_SIGNATURE = COMMON.getPiecesSignature(INITIAL_STATE);
+
+  // --- URLパラメータから探索開始状態を読み込む ---
   const urlParams = new URLSearchParams(window.location.search);
   const stateFromUrl = urlParams.get('state');
   if (stateFromUrl) {
-    // URLに 'state' パラメータがあれば、その値を初期盤面として設定
+    // URLに 'state' パラメータがあれば、その値を探索開始状態として設定
     initialStateInput.value = stateFromUrl.toUpperCase();
     // 既存の盤面設定処理を呼び出して、検証とUI更新を行う
     handleSetState();
   }
 
   // --- Event Listeners ---
-  const FULL_SET_SIGNATURE = COMMON.getPiecesSignature(INITIAL_STATE);
+
 
   topContainer.addEventListener('click', (e) => {
     // イベント委譲(Event Delegation)パターン:
@@ -208,9 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Functions ---
 
-
-
-
   function startSearch(selectedAlgorithm) {
     // 新しい探索を開始する前に、以前の探索セッションが残っていればクリアする。
     // これにより、探索成功後に別の探索を開始した場合でも、前のソルバーが正しく破棄される。
@@ -238,11 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let preloadedDataForSolver = null;
     if (useLocalVisited) {
-      // 開始局面が保存済みデータに含まれている場合、そのデータセットを使うと探索が即座に終了してしまう可能性がある。
-      // (開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)。この場合、安全策として保存済みデータの利用を一時的に無効にする。
+      // 探索開始局面が保存済みデータに含まれている場合、そのデータセットを使うと探索が即座に終了してしまう可能性がある。
+      // (探索開始局面の隣接ノードが全て探索済みになり、探索が広がらないため)。この場合、安全策として保存済みデータの利用を一時的に無効にする。
       if (dataStore.set.has(normalizedInitialStateBigInt)) {
-        console.warn('初期盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。');
-        statusDiv.textContent = '情報: 初期盤面が保存済みデータに含まれていたため、保存データは利用されません。';
+        console.warn('探索開始盤面が保存済みデータに含まれているため、この探索では保存済みデータを利用しません。');
+        statusDiv.textContent = '情報: 探索開始盤面が保存済みデータに含まれていたため、保存データは利用されません。';
       } else {
         preloadedDataForSolver = dataStore.set;
       }
@@ -541,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     INITIAL_STATE = newState;
     setStateStatusDiv.style.color = COLORS.success;
-    setStateStatusDiv.textContent = '初期盤面が更新されました。';
+    setStateStatusDiv.textContent = '探索開始状態が更新されました。';
     setTimeout(() => { setStateStatusDiv.textContent = ''; }, 3000);
 
     if (optimalPathData.normalizedSet) {
@@ -549,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (optimalPathData.normalizedSet.has(normalizedStateBigInt)) {
         pruningDataStatus.textContent = `(最短経路上: ${optimalPathData.normalizedSet.size.toLocaleString()}件のデータ利用可)`;
       } else {
-        pruningDataStatus.textContent = `(注意: 初期盤面は最短経路上にありません)`;
+        pruningDataStatus.textContent = `(注意: 探索開始状態は最短経路上にありません)`;
       }
     }
 
@@ -567,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const currentSignature = getPiecesSignature(INITIAL_STATE);
+      const currentSignature = COMMON.getPiecesSignature(INITIAL_STATE);
       const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
       const dataType = isFullSet ? 'fullset' : 'subset';
       const dataStore = localVisitedData[dataType];
@@ -626,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (oldCleanupBtn) oldCleanupBtn.parentElement.removeChild(oldCleanupBtn);
 
     try {
-      const currentSignature = getPiecesSignature(INITIAL_STATE);
+      const currentSignature = COMMON.getPiecesSignature(INITIAL_STATE);
       const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
       const dataType = isFullSet ? 'fullset' : 'subset';
       const dataStore = localVisitedData[dataType];
@@ -816,7 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
       while (queue.length > 0) {
         const curr = queue.shift();
         positions.push(curr);
-
         const x = curr % COMMON.WIDTH;
         const y = Math.floor(curr / COMMON.WIDTH);
 
@@ -1147,13 +1145,13 @@ document.addEventListener('DOMContentLoaded', () => {
     applyBtn.addEventListener('click', () => {
       // "サブセットを許す"がチェックされていない場合、全ての駒が配置されているかチェック
       if (!allowSubsetCheckbox.checked && sourcePieces.length > 0) {
-        alert(`配置していない駒があります。全ての駒を右の盤面に配置してください。`);
+        alert(`配置していない駒があります。全ての駒を右のボードに配置してください。`);
         return;
       }
 
       // A（大駒2x2の駒）は必須)。さもないとゴール条件が無くなってしまう。
       if (!targetPieces.some(p => p.char === 'A')) {
-        alert(`大駒"A"が配置されていません。Aは必ず右の盤面に配置してください。`);
+        alert(`Aの駒は必須です。必ず右のボードに配置してください。`);
         return;
       }
 
@@ -1163,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // パズルとして成立するための最低条件をチェック (空きマスが2つ以上か)
       // (現在のボードエディターの仕様では空きマスが２つ以下になることはないが、念のため)
       if (emptyCount < 2) {
-        alert(`空きマスが2つ未満です。駒を右クリックで盤面から取り除いてください。`);
+        alert(`空きマスが2つ未満です。駒を右クリックして盤面から取り除いてください。`);
         return;
       }
 

@@ -47,83 +47,70 @@
   :root{
       text-color:#123456;
   }
-  main {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: left;
-      justify-content: left;
-      font-size: 0.75rem;
-      border: 0px;
-      color: var(--text-color);
-      padding: 2px 24px 24px;
-      margin: 2px 24px 24px;
-      text-align: left;
-      background-size:cover;
-      width:960px;
-      height:540px;
-  }
-  .container {
-      color: var(--text-color);
-      width:960px;
-      height:540px;
+  body {
+      background-image:url('img/story/slide08.webp');
       background-size: cover;
       background-position: center;
-      animation: slideShow 140s infinite; /* 8画像 × 5秒 = 40秒 */
-      display: flex;
-      align-items: left;
-      justify-content: left;
+      margin: 0;
+  }
+  main{
+      height:400px;
+      width:600px;
+      font-size: 0.75rem;
       font-family: MeiryoB, Arial, sans-serif;
-      font-size: 2em;
+      font-size: 1em;
       text-align: left;
-      position: relative;
-      text-shadow: 4px 4px 14px rgba(0, 0, 0, 1); /* 右下に影 */
+      text-shadow: 4px 4px 8px rgba(0, 0, 0, 1); /* 右下に影 */
+      color: var(--text-color);
+      box-sizing: border-box;
+      overflow:hidden;
+      margin:0 auto;
+      }
+  .container {
+      display: block;
+      height:400px;
+      width:600px;
+      background-size: cover;
+      background-position: center;
+      max-width:960px;
+      margin:25px 0;
+      mask-image: radial-gradient(farthest-corner, white 50%, transparent 70%);
+      animation: slideShow 140s infinite;
   }
-
   @keyframes slideShow {
-      0%, 12.5% { background-image: url('img/story/slide01.jpg'); }
-      12.5%, 25% { background-image: url('img/story/slide02.jpg'); }
-      25%, 37.5% { background-image: url('img/story/slide03.jpg'); }
-      37.5%, 50% { background-image: url('img/story/slide04.jpg'); }
-      50%, 62.5% { background-image: url('img/story/slide05.jpg'); }
-      62.5%, 75% { background-image: url('img/story/slide06.jpg'); }
-      75%, 87.5% { background-image: url('img/story/slide07.jpg'); }
-      87.5%, 100% { background-image: url('img/story/slide00.jpg'); }
+         0%, 10.0% { background-image: url('img/story/slide00.webp'); }
+      10.0%, 20.0% { background-image: url('img/story/slide01.webp'); }
+      20.0%, 30.0% { background-image: url('img/story/slide02.webp'); }
+      30.0%, 40.0% { background-image: url('img/story/slide03.webp'); }
+      40.0%, 50.0% { background-image: url('img/story/slide04.webp'); }
+      50.0%, 60.0% { background-image: url('img/story/slide05.webp'); }
+      60.0%, 70.0% { background-image: url('img/story/slide06.webp'); }
+      70.0%, 80.0% { background-image: url('img/story/slide07.webp'); }
+      80.0%, 90.0% { background-image: url('img/story/slide08.webp'); }
+      90.0%, 100.0% { background-image: url('img/story/slide08.webp'); }
   }
-  /* FadeinOUT */
+  /* FadeIn OUT */
   .container::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
       background: inherit;
       animation: fade 40s infinite;
       z-index: -1;
   }
-
   @keyframes fade {
-      0%, 10% { opacity: 1; }
-      11.25% { opacity: 0; }
-      12.5%, 23.75% { opacity: 1; }
-      25% { opacity: 0; }
-      26.25%, 37.5% { opacity: 1; }
-      38.75% { opacity: 0; }
-      50%, 61.25% { opacity: 1; }
-      62.5% { opacity: 0; }
-      63.75%, 75% { opacity: 1; }
-      76.25% { opacity: 0; }
-      77.5%, 88.75% { opacity: 1; }
-      90% { opacity: 0; }
-      91.25%, 100% { opacity: 1; }
+         0%{ opacity: 1; }
+      10.0%{ opacity: 0; }
+      20.0%{ opacity: 1; }
+      30.0%{ opacity: 0; }
+      40.0%{ opacity: 1; }
+      50.0%{ opacity: 0; }
+      60.0%{ opacity: 1; }
+      70.0%{ opacity: 0; }
+      80.0%{ opacity: 1; }
+      90.0%{ opacity: 0; }
   }
-
-  .menu {
-      padding: 24px 24px 24px;
-      margin: 2px 24px 24px;
-  }
-
   .horizontal {
       display: flex;
       align-items: center;
@@ -136,37 +123,58 @@
       flex-direction: column;
   }
 
-  main .btn {
-      display: inner-block;
-      padding: 14px 20px;
-      margin: 1px 20px;
-      display: inline-block;
-      width: 120px;
-      background-color: transparent;
-  }
-
   #stable.btn {
       background-color: rgba(12,73,92,0.5);
   }
-
   #stable.btn:hover,
   #stable.btn:focus {
       background: #e2f9ff;
       color: #127392;
       outline: none;
   }
-  a {
-      display: inline-block;
+  .container p  {
+      color: #ffffff;
+      display:inline-block;
+      text-align:left;
+      margin: 200px 75px;
   }
+  .container strong{
+      font-size:22px;}
+
+  div.menu {
+      display: inner-block;
+      padding: 14px 20px;
+      margin: 1px 20px;
+      width: 300px;
+      background-color: transparent;
+  }
+  div.menu.btn {
+      display: inline-block;
+      height:150px;
+      min-height:50px;
+      max-height:150px;
+      box-size:box-border;
+      background-color: transparent;
+  }
+
+  a.btn {
+      background-color: transparent;
+      font-size:1em;
+      font-family:meiryoB;
+  }
+
 </style>
 <main class="container">
-<h3 style="display:inline-block; text-align:left;"><strong>ゲームの説明</strong></h3>
-<p>  マウスドラッグで駒を動かし、ユールモアにしまわれた光の巫女を外へ連れ出してください。<br>
-      <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
-        Source Code</a><br>
-      <a class="btn" id="stable" href="1.7/minfilia.html" target="_blank" rel="noopener">minfilia 1.7 </a><br>
-      <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version </a><br>
+<p><strong>ゲームの説明</strong><br>マウスドラッグで駒を動かし、ユールモアにしまわれた光の巫女を外へ連れ出してください。</p>
 </main>
+<div class="menu">
+  <a class="btn" id="stable" href="1.7/minfilia.html" target="_blank" rel="noopener">minfilia 1.7 </a>
+<div class="menu">
+  <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version (ZIP)</a>
+<div class="menu">
+  <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
+    Source Code</a></div>
+</div></div>
 
   <footer>
     <hr>
