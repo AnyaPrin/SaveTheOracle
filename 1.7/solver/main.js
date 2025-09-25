@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
-  const FULL_SET_SIGNATURE = COMMON.getPiecesSignature(INITIAL_STATE);
+
 
   let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
   let localVisitedData = {
@@ -79,10 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     handleSetState();
   }
 
-
-
   // --- Event Listeners ---
-
+  const FULL_SET_SIGNATURE = COMMON.getPiecesSignature(INITIAL_STATE);
 
   topContainer.addEventListener('click', (e) => {
     // イベント委譲(Event Delegation)パターン:
