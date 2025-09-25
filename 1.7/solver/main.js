@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let INITIAL_STATE = "BAACBAACDFFEDIJEG..H";
+  const FULL_SET_SIGNATURE = COMMON.getPiecesSignature(INITIAL_STATE);
+
   let optimalPathData = { rawSet: null, normalizedSet: null, array: null };
   let localVisitedData = {
     fullset: { set: new Set(), status: '未読込' },
@@ -48,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const progressDetailsDiv = document.getElementById('progress-details');
   const actionButtonsDiv = document.querySelector('.action-buttons');
-
 
 
   const saveBtn = document.getElementById('save-btn');
@@ -209,21 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Functions ---
 
-  /**
-   * 盤面文字列から駒の構成に基づいた一意のシグネチャ文字列を生成する。
-   * @param {string} state 盤面文字列
-   * @returns {string} 駒の種類と数をアルファベット順に並べたシグネチャ (例: "A:4,B:2,C:2,...")
-   */
-  function getPiecesSignature(state) {
-    const pieceCounts = {};
-    for (const char of state) {
-      if (char !== '.') {
-        pieceCounts[char] = (pieceCounts[char] || 0) + 1;
-      }
-    }
-    return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
-  }
-  const FULL_SET_SIGNATURE = getPiecesSignature("BAACBAACDFFEDIJEG..H");
+
+
 
   function startSearch(selectedAlgorithm) {
     // 新しい探索を開始する前に、以前の探索セッションが残っていればクリアする。
@@ -240,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uiSelectedAlgorithm = (solverAlgorithm === 'iddfs') ? 'idastar' : solverAlgorithm;
     console.log('uiSelectedAlgorithm:', uiSelectedAlgorithm);
 
-    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const currentSignature = COMMON.getPiecesSignature(INITIAL_STATE);
     const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
     const dataType = isFullSet ? 'fullset' : 'subset';
     const dataStore = localVisitedData[dataType];
@@ -513,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initialStateInput.disabled = isSearching;
     pruningCheckbox.disabled = isSearching || !optimalPathData.normalizedSet;
 
-    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const currentSignature = COMMON.getPiecesSignature(INITIAL_STATE);
     const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
     const dataStore = localVisitedData[isFullSet ? 'fullset' : 'subset'];
     useLocalVisitedCheckbox.disabled = isSearching || dataStore.status !== '読込完了';
@@ -567,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const currentSignature = getPiecesSignature(INITIAL_STATE);
+    const currentSignature = COMMON.getPiecesSignature(INITIAL_STATE);
     const isFullSet = (currentSignature === FULL_SET_SIGNATURE);
     const dataType = isFullSet ? 'fullset' : 'subset';
     const dataStore = localVisitedData[dataType];
