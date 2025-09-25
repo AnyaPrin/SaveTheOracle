@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <title>State String to BigInt Conversion Test</title>
+    <style>
+        body { font-family: sans-serif; background-color: #222; color: #eee; padding: 20px; }
+        .result { margin-top: 10px; }
+        .success { color: lightgreen; }
+        .failure { color: lightcoral; }
+        hr { border-color: #444; margin: 20px 0; }
+        #test-status {
+            background-color: #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #output h2 { margin-top: 0; }
+    </style>
+</head>
+
+<body>
+    <h1>State String &lt;=&gt; BigInt Conversion Test</h1>
+    <div id="test-status">
+        <p>Run Count: <span id="run-count">0</span></p>
+        <p>Failures: <span id="failure-count">0</span></p>
+        <p>Invalid Inputs Handled: <span id="invalid-count">0</span></p>
+        <p>Time Remaining: <span id="time-remaining">300</span>s</p>
+        <button id="stop-test-btn">Stop Test Loop</button>
+    </div>
+    <hr>
+    <div id="output"></div>
+
+<script>
+  // --- Conversion Functions ---
+
+const CHAR_TO_VALUE = { '.': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10 };
+const VALUE_TO_CHAR = ['.', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+/**
+ * 盤面状態の文字列をBigIntにエンコードする
+ * @param {string} stateString - 20文字の盤面状態
+ * @returns {BigInt}
+ */
+function stateToBigInt(stateString) {
+    // 1. 文字列長のチェック
+    if (stateString.length !== 20) {
+        return null;
+    }
+
+    let bigIntState = 0n;
+    for (let i = 0; i < stateString.length; i++) {
+        const char = stateString[i];
+        const value = CHAR_TO_VALUE[char];
+
+        // 2. 無効な文字のチェック
+        if (value === undefined) {
+            return null;
+        }
+        // 各マスに4ビットを割り当て、左のマスほど上位ビットになるように配置
+        bigIntState |= (BigInt(value) << BigInt((19 - i) * 4));
+    }
+    return bigIntState;
+}
+
+/**
+ * BigIntを盤面状態の文字列にデコードする
+ * @param {BigInt} bigIntState
+ * @returns {string}
+ */
+function bigIntToState(bigIntState) {
+    let stateString = '';
+    for (let i = 0; i < 20; i++) {
+        const shift = BigInt((19 - i) * 4);
+        const value = Number((bigIntState >> shift) & 0b1111n);
+        stateString += VALUE_TO_CHAR[value] || '?';
+    }
+    return stateString;
+}
+/**
+ * ランダムな「完全な」盤面状態の文字列を生成する
+ * @returns {string}
+ */
+function generateRandomState() {
+    // パズルの駒構成: 'A'x4, 'B'x2, 'C'x2, 'D'x2, 'E'x2, 'F'x2, 'G'x1, 'H'x1, 'I'x1, 'J'x1, '.'x2
+    const pieces = 'AAAABBCCDDEEFFGHIJ..';
+    // 文字列を配列に変換し、ランダムに並び替えてから、再び文字列に戻す
+    return pieces.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+/**
+ * PDB生成などで利用する、駒を減らしたサブ問題の盤面を生成する
+ * @param {string} subPieces - 'A'以外に含める駒の文字列 (例: 'G' or 'BC')
+ * @returns {string}
+ */
+function generateSubproblemState(subPieces = '') {
+    const PIECE_COMPOSITION = {
+        'A': 4, 'B': 2, 'C': 2, 'D': 2, 'E': 2, 'F': 2,
+        'G': 1, 'H': 1, 'I': 1, 'J': 1
+    };
+    // 'A'は必須
+    let piecesString = 'A'.repeat(PIECE_COMPOSITION['A']);
+    let totalCells = PIECE_COMPOSITION['A'];
+
+    for (const char of subPieces.toUpperCase()) {
+        if (PIECE_COMPOSITION[char]) {
+            piecesString += char.repeat(PIECE_COMPOSITION[char]);
+            totalCells += PIECE_COMPOSITION[char];
+        }
+    }
+    // 残りを空きマスで埋める
+    piecesString += '.'.repeat(20 - totalCells);
+
+    return piecesString.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+// --- Test Logic ---
+document.addEventListener('DOMContentLoaded', () => {
+    const outputDiv = document.getElementById('output'); // 失敗したテストケースのみ表示
+    const runCountSpan = document.getElementById('run-count');
+    const failureCountSpan = document.getElementById('failure-count');
+    const invalidCountSpan = document.getElementById('invalid-count');
+    const timeRemainingSpan = document.getElementById('time-remaining');
+    const stopTestBtn = document.getElementById('stop-test-btn');
+
+    let runCounter = 0;
+    let failureCounter = 0;
+    let invalidHandledCounter = 0;
+    const testDuration = 5 * 60 * 1000; // 5 minutes
+    const startTime = Date.now();
+    let testInterval, timerInterval, timeoutId;
+
+    function runTest(testState, description) {
+        const bigIntValue = stateToBigInt(testState);
+
+        // 無効な入力のテストケースで、エンコード関数が正しくnullを返した場合
+        if (bigIntValue === null) {
+            if (description.includes("Invalid")) invalidHandledCounter++;
+            if (!description.includes("Invalid")) {
+                // 有効なはずのテストでエンコードに失敗した場合、これはエラー
+                failureCounter++;
+                displayFailure(testState, "N/A", "Encoding returned null unexpectedly.", description);
+            }
+            return; // 無効な入力を正しく処理できた場合は、何も表示しない
+        }
+
+        const decompressedState = bigIntToState(bigIntValue);
+        const success = testState === decompressedState;
+
+        if (!success) {
+            failureCounter++;
+            displayFailure(testState, decompressedState, bigIntValue, description);
+        }
+    }
+
+    function displayFailure(original, decompressed, bigInt, description) {
+        // 新しい失敗をリストの先頭に追加していく
+        outputDiv.innerHTML = `
+            <h2>Last Failure: ${description}</h2>
+            <p>Original State:     <strong>${original}</strong></p>
+            <p>Decompressed State: <strong>${decompressed}</strong></p>
+            <p>Encoded (BigInt):   <strong>${bigInt}</strong></p>
+            <hr>
+        ` + outputDiv.innerHTML;
+    }
+
+    function runAllTests() {
+        runCounter++;
+        runTest("BAACBAACDFFEDIJEG..H", "Test 1: Standard Initial State");
+        runTest(generateRandomState(), "Test 2: Random Full Board");
+        runTest(generateSubproblemState(''), "Test 3: Subproblem (A only)");
+        runTest(generateSubproblemState('G'), "Test 4: Subproblem (A and G)");
+        runTest(generateSubproblemState('BC'), "Test 5: Subproblem (A, B, and C)");
+        runTest("BAACBAACDFFEDIJEG..X", "Test 6: Invalid Character ('X')");
+        runTest("BAACBAACDFFEDIJEG.", "Test 7: Invalid Length (19 chars)");
+
+        runCountSpan.textContent = runCounter.toLocaleString();
+        failureCountSpan.textContent = failureCounter.toLocaleString();
+        invalidCountSpan.textContent = invalidHandledCounter.toLocaleString();
+        if (failureCounter > 0) {
+            failureCountSpan.style.color = 'lightcoral';
+        }
+    }
+
+    function updateTimer() {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, (testDuration - elapsed) / 1000);
+        timeRemainingSpan.textContent = remaining.toFixed(0);
+    }
+
+    function stopTesting() {
+        clearInterval(testInterval);
+        clearInterval(timerInterval);
+        stopTestBtn.disabled = true;
+        stopTestBtn.textContent = 'Stopped';
+        const elapsed = (Date.now() - startTime) / 1000;
+        timeRemainingSpan.textContent = `Stopped after ${elapsed.toFixed(1)}s. Total runs: ${runCounter.toLocaleString()}.`;
+    }
+
+    testInterval = setInterval(runAllTests, 50); // 50ms毎にテストを実行
+    timerInterval = setInterval(updateTimer, 1000);
+    timeoutId = setTimeout(stopTesting, testDuration);
+    stopTestBtn.addEventListener('click', () => {
+        clearTimeout(timeoutId);
+        stopTesting();
+    });
+});
+
+</script>
+</html>

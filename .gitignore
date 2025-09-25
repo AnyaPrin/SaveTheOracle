@@ -45,3 +45,6 @@ Thumbs.db
 
 # VSCodeの設定（必要に応じて）
 .vscode/
+
+# lock stable version
+1.7/
