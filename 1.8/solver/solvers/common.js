@@ -8,6 +8,27 @@ const COMMON = {
   GOAL_PIECE: 'A',
 
   /**
+   * ビットマップ内に特定のビットパターンが含まれているかチェックします。
+   * @param {number} bitmap - チェック対象のビットマップ (最大32ビット)。
+   * @param {number} pattern - 検索するビットパターン。
+   * @param {number} patternLength - パターンのビット長。
+   */
+  findPatternInBitmap(bitmap, pattern, patternLength) {
+    // パターンをビットマップの左端に合わせるためのマスクを作成
+    const mask = (1 << patternLength) - 1;
+
+    // ビットマップの長さ分だけループしてパターンを検索
+    for (let i = 0; i <= 32 - patternLength; i++) {
+      // 現在の位置でビットマップを切り出し、パターンと比較
+      if (((bitmap >> i) & mask) === pattern) {
+        return true; // パターンが見つかった
+      }
+    }
+
+    return false; // パターンが見つからなかった
+  },
+
+  /**
    * 盤面文字列から駒の構成に基づいた一意のシグネチャ文字列を生成する。
    * @param {string} state 盤面文字列
    * @returns {string} 駒の種類と数をアルファベット順に並べたシグネチャ (例: "A:4,B:2,C:2,...")

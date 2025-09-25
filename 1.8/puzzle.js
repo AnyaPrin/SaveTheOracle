@@ -73,7 +73,7 @@ const SND_MRCL_VOL = 1
 const SND_CLR_VOL = 0.8
 const MRCL_ROT_DUR = 500; // Miracle
 const MRCL_BUST_DELAY = 200;
-const MRCL_EFF_DUR = 20;
+const MRCL_FX_DUR = 20;
 const MRCL_COL = "rgba(255,100,100,";
 const initStr = "BAACBAACDFFEDIJEG..H";
 let statStr = initStr;
@@ -88,16 +88,17 @@ let crsrRect = [];
 
 let Selected;
 let PClr;
-let clrAni;
-let clrAniSTM;
+let clrAnim;
+let clrAnimMod;
 let clr;
 
 let isDrag;
 let DSMP;
 
 let blkPos;       // Block Posttion
-let mrclBtn, mrclAnim, mrclPhase, mrclPhMod, mrclBust;
-let mrclEffAct, mrclEffST, clr_mrclPlayed;
+let mrclBtn, mrclAnim, mrclPhase, mrclPhMod;
+let mrclBust=[];    // 破壊される駒(bid)の配列
+let mrclFx, mrclFxMod, clr_mrclPlayed;
 let Freedom = 0;
 let gameTurns = 0;
 let gameHistory = [];
@@ -197,6 +198,8 @@ let OrclIdx = {
 
 
 
+
+
 //let pazzleCanvas, pctx, offCanvas;
 let snd_select, snd_move, snd_mrcl, snd_clr;
 let imgSheet = null;
@@ -286,8 +289,8 @@ function initGameState() {
 
   clr = false;           // game clear flag
   PClr = false;          // pre game clear flag
-  clrAni = false;        // clear animation flag
-  clrAniSTM = 0;         //
+  clrAnim = false;        // clear animation flag
+  clrAnimMod = 0;         //
   isDrag = false;
   DSMP = [0, 0];
   blkPos = [0, 0];        // block position
@@ -298,8 +301,8 @@ function initGameState() {
   mrclPhase = 0;         // phase flag
   mrclST = 0;           // start flag
   mrclBust = [];     // 破壊するブロックのリスト
-  mrclEffAct = false;
-  mrclEffStage = 0;
+  mrclFx = false;
+  mrclFxMod = 0;
   clr_mrclPlayed = false;
 
   // Freedom degree = the number of movable nodes(statStr) from current nodes(statStr)
@@ -313,6 +316,39 @@ const toGridXY = (x, y) => {
   return { gx, gy };
 }
 
+const BLK_SIZE_TABLE = {
+  'A': [2, 2],
+  'B': [1, 2],
+  'C': [1, 2],
+  'D': [1, 2],
+  'E': [1, 2],
+  'F': [2, 1],
+  'G': [1, 1],
+  'H': [1, 1],
+  'I': [1, 1],
+  'J': [1, 1],
+};
+
+/**
+ * 盤面インデックスとブロック文字から描画用の矩形 [x, y, w, h] を返す
+ */
+function getBlkRect(idx, char) {
+  // 盤面上の左上座標
+  const x = idx % W;
+  const y = Math.floor(idx / W);
+
+  // ブロックのサイズを取得
+  const [bw, bh] = BLK_SIZE_TABLE[char] || [1, 1];
+
+  // 描画座標
+  const drawX = BDOFFX + x * CELL;
+  const drawY = BDOFFY + y * CELL;
+
+  return [drawX, drawY, bw * CELL, bh * CELL];
+}
+
+
+
 function drawBlocks() {
   const seenChars = new Set();
   const charCodeA = 'A'.charCodeAt(0);
@@ -325,29 +361,13 @@ function drawBlocks() {
 
     seenChars.add(char);
     const bid = char.charCodeAt(0) - charCodeA + 1;
+    const rect = getBlkRect(i, statStr[i]);
 
-    // statStrからブロックのサイズと位置を計算
-    let minX = W, maxX = -1, minY = H, maxY = -1;
-    for (let j = 0; j < statStr.length; j++) {
-      if (statStr[j] === char) {
-        const x = j % W;
-        const y = Math.floor(j / W);
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-      }
-    }
-    const [bx, by] = [minX, minY];
-    const [bw, bh] = [maxX - minX + 1, maxY - minY + 1];
-
-    let drawX = bx * CELL + BDOFFX;
-    let drawY = by * CELL + BDOFFY;
     let orclKey = "down"; // デフォルトの向き
 
     if (bid == 1) { // メインブロックのアニメーション処理
-      if (clrAni) { // クリアアニメーション
-        const elapsed = performance.now() - clrAniSTM;
+      if (clrAnim) { // クリアアニメーション
+        const elapsed = performance.now() - clrAnimMod;
         if (elapsed < 500) {
           const progress = elapsed / 500;
           const startY = GOAL_Y * CELL + BDOFFY;
@@ -360,15 +380,15 @@ function drawBlocks() {
         const idx = Math.floor((elapsed / frame_duration) % 4);
         orclKey = ["up", "left", "down", "right"][idx];
       }
-      drImg(OrclIdx[orclKey], drawX, drawY, bw * CELL, bh * CELL);
+      drImg(OrclIdx[orclKey], ...rect);
     } else {
-      drImg(`b${bid}`, drawX, drawY, bw * CELL, bh * CELL);
+      drImg(`b${bid}`, ...rect);
     }
 
     // ブロックの枠線と選択カーソルを描画
-    drawBlockBorder(drawX, drawY, bw * CELL, bh * CELL);
+    drawBlockBorder(...rect);
     if (Selected == bid) {
-      drImgShadow('cursor', drawX, drawY, bw * CELL, bh * CELL);
+      drImgShadow('cursor', ...rect);
     }
   }
 }
@@ -541,10 +561,10 @@ function drawButtons() {
   drImg('mrcl', ...mrclRect);
 }
 const drawEffects = () => {
-  if (mrclEffAct) {
-    let elapsed = performance.now() - mrclEff;
-    if (elapsed < MRCL_EFF_DUR) {
-      let alpha = Math.max(0, 1.0 - elapsed / MRCL_EFF_DUR);
+  if (mrclFx) {
+    let elapsed = performance.now() - mrclFxMod;
+    if (elapsed < MRCL_FX_DUR) {
+      let alpha = Math.max(0, 1.0 - elapsed / MRCL_FX_DUR);
       pctx.fillStyle = MRCL_COL + (alpha * 0.7) + ")";
       pctx.fillRect(...BDRECT);
     }
@@ -669,8 +689,8 @@ function blkBuster(bid) {
   statStr = updateStatStrFromBitmap(blkBm, 0, '.');
 
   if (snd_select) snd_select.currentTime = 0, snd_select.play();
-  mrclEffAct = true;
-  mrclEff = performance.now();
+  mrclFx = true;
+  mrclFxMod = performance.now();
   return true;
 }
 
@@ -692,17 +712,14 @@ function activateMiracle() {
   if (snd_mrcl) snd_mrcl.currentTime = 0, snd_mrcl.play();
 }
 
-let startClrAni = () => {
-  clrAni = true;
-  clrAniSTM = performance.now();
+let startclrAnim = () => {
+  clrAnim = true;
+  clrAnimModM = performance.now();
   if (snd_clr) snd_clr.currentTime = 0, snd_clr.play();
 }
 
 const onMouseMove = (e) => {
-  if (!isDrag || !Selected || clrAni || mrclAnim) return;
-  const Blks = getBlksFromStatStr();
-  if ((Blks[1] && Blks[1].pos[0] == CLR_GOAL_X && Blks[1].pos[1] == CLR_GOAL_Y))
-    return;
+  if (!isDrag || !Selected || clrAnim || mrclAnim) return;
   let rect = puzzleCanvas.getBoundingClientRect();
   let x = e.clientX - rect.left;
   let y = e.clientY - rect.top;
@@ -715,7 +732,7 @@ const onMouseMove = (e) => {
   if (mrclAnim) return;
   if (mv) {
     if (PClr && Selected == 1 && mv == "down") {
-      startClrAni();
+      startclrAnim();
     } else if (canMove(Selected, mv)) {
       move(Selected, mv);
       DSMP = [x, y];                   //  Selected position
@@ -750,7 +767,7 @@ const onMouseDown = (e) => {
     return;
   }
   const Blks = getBlksFromStatStr();
-  if (!(clrAni || (Blks[1] && Blks[1].pos[0] == CLR_GOAL_X && Blks[1].pos[1] == CLR_GOAL_Y)
+  if (!(clrAnim || (Blks[1] && Blks[1].pos[0] == CLR_GOAL_X && Blks[1].pos[1] == CLR_GOAL_Y)
     || mrclAnim)) {
     if (0 <= grid_x && grid_x < W && 0 <= grid_y && grid_y < H) {
       const Brd = getBrdFromStatStr();
@@ -776,10 +793,10 @@ let onMouseUp = (e) => isDrag = false;
 function updateGameState() {
   let now = performance.now();
   const Blks = getBlksFromStatStr();
-  if (clrAni) {
-    let elapsed = now - clrAniSTM;
+  if (clrAnim) {
+    let elapsed = now - clrAnimMod;
     if (elapsed >= 500) {
-      //clrAni = false; // This might be handled by move logic if we refactor further
+      //clrAnim = false; // This might be handled by move logic if we refactor further
       Blks[1].pos = [CLR_GOAL_X, CLR_GOAL_Y];
       clr = true;
     }
@@ -791,7 +808,7 @@ function updateGameState() {
       if (mrclBust.length) {
         mrclPhase = 2;
         mrclPhMod = now;
-        OrclIdx++;
+
       } else {
         mrclAnim = false;
       }
@@ -810,17 +827,19 @@ function updateGameState() {
       }
     }
   }
-  if (mrclEffAct) {
-    let elapsed = now - mrclEffST;
-    if (elapsed >= MRCL_EFF_DUR) mrclEffAct = false;
+  if (mrclFx) {
+    let elapsed = now - mrclFxMod;
+    if (elapsed >= MRCL_FX_DUR) mrclFx = false;
   }
 }
 
 // clear or preclear Judje
 function judgeClear() {
-  const clrPos = 0x00000000000001100110;  // as 'A' is oracle
+  // ゴール位置(1,3)に2x2の'A'ブロックがある状態のビットマスク
+  // 0b01100110
+  const goalPattern = 0b01100110;
   const blkBm = mkStatStr('A');
-  if ((blkBm & clrPos) === clrPos) {
+  if (blkBm === goalPattern) {
     return true;
   }
   return false;
@@ -830,7 +849,7 @@ function mainLoop() {
   updateGameState();
   drawAll();
   if (judgeClear()) {
-    startClrAni();
+    startclrAnim();
     Clr = true;
   }
 
