@@ -1,100 +1,129 @@
 ---
 layout: default
 title: Save The Oracle
+img: img
 ---
 <style>
+  :root{
+      text-color:#123456;
+  }
   main {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    justify-content: left;
-    font-size: 0.75rem;
-    border: 0px;
-    color: var(--text-color);
-    padding: 2px 24px 24px;
-    margin: 2px 24px 24px;
-    text-align: left;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: left;
+      font-size: 0.75rem;
+      border: 0px;
+      color: var(--text-color);
+      padding: 2px 24px 24px;
+      margin: 2px 24px 24px;
+      text-align: left;
+      background-size:cover;
+      width:960px;
+      height:540px;
+  }
+  .container {
+      color: var(--text-color);
+      width:960px;
+      height:540px;
+      background-size: cover;
+      background-position: center;
+      animation: slideShow 140s infinite; /* 8画像 × 5秒 = 40秒 */
+      display: flex;
+      align-items: left;
+      justify-content: left;
+      font-family: MeiryoB, Arial, sans-serif;
+      font-size: 2em;
+      text-align: left;
+      position: relative;
+      text-shadow: 4px 4px 14px rgba(0, 0, 0, 1); /* 右下に影 */
   }
 
-  .usageimage {
-    background-image:
-        url('img/background2.png'),
-        linear-gradient(to right, rgba(0, 0, 0, 1), rgba(255, 255, 255, 0)),
-        url('img/bg_solver.jpg');
-    border-radius: 16px;
-    border: 2px solid var(--border);
-    border-color: var(--border);
-    box-shadow: var(--shadow);
-    width: 400px;
-    display: block;
-    overflow: hidden;
-    line-height: 0;
-    width: 400px;
-    padding: 0px;
-    margin: 0px;
+  @keyframes slideShow {
+      0%, 12.5% { background-image: url('img/story/slide01.jpg'); }
+      12.5%, 25% { background-image: url('img/story/slide02.jpg'); }
+      25%, 37.5% { background-image: url('img/story/slide03.jpg'); }
+      37.5%, 50% { background-image: url('img/story/slide04.jpg'); }
+      50%, 62.5% { background-image: url('img/story/slide05.jpg'); }
+      62.5%, 75% { background-image: url('img/story/slide06.jpg'); }
+      75%, 87.5% { background-image: url('img/story/slide07.jpg'); }
+      87.5%, 100% { background-image: url('img/story/slide00.jpg'); }
+  }
+  /* FadeinOUT */
+  .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: inherit;
+      animation: fade 40s infinite;
+      z-index: -1;
   }
 
+  @keyframes fade {
+      0%, 10% { opacity: 1; }
+      11.25% { opacity: 0; }
+      12.5%, 23.75% { opacity: 1; }
+      25% { opacity: 0; }
+      26.25%, 37.5% { opacity: 1; }
+      38.75% { opacity: 0; }
+      50%, 61.25% { opacity: 1; }
+      62.5% { opacity: 0; }
+      63.75%, 75% { opacity: 1; }
+      76.25% { opacity: 0; }
+      77.5%, 88.75% { opacity: 1; }
+      90% { opacity: 0; }
+      91.25%, 100% { opacity: 1; }
+  }
   .menu {
-    padding: 24px 24px 24px;
-    margin: 2px 24px 24px;
+      padding: 24px 24px 24px;
+      margin: 2px 24px 24px;
   }
 
   .horizontal {
-    display: flex;
-    align-items: center;
-    flex-direction: row;
+      display: flex;
+      align-items: center;
+      flex-direction: row;
   }
 
   .vertical {
-    display: flex;
-    align-items: right;
-    flex-direction: column;
+      display: flex;
+      align-items: right;
+      flex-direction: column;
   }
 
-  .btn {
-    display: inner-block;
-    padding: 14px 20px;
-    margin: 1px 20px;
-    display: inline-block;
-    width: 80%;
-    height: 100%;
-    background-color: transparent;
+  main .btn {
+      display: inner-block;
+      padding: 14px 20px;
+      margin: 1px 20px;
+      display: inline-block;
+      width: 120px;
+      background-color: transparent;
   }
 
   #stable.btn {
-    background-color: #127392;
+      background-color: rgba(12,73,92,0.5);
   }
 
   #stable.btn:hover,
   #stable.btn:focus {
-    background: #e2f9ff;
-    color: #127392;
-    outline: none;
+      background: #e2f9ff;
+      color: #127392;
+      outline: none;
   }
-
   a {
-    display: inline-block;
+      display: inline-block;
   }
 </style>
-
-<main>
-  <h1>ゲームの説明</h1>
-  <p>駒をマウスドラッグして光の巫女を外へだすのが目的です。<br>
-  <img class="usageimage" src="./SaveTheOracleUsage.png" alt="Save The Oracle game usage instructions">
-
-  <div class="menu">
-
-    <div class="horizontal">
-      <div class="vertical">
-        <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
-          Source Code (GitHub)</a>
-        <a class="btn" id="stable" href="1.7.1/minfilia.html" target="_blank" rel="noopener">minfilia 1.7.1 (TEST) </a>
-      </div>
-      <div class="vertical">
-        <a class="btn" href="1.7.1/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a>
-        <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version ver.1.1 ZIP </a>
-      </div>
-    </div>
-  </div>
+<main class="container">
+<h3 style="display:inline-block; text-align:left;"><strong>ゲームの説明</strong></h3>
+<p>駒をマウスドラッグして光の巫女を外へだすのが目的です。<br>
+      <a class="btn" href="https://github.com/AnyaPrin/SaveTheOracle" target="_blank" rel="noopener">
+        Source Code (GitHub)</a><br>
+      <a class="btn" id="stable" href="1.7.1/minfilia.html" target="_blank" rel="noopener">minfilia 1.7.1 (TEST) </a><br>
+      <a class="btn" href="1.7.1/integrated.html" target="_blank" rel="noopener">Integrated View (test)</a><br>
+      <a class="btn" href="./Minfilia.zip" download="Minifilia.zip"> Pygame Version ver.1.1 ZIP </a><br>
 </main>
