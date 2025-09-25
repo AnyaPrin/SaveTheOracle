@@ -285,7 +285,7 @@
                 // より堅牢にするなら、puzzle.js内で現在の盤面を返すグローバル関数
                 // (例: window.puzzle.getCurrentState()) を用意するのがおすすめです。
                 const stateString = encodeURIComponent(statStr);
-                const solverURL = `../solver/solver.html?state=${stateString}`;
+                const solverURL = `solver/solver.html?state=${stateString}`;
 
                 // split.html内のiframe(id="solver")を探す
                 const solverIframe = parent.document.getElementById("solver");
