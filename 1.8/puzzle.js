@@ -347,8 +347,6 @@ function getBlkRect(idx, char) {
   return [drawX, drawY, bw * CELL, bh * CELL];
 }
 
-
-
 function drawBlocks() {
   const seenChars = new Set();
   const charCodeA = 'A'.charCodeAt(0);
