@@ -87,10 +87,10 @@ const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
 let crsrRect = [];
 
 let Selected;
-let PClr;
+let gameClr;
 let clrAnim;
 let clrAnimMod;
-let clr;
+
 
 let isDrag;
 let DSMP;
@@ -159,46 +159,12 @@ function getBrdFromStatStr() {
   return brd;
 }
 
-// /**
-//  * Converts a 2D array into a game state string using character code
-//  * calculation for speed.
-//  * Numbers 1-10 are converted to A-J, and 0 is converted to a period ".".
-//  *
-//  * @param {number[][]} board - The 2D array to convert.
-//  * @returns {string} The converted string.
-//  *
-// function convertWithCharCode(board) {
-//     let result = '';
-//     const charCodeA = 'A'.charCodeAt(0);
-//     for (let row = 0; row < board.length; row++) {
-//         for (let col = 0; col < board[row].length; col++) {
-//             const value = board[row][col];
-//             if (value === 0) {
-//                 result += '.';
-//             } else if (value >= 1 && value <= 10) {
-//                 // Calculate character code: 'A' + (value - 1)
-//                 result += String.fromCharCode(charCodeA + value - 1);
-//             } else {
-//                 console.error(`Unknown value in board: ${value}`);
-//                 // Fallback for unknown values
-//                 result += '?';
-//             }
-//         }
-//     }
-//     return result;
-// }
-// */
-
 let OrclIdx = {
   "down": "ryneD",
   "left": "ryneL",
   "right": "ryneR",
   "up": "ryneU"
 };
-
-
-
-
 
 //let pazzleCanvas, pctx, offCanvas;
 let snd_select, snd_move, snd_mrcl, snd_clr;
@@ -287,8 +253,7 @@ function initGameState() {
   Selected = 7;    // when game start cursor set Suncred(bid:7)
   cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
 
-  clr = false;           // game clear flag
-  PClr = false;          // pre game clear flag
+  gameClr = false;           // game clear flag
   clrAnim = false;        // clear animation flag
   clrAnimMod = 0;         //
   isDrag = false;
@@ -710,7 +675,7 @@ function activateMiracle() {
   if (snd_mrcl) snd_mrcl.currentTime = 0, snd_mrcl.play();
 }
 
-let startclrAnim = () => {
+let startClrAnim = () => {
   clrAnim = true;
   clrAnimModM = performance.now();
   if (snd_clr) snd_clr.currentTime = 0, snd_clr.play();
@@ -729,15 +694,13 @@ const onMouseMove = (e) => {
   if (Math.abs(dy) > DRAG_THLD && Math.abs(dy) > Math.abs(dx)) mv = dy > 0 ? "down" : "up";
   if (mrclAnim) return;
   if (mv) {
-    if (PClr && Selected == 1 && mv == "down") {
-      startclrAnim();
+    if (gameClr && Selected == 1 && mv == "down") {
+      startClrAnim();
     } else if (canMove(Selected, mv)) {
       move(Selected, mv);
       DSMP = [x, y];                   //  Selected position
-      //blkPos = [...Blks[Selected].pos];  //  Selected block position
     } else {
       DSMP = [x, y];                   //  Selected position
-      //blkPos = [...Blks[Selected].pos];  //
     }
   }
 }
@@ -759,11 +722,14 @@ const onMouseDown = (e) => {
   let { gx, gy } = toGridXY(x, y);
   let grid_x = gx;
   let grid_y = gy;
+
+  // retry button
   if (x >= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
     loadAllResources().then(drawAll);
     initGameState();
     return;
   }
+
   const Blks = getBlksFromStatStr();
   if (!(clrAnim || (Blks[1] && Blks[1].pos[0] == CLR_GOAL_X && Blks[1].pos[1] == CLR_GOAL_Y)
     || mrclAnim)) {
@@ -778,6 +744,7 @@ const onMouseDown = (e) => {
         blkPos = [...Blks[Selected].pos];
       }
     }
+
     // Miracle btn
     if (x >= mrclRect[0] && x <= mrclRect[0] + CELL && y >= mrclRect[1] && y <= mrclRect[1] + CELL) {
       activateMiracle();
@@ -796,7 +763,7 @@ function updateGameState() {
     if (elapsed >= 500) {
       //clrAnim = false; // This might be handled by move logic if we refactor further
       Blks[1].pos = [CLR_GOAL_X, CLR_GOAL_Y];
-      clr = true;
+      gameClr = true;
     }
   }
   // Miracle Flsh
@@ -847,8 +814,8 @@ function mainLoop() {
   updateGameState();
   drawAll();
   if (judgeClear()) {
-    startclrAnim();
-    Clr = true;
+    startClrAnim();
+    gameClr = true;
   }
 
   requestAnimationFrame(mainLoop);
