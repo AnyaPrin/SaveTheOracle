@@ -714,6 +714,7 @@ async function statStrClipboard() {
     }
 }
 
+
 const onMouseDown = (e) => {
     let rect = puzzleCanvas.getBoundingClientRect();
     let x = e.clientX - rect.left;

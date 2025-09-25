@@ -267,7 +267,7 @@
       画像:FINAL FANTASY XIV ⒸSQUARE ENIX <br>
       効果音: windows10 microsoft<br>
       <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
-        mifilia.js v.1.7 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+        mifilia.js v.1.8 &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
       <span style="position:fixed;right:20px;">
         <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
           <img width="20" src="../img/github-mark-white.png"> GitHub </a> </span>
@@ -283,8 +283,8 @@
                 // puzzle.js がグローバルに statStr を公開していると仮定します。
                 // より堅牢にするなら、puzzle.js内で現在の盤面を返すグローバル関数
                 // (例: window.puzzle.getCurrentState()) を用意するのがおすすめです。
-                const stateString = encodeURIComponent(statStr);
-                const solverURL = `solver/solver.html?state=${stateString}`;
+                // const stateString = encodeURIComponent(statStr);
+                const solverURL = `solver/solver.html?state=${statStr}`;
 
                 // split.html内のiframe(id="solver")を探す
                 const solverIframe = parent.document.getElementById("solver");

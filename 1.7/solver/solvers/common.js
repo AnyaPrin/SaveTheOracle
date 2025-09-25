@@ -211,7 +211,6 @@ const COMMON = {
     }
     return nextStates;
   },
-
   canMove(state, positions, dir) {
     for (const pos of positions) {
       const nextX = pos.x + dir.dx;
@@ -223,7 +222,6 @@ const COMMON = {
     }
     return true;
   },
-
   movePiece(state, positions, dir) {
     const newBoard = state.split('');
     const pieceChar = state[positions[0].y * this.WIDTH + positions[0].x];
