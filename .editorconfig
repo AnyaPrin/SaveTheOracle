@@ -12,7 +12,7 @@ indent_style = space
 
 # Settings for specific file types
 [*.{js,html,css}]
-indent_size = 2
+indent_size = 4
 
 [*.py]
 indent_size = 4
