@@ -1,0 +1,18 @@
+@font-face {
+    font-family: 'IPAexGothic';
+    src: url('IPAexGothic.woff2') format('woff2'),
+        url('IPAexGothic.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IPAexMincho';
+    src: url('IPAexMincho.woff2') format('woff2'),
+        url('IPAexMincho.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
