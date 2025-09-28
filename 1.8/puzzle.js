@@ -1,7 +1,5 @@
----
-version: 1.8.1
----
-// Minfilia JS version.{{ this.version }}  SAVE THE ORACLE Web Edition
+// Minfilia JS SAVE THE ORACLE Web Edition
+// puzzle.js version.1.8.1
 const IS_DEBUG = true;
 
 const CELL = 100;
@@ -61,6 +59,7 @@ const SPRITE_MAP = {
     'b8': [700, 300, 100, 100],
     'b9': [600, 200, 100, 100],
     'b10': [700, 200, 100, 100],
+    'meol': [700, 200, 100, 100],
     'hint': [600, 600, 100, 100],
     'rtry': [700, 600, 100, 100],
     'mrcl': [600, 500, 100, 100],
@@ -123,8 +122,17 @@ let gameTurns = 0;
 let gameHistory = [];
 let cursor = false;
 let commandSequence = []; // For command input
-const miracleCommand = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowright', 'arrowleft', 'arrowright', 'arrowleft','a',
-'b', ' ']; // Command sequence
+
+const mrclCmd = ['arrowup','arrowup','arrowdown','arrowdown',
+                 'arrowleft','arrowright','arrowleft','arrowright','b','a',' '];
+
+const mrclCmds = {
+    Miracle: ['arrowup','arrowup','arrowdown','arrowdown',
+               'arrowleft','arrowright','arrowleft','arrowright','b','a',' '],
+    BSB: ['arrowdown','arrowup','x','y']  // Blight Soil Break
+};
+
+
 let commandInputTimer = null; // Timer for command input
 const COMMAND_TIMEOUT = 500; // 0.5 seconds
 
@@ -859,12 +867,12 @@ window.onload = async function () {
         }
 
         // Keep the sequence array at the length of the command
-        if (commandSequence.length > miracleCommand.length) {
+        if (commandSequence.length > mrclCmd.length) {
             commandSequence.shift(); // Remove the oldest key press
         }
 
         // Check if the sequence matches
-        if (JSON.stringify(commandSequence) === JSON.stringify(miracleCommand)) {
+        if (JSON.stringify(commandSequence) === JSON.stringify(mrclCmd)) {
             console.log("Miracle Command Entered!");
             activateMiracle();
             commandSequence = []; // Reset the sequence
