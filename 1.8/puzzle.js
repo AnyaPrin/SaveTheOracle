@@ -1,4 +1,4 @@
-// Minfilia JS version.1.8  SAVE THE ORACLE Web Edition
+// Minfilia JS version.1.8.1  SAVE THE ORACLE Web Edition
 const IS_DEBUG = false;
 
 const CELL = 100;
@@ -6,29 +6,38 @@ const W = 4, H = 5;
 const BRD_LEN = W * H;
 const GOAL_X = 1, GOAL_Y = 3;
 const CLR_GOAL_X = 1, CLR_GOAL_Y = 5;
-const BLK_BRDR = 8;
 
-const WALL = CELL;
+const BLKBDR = 6; // 枠線の太さ
+const BLKBDR_COL = "#1c1c1c"; // 枠線の色
+const BLKBDR_R = 8; // 角丸の半径
+const BLK_COL = "#1564C8";
+const BDOFFX = CELL + BLKBDR/2;
+const BDOFFY = CELL/2 + BLKBDR/2;
+const BDRECT = [0, 0, SCRN_W, SCRN_H];
+const BBRECT = [10, SCRN_H - 210, 200, 48];
+const ULRECT = [0, 620, 200, 200];
+
+
 let canvas = document.getElementById('puzzlecanvas');
 let style = getComputedStyle(canvas);
 const SCRN_W = parseInt(style.width);//600
 const SCRN_H = parseInt(style.height);// 800
-console.log("w,h:", SCRN_W, SCRN_H)
+console.log("screen width x height: ", SCRN_W," x ", SCRN_H);
 
 const SELECTEDCOL = "rgba(215,225,2,0.5)";
 const TRANSPARENT = "rgba(0,0,0,0)";
 
 const GOAL_COL = "#00FF00";
-const BLK_COL = "#1564C8";
-const BLK_BRDR_COL = "#281818";
-const WALL_COL = "#282801";
+
+
+const CELL_COL = "#282801";
 const FLR_COL = "#0A0A0A";  // floor
 const ORCL_COL = "#C8C8B4";
 const TXT_DARK = "#002828";
 const TXT_LIGHT = "#FFFFFF";
 const CLR_TXT_COL = TXT_LIGHT;
 
-const DRAG_THLD = CELL * 0.5; // mouse drag sensibility 0<fast<->slow >1
+const DRAG_THLD = CELL/2; // mouse drag sensibility 0<fast<->slow >1
 
 const SPRITE = "img/imagesheet.webp" // sprites sheet
 const SPRITE_MAP = {
@@ -58,11 +67,7 @@ const SPRITE_MAP = {
     'urianger': [600, 1014, 200, 200],
     'cursor': [600, 700, 200, 250],
 };
-const BDOFFX = WALL + BLK_BRDR / 2;
-const BDOFFY = WALL + BLK_BRDR / 2 - CELL / 2;
-const BDRECT = [0, 0, SCRN_W, SCRN_H];
-const BBRECT = [10, SCRN_H - 210, 200, 48];
-const ULRECT = [0, 620, 200, 200];
+
 const SND_SEL = 'snd/select.wav'
 const SND_MOV = 'snd/move.wav'
 const SND_MRCL = 'snd/mrcl.wav' // miracle sound
@@ -101,7 +106,7 @@ let DSMP;
 
 let blkPos;       // Block Posttion
 let mrclBtn, mrclAnim, mrclPhase, mrclPhMod;
-let mrclBust = [];    // 破壊される駒(bid)の配列
+let mrclBust = [];    // 破壊される駒(blkId)の配列
 let mrclFx, mrclFxMod, clr_mrclPlayed;
 let Freedom = 0;
 let gameTurns = 0;
@@ -131,18 +136,18 @@ const NIBBLE_MASKS = Array.from({ length: BRD_LEN }, (_, i) => {
 
 /**
  * stateInt から指定した駒のビットマスクを生成します。
- * @param {number} pieceId - 駒のID (1-10 for A-J)
+ * @param {number} blkId - 駒のID (1-10 for A-J)
  * @returns {BigInt} 駒の位置を示すビットマスク
  */
-function getPieceBitmap(pieceId) {
+function getBlkBitmap(blkId) {
     // stateIntは左上(idx=0)が最上位ビット、右下(idx=19)が最下位ビット
     // ビットマスクは右下(idx=19)が最下位ビット(LSB)になるように変更
-    const pieceCode = BigInt(pieceId);
+    const blkCode = BigInt(blkId);
     let bitmap = 0n;
     for (let i = 0; i < BRD_LEN; i++) {
         // (BRD_LEN - 1 - i) は、stateIntのインデックス(左上=0)をビットマスクのインデックス(右下=0)に変換
         const stateIntIndex = BRD_LEN - 1 - i;
-        if (((stateInt >> BigInt(i * 4)) & 0xFn) === pieceCode) {
+        if (((stateInt >> BigInt(i * 4)) & 0xFn) === blkCode) {
             bitmap |= BIT_MASKS[stateIntIndex];
         }
     }
@@ -182,7 +187,8 @@ function drHFlipImg(key, x, y, w, h) {
     pctx.restore();
 }
 
-function drImg(key, x, y, w, h) {
+function drImg(key, rect) {
+    const [x, y, w, h] = rect;
     let m = SPRITE_MAP[key];
     pctx.drawImage(imgSheet, ...m, x, y, w, h);
 }
@@ -200,8 +206,9 @@ function drImgLight(key, x, y, w, h) {
     pctx.restore(); // 描画状態を元に戻す
 }
 
-function drImgShadow(key, x, y, w, h, shadow = "rgba(0, 0, 0, 1)", blur = 14) {
-    let m = SPRITE_MAP[key];
+function drImgShadow(key, rect, shadow = "rgba(0, 0, 0, 1)", blur = 14) {
+    const [x, y, w, h] = rect;
+    const m = SPRITE_MAP[key];
 
     pctx.save(); // 現在の状態を保存
 
@@ -254,7 +261,7 @@ function initGameState() {
     console.log("initialize game")
     stateInt = COMMON.stateToBigInt(initStr);
     statStr = initStr; // for debug display
-    Selected = 7;    // when game start cursor set Suncred(bid:7)
+    Selected = 7;    // when game start cursor set Suncred(blkId:7)
     cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
 
     gameClr = false;           // game clear flag
@@ -262,7 +269,7 @@ function initGameState() {
     clrAnimMod = 0;         //
     isDrag = false;
     DSMP = [0, 0];
-    blkPos = [0, 0];        // block position
+    blkPos = [0, 0];        // blk position
 
     // Miracle Flash
     mrclBtn = false;    // Miracle Flash button flag
@@ -280,8 +287,8 @@ function initGameState() {
 }
 
 const toGridXY = (x, y) => {
-    let gx = Math.floor((x - (WALL + BLK_BRDR / 2)) / CELL);
-    let gy = Math.floor((y - (WALL + BLK_BRDR / 2 - CELL * 0.5)) / CELL);
+    let gx = Math.floor((x - BDOFFX) / CELL);
+    let gy = Math.floor((y - BDOFFY) / CELL);
     return { gx, gy };
 }
 
@@ -299,7 +306,7 @@ const BLK_SIZE_TABLE = {
 };
 
 
-function drawBlocks() {
+function drawBlks() {
     // TODO
     const currentStatStr = COMMON.bigIntToState(stateInt);
     const seenChars = new Set();
@@ -312,12 +319,12 @@ function drawBlocks() {
         }
 
         seenChars.add(char);
-        const bid = char.charCodeAt(0) - charCodeA + 1;
+        const blkId = char.charCodeAt(0) - charCodeA + 1;
         const rect = getBlkRect(i, char);
 
         let orclKey = "down"; // デフォルトの向き
 
-        if (bid == 1) { // メインブロックのアニメーション処理
+        if (blkId == 1) { // メインブロックのアニメーション処理
             if (clrAnim) { // クリアアニメーション
                 const elapsed = performance.now() - clrAnimMod;
                 if (elapsed < 500) {
@@ -332,38 +339,32 @@ function drawBlocks() {
                 const idx = Math.floor((elapsed / frame_duration) % 4);
                 orclKey = ["up", "left", "down", "right"][idx];
             }
-            drImg(OrclIdx[orclKey], ...rect);
+            drImg(OrclIdx[orclKey], rect);
         } else {
-            drImg(`b${bid}`, ...rect);
+            drImg(`b${blkId}`, rect);
         }
 
         // ブロックの枠線と選択カーソルを描画
-        drawBlockBorder(...rect);
-        if (Selected == bid) {
-            drImgShadow('cursor', ...rect);
+        drawBlkBorder(rect);
+        if (Selected == blkId) {
+            drImgShadow('cursor', rect);
         }
     }
 }
 
 /**
- * ブロックの枠線を描画します。
- * @param {number} x - X座標
- * @param {number} y - Y座標
- * @param {number} w - 幅
- * @param {number} h - 高さ
+ * ブロックの枠線を描画します。rectは [x, y, w, h] の配列です。
+ * @param {number[]} rect - 矩形 [x, y, w, h]
  */
-function drawBlockBorder(x, y, w, h) {
-    const BLKBDR_W = 6; // 枠線の太さ
-    const BLKBDR_COL = "#1c1c1c"; // 枠線の色
-    const BLKBDR_R = 8; // 角丸の半径
-
+function drawBlkBorder(rect) {
+    const [x, y, w, h] = rect;
     pctx.save();
     pctx.strokeStyle = BLKBDR_COL;
-    pctx.lineWidth = BLKBDR_W;
+    pctx.lineWidth = BLKBDR;
     pctx.shadowColor = "rgba(255, 255, 224, 0.5)"; // グロー効果
     pctx.shadowBlur = 8;
     pctx.beginPath();
-    pctx.roundRect(x + BLKBDR_W / 2, y + BLKBDR_W / 2, w - BLKBDR_W, h - BLKBDR_W, BLKBDR_R);
+    pctx.roundRect(x + BLKBDR / 2, y + BLKBDR / 2, w - BLKBDR, h - BLKBDR, BLKBDR_R);
     pctx.stroke();
     pctx.restore();
 }
@@ -373,15 +374,15 @@ function freedom() {
     const directions = ["up", "down", "left", "right"];
 
     // 駒ID 1から10 (AからJ) までループ
-    for (let pieceId = 1; pieceId <= 10; pieceId++) {
+    for (let blkId = 1; blkId <= 10; blkId++) {
         // 盤上に駒が存在するかチェック (Miracleで消された場合を考慮)
-        if (getPieceBitmap(pieceId) === 0n) {
+        if (getBlkBitmap(blkId) === 0n) {
             continue;
         }
 
         // 各方向への移動可能性をチェック
         for (const direction of directions) {
-            if (canMove(pieceId, direction)) {
+            if (canMove(blkId, direction)) {
                 freedomCount++;
             }
         }
@@ -402,8 +403,7 @@ function speakUrianger(str) {
 function drawCanvasBorder() {
     const borderWidth = 8;
     const borderRadius = 10;
-    const borderColor = WALL_COL; // #281800
-
+    const borderColor = CELL_COL; // #281800
     pctx.save();
     pctx.strokeStyle = borderColor;
     pctx.lineWidth = borderWidth;
@@ -425,7 +425,7 @@ function drawAll() {
     drImg("wall", ...BDRECT);
 
     drawCanvasBorder();
-    drawBlocks();
+    drawBlks();
     drawButtons();
     drawEffects();
     let str, x, y;
@@ -442,11 +442,11 @@ function drawAll() {
     infoStr += `Game Turns k   : ${gameTurns}\n`;
     infoStr += `Miracle Used   : ${mrclBtn ? 'Yes' : 'No'}\n`;
     infoStr += `Freedom Degree : ${Freedom}\n`;
-    infoStr += `Selected Block : ${Selected} ${".ABCDEFGHIJ"[Selected]}\n`;
+    infoStr += `Selected Blk : ${Selected} ${".ABCDEFGHIJ"[Selected]}\n`;
     infoStr += `stateInt: 0x${stateInt?.toString(16) ?? 'N/A'}\n`;
     infoStr += `Current State  : ${statStr ?? 'N/A'} (${statStr?.length ?? 0})\n`;
     infoStr += `Shift          : ${infoShift?.toString(2).padStart(20, "0") ?? '---'}\n`;
-    infoStr += `Block bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
+    infoStr += `Blk bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `Hall bitmask   : ${infoHall?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `blkPos   : ${blkPos}\n`;
     infoStr += `cursor   : ${cursor}\n`;
@@ -499,46 +499,46 @@ function drText(str, x, y, px) {
     pctx.fillText(str, x, y);
 }
 
-function canMove(bid, mv) {
-    const blockBm = getPieceBitmap(bid);
-    if (blockBm === 0n) return false; // 駒が存在しない場合は移動不可
+function canMove(blkId, mv) {
+    const blkBm = getBlkBitmap(blkId);
+    if (blkBm === 0n) return false; // 駒が存在しない場合は移動不可
 
     // 移動可能な領域 = 「空白マス」 OR 「自分自身のマス」
-    const walkableAreaBm = getPieceBitmap(0) | blockBm;
+    const walkableAreaBm = getBlkBitmap(0) | blkBm;
 
-    let shiftedBlockBm;
+    let shiftedBlkBm;
     switch (mv) {
         case "up":
-            if ((blockBm & BigInt(UP)) !== 0n) return false;
-            shiftedBlockBm = blockBm << 4n;
+            if ((blkBm & BigInt(UP)) !== 0n) return false;
+            shiftedBlkBm = blkBm << 4n;
             break;
         case "down":
-            if ((blockBm & BigInt(DOWN)) !== 0n) return false;
-            shiftedBlockBm = blockBm >> 4n;
+            if ((blkBm & BigInt(DOWN)) !== 0n) return false;
+            shiftedBlkBm = blkBm >> 4n;
             break;
         case "left":
-            if ((blockBm & BigInt(LEFT)) !== 0n) return false;
-            shiftedBlockBm = blockBm << 1n;
+            if ((blkBm & BigInt(LEFT)) !== 0n) return false;
+            shiftedBlkBm = blkBm << 1n;
             break;
         case "right":
-            if ((blockBm & BigInt(RIGHT)) !== 0n) return false;
-            shiftedBlockBm = blockBm >> 1n;
+            if ((blkBm & BigInt(RIGHT)) !== 0n) return false;
+            shiftedBlkBm = blkBm >> 1n;
             break;
         default:
             return false;
     }
 
     // 移動後の位置が、移動可能な領域に完全に含まれているかチェック
-    return (shiftedBlockBm & walkableAreaBm) === shiftedBlockBm;
+    return (shiftedBlkBm & walkableAreaBm) === shiftedBlkBm;
 }
 
 /**
  * ビット演算でstateIntを更新します。
  * @param {BigInt} oldBitmap - 更新前の駒の位置を示すビットマスク
  * @param {BigInt} newBitmap - 更新後の駒の位置を示すビットマスク
- * @param {number} pieceId - 駒のID
+ * @param {number} blkId - 駒のID
  */
-function updateStateInt(oldBitmap, newBitmap, pieceId) {
+function updateStateInt(oldBitmap, newBitmap, blkId) {
     let tempState = stateInt;
     for (let i = 0; i < BRD_LEN; i++) {
         const mask = BIT_MASKS[i];
@@ -548,25 +548,25 @@ function updateStateInt(oldBitmap, newBitmap, pieceId) {
         }
         // 新しい位置に駒を置く
         if ((newBitmap & mask) !== 0n) {
-            tempState |= NIBBLE_MASKS[i].set(pieceId);
+            tempState |= NIBBLE_MASKS[i].set(blkId);
         }
     }
     stateInt = tempState;
 }
 
-function move(bid, mv) {
-    const blockBm = getPieceBitmap(bid);
-    let shiftedBlockBm;
+function move(blkId, mv) {
+    const blkBm = getBlkBitmap(blkId);
+    let shiftedBlkBm;
 
     switch (mv) {
-        case "up": shiftedBlockBm = blockBm << 4n; break;
-        case "down": shiftedBlockBm = blockBm >> 4n; break;
-        case "left": shiftedBlockBm = blockBm << 1n; break;
-        case "right": shiftedBlockBm = blockBm >> 1n; break;
+        case "up": shiftedBlkBm = blkBm << 4n; break;
+        case "down": shiftedBlkBm = blkBm >> 4n; break;
+        case "left": shiftedBlkBm = blkBm << 1n; break;
+        case "right": shiftedBlkBm = blkBm >> 1n; break;
         default: return; // 不正な移動方向なら何もしない
     }
 
-    updateStateInt(blockBm, shiftedBlockBm, bid);
+    updateStateInt(blkBm, shiftedBlkBm, blkId);
     gameTurns++;
     statStr = COMMON.bigIntToState(stateInt); // for debug display
 
@@ -574,10 +574,10 @@ function move(bid, mv) {
         snd_move.currentTime = 0, snd_move.play();
 }
 
-function blkBuster(bid) {
-    const blkBm = getPieceBitmap(bid);
+function blkBuster(blkId) {
+    const blkBm = getBlkBitmap(blkId);
     // 駒を盤上から消す (新しいビットマップは0)
-    updateStateInt(blkBm, 0n, bid);
+    updateStateInt(blkBm, 0n, blkId);
 
     if (snd_select) snd_select.currentTime = 0, snd_select.play();
     statStr = COMMON.bigIntToState(stateInt); // for debug display
@@ -592,17 +592,17 @@ function activateMiracle() {
     mrclAnim = true;
     mrclPhase = 1;
     mrclPhMod = performance.now();
-    let obid = 1;
+    let oblkId = 1;
 
     // stateIntから現在の駒リストを取得
-    const currentPieces = new Set();
+    const currentBlks = new Set();
     for (let i = 0; i < BRD_LEN; i++) {
-        const pieceId = Number((stateInt >> BigInt(i * 4)) & 0xFn);
-        if (pieceId > 0) {
-            currentPieces.add(pieceId);
+        const blkId = Number((stateInt >> BigInt(i * 4)) & 0xFn);
+        if (blkId > 0) {
+            currentBlks.add(blkId);
         }
     }
-    mrclBust = Array.from(currentPieces).filter(bid => bid != obid);  // 破壊されるリスト
+    mrclBust = Array.from(currentBlks).filter(blkId => blkId != oblkId);  // 破壊されるリスト
 
     for (let i = mrclBust.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -673,11 +673,11 @@ const onMouseDown = (e) => {
             // stateIntのビット格納順に合わせてインデックスを反転させる
             // (0,0) -> 19, (3,4) -> 0
             const idx = (BRD_LEN - 1) - (grid_y * W + grid_x);
-            const clicked_bid = Number((stateInt >> BigInt(idx * 4)) & 0xFn);
+            const clicked_blkId = Number((stateInt >> BigInt(idx * 4)) & 0xFn);
 
-            if (clicked_bid !== 0) {
-                if (Selected != clicked_bid && snd_select) snd_select.currentTime = 0, snd_select.play();
-                Selected = clicked_bid;
+            if (clicked_blkId !== 0) {
+                if (Selected != clicked_blkId && snd_select) snd_select.currentTime = 0, snd_select.play();
+                Selected = clicked_blkId;
                 isDrag = true;
                 DSMP = [x, y];
                 // blkPosの更新は、必要であれば別途ロジックを追加
@@ -722,8 +722,8 @@ function updateGameState() {
             }
         } else if (mrclPhase == 2 && elapsed >= MRCL_BUST_DELAY) {
             if (mrclBust.length) {
-                let bid = mrclBust.shift();
-                blkBuster(bid);
+                let blkId = mrclBust.shift();
+                blkBuster(blkId);
                 if (mrclBust.length) {
                     mrclPhase = 1;
                     mrclPhMod = now;
@@ -751,10 +751,10 @@ function judgeClear() {
     const goalMask = 0b00000000000001100110n;
 
     // 現在の'A'の駒のビットマスクを取得
-    const pieceABitmap = getPieceBitmap(1);
+    const blkABitmap = getBlkBitmap(1);
 
     // ゴール状態と一致するか判定
-    return pieceABitmap === goalMask;
+    return blkABitmap === goalMask;
 }
 
 function mainLoop() {
