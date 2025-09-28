@@ -7,22 +7,25 @@ const BRD_LEN = W * H;
 const GOAL_X = 1, GOAL_Y = 3;
 const CLR_GOAL_X = 1, CLR_GOAL_Y = 5;
 
+const SCRN_W = 600;
+const SCRN_H = 800;
+console.log("screen width x height: ", SCRN_W, " x ", SCRN_H);
+
 const BLKBDR = 6; // 枠線の太さ
 const BLKBDR_COL = "#1c1c1c"; // 枠線の色
 const BLKBDR_R = 8; // 角丸の半径
 const BLK_COL = "#1564C8";
-const BDOFFX = CELL + BLKBDR/2;
-const BDOFFY = CELL/2 + BLKBDR/2;
+const BDOFFX = CELL + BLKBDR / 2;
+const BDOFFY = CELL / 2 + BLKBDR / 2;
 const BDRECT = [0, 0, SCRN_W, SCRN_H];
 const BBRECT = [10, SCRN_H - 210, 200, 48];
 const ULRECT = [0, 620, 200, 200];
 
+const SHADOW = "rgba(0, 0, 0, 1)";
+const BLUR = 14;
 
 let canvas = document.getElementById('puzzlecanvas');
 let style = getComputedStyle(canvas);
-const SCRN_W = parseInt(style.width);//600
-const SCRN_H = parseInt(style.height);// 800
-console.log("screen width x height: ", SCRN_W," x ", SCRN_H);
 
 const SELECTEDCOL = "rgba(215,225,2,0.5)";
 const TRANSPARENT = "rgba(0,0,0,0)";
@@ -37,7 +40,7 @@ const TXT_DARK = "#002828";
 const TXT_LIGHT = "#FFFFFF";
 const CLR_TXT_COL = TXT_LIGHT;
 
-const DRAG_THLD = CELL/2; // mouse drag sensibility 0<fast<->slow >1
+const DRAG_THLD = CELL / 2; // mouse drag sensibility 0<fast<->slow >1
 
 const SPRITE = "img/imagesheet.webp" // sprites sheet
 const SPRITE_MAP = {
@@ -91,6 +94,7 @@ let snd_select, snd_move, snd_mrcl, snd_clr;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
+
 const mrclRect = [CELL / 7, SCRN_H - CELL * 5 / 4, BTNSIZ, BTNSIZ];
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
@@ -140,18 +144,29 @@ const NIBBLE_MASKS = Array.from({ length: BRD_LEN }, (_, i) => {
  * @returns {BigInt} 駒の位置を示すビットマスク
  */
 function getBlkBitmap(blkId) {
-    // stateIntは左上(idx=0)が最上位ビット、右下(idx=19)が最下位ビット
-    // ビットマスクは右下(idx=19)が最下位ビット(LSB)になるように変更
+
     const blkCode = BigInt(blkId);
     let bitmap = 0n;
+    let shift = 0n;
     for (let i = 0; i < BRD_LEN; i++) {
-        // (BRD_LEN - 1 - i) は、stateIntのインデックス(左上=0)をビットマスクのインデックス(右下=0)に変換
-        const stateIntIndex = BRD_LEN - 1 - i;
-        if (((stateInt >> BigInt(i * 4)) & 0xFn) === blkCode) {
-            bitmap |= BIT_MASKS[stateIntIndex];
+        // stateIntのインデックス i (0-19) は、ビットマスクのインデックス (19-i) に対応
+        if (((stateInt >> shift) & 0xFn) === blkCode) {
+            // BIT_MASKS[19-i] と同じ
+            bitmap |= (1n << BigInt(19 - i));
         }
+        shift += 4n;
     }
     return bitmap;
+}
+
+/**
+ * BigIntの最上位ビット（MSB）の位置を返します。
+ * @param {BigInt} n - 対象のBigInt
+ * @returns {number} MSBの位置（LSBが0）。nが0nの場合は-1を返す。
+ */
+function getMsbPosition(n) {
+    if (n === 0n) return -1;
+    return n.toString(2).length - 1;
 }
 
 let infoBm, infoShift, infoC, infoHall;
@@ -176,48 +191,6 @@ function getBlkRect(idx, char) {
     const drawY = BDOFFY + y * CELL;
 
     return [drawX, drawY, bw * CELL, bh * CELL];
-}
-
-function drHFlipImg(key, x, y, w, h) {
-    pctx.save()
-    pctx.translate(w, 0);
-    pctx.scale(-1, 1);
-    let k = SPRITE_MAP[key];
-    pctx.drawImage(imgSheet, ...k, x, y, w, h);
-    pctx.restore();
-}
-
-function drImg(key, rect) {
-    const [x, y, w, h] = rect;
-    let m = SPRITE_MAP[key];
-    pctx.drawImage(imgSheet, ...m, x, y, w, h);
-}
-
-function drImgLight(key, x, y, w, h) {
-    let m = SPRITE_MAP[key];
-    pctx.save(); // 現在の描画状態を保存
-    // スプライト描画
-    pctx.drawImage(imgSheet, ...m, x, y, w, h);
-    // 光の設定
-    pctx.shadowColor = "rgba(255, 255, 0, 1)";
-    pctx.shadowBlur = 4;
-    pctx.shadowOffsetX = 14;
-    pctx.shadowOffsetY = 14;
-    pctx.restore(); // 描画状態を元に戻す
-}
-
-function drImgShadow(key, rect, shadow = "rgba(0, 0, 0, 1)", blur = 14) {
-    const [x, y, w, h] = rect;
-    const m = SPRITE_MAP[key];
-
-    pctx.save(); // 現在の状態を保存
-
-    pctx.shadowColor = shadow;
-    pctx.shadowBlur = blur;
-    pctx.shadowOffsetX = 14;
-    pctx.shadowOffsetY = 14;
-    pctx.drawImage(imgSheet, ...m, x, y, w, h);
-    pctx.restore(); // 状態を元に戻す
 }
 
 const ldSprite = (path) => {
@@ -305,22 +278,23 @@ const BLK_SIZE_TABLE = {
     'J': [1, 1],
 };
 
-
 function drawBlks() {
-    // TODO
-    const currentStatStr = COMMON.bigIntToState(stateInt);
-    const seenChars = new Set();
-    const charCodeA = 'A'.charCodeAt(0);
-
-    for (let i = 0; i < statStr.length; i++) {
-        const char = statStr[i];
-        if (char === '.' || seenChars.has(char)) {
-            continue; // 空白マスと描画済みのブロックはスキップ
+    // 駒ID 1から10 (AからJ) までループ
+    for (let blkId = 1; blkId <= 10; blkId++) {
+        const blkBitmap = getBlkBitmap(blkId);
+        if (blkBitmap === 0n) {
+            continue; // 盤上に駒が存在しない場合はスキップ
         }
 
-        seenChars.add(char);
-        const blkId = char.charCodeAt(0) - charCodeA + 1;
-        const rect = getBlkRect(i, char);
+        // ビットマスクから左上の位置を特定
+        const msbPos = getMsbPosition(blkBitmap);
+        const topLeftIndex = BRD_LEN - 1 - msbPos;
+        const char = String.fromCharCode('A'.charCodeAt(0) + blkId - 1);
+
+        // 描画用の矩形情報を取得
+        const rect = getBlkRect(topLeftIndex, char);
+        const [x, y, w, h] = rect;
+        let drawY = y; // アニメーション用にY座標を別変数に
 
         let orclKey = "down"; // デフォルトの向き
 
@@ -329,8 +303,8 @@ function drawBlks() {
                 const elapsed = performance.now() - clrAnimMod;
                 if (elapsed < 500) {
                     const progress = elapsed / 500;
-                    const startY = GOAL_Y * CELL + BDOFFY;
-                    const endY = 5 * CELL + BDOFFY;
+                    const startY = GOAL_Y * CELL + BDOFFY; // 元のY
+                    const endY = CLR_GOAL_Y * CELL + BDOFFY; // 目的のY
                     drawY = startY + (endY - startY) * progress;
                 }
             } else if (mrclAnim && mrclPhase == 1) { // ミラクルフラッシュ回転
@@ -339,34 +313,36 @@ function drawBlks() {
                 const idx = Math.floor((elapsed / frame_duration) % 4);
                 orclKey = ["up", "left", "down", "right"][idx];
             }
-            drImg(OrclIdx[orclKey], rect);
+            pctx.drawImage(imgSheet, ...SPRITE_MAP[OrclIdx[orclKey]], x, drawY, w, h);
         } else {
-            drImg(`b${blkId}`, rect);
+            // 他の駒の描画
+            pctx.drawImage(imgSheet, ...SPRITE_MAP[`b${blkId}`], ...rect);
         }
 
-        // ブロックの枠線と選択カーソルを描画
-        drawBlkBorder(rect);
+        // --- drawBlkBorderのインライン化 ---
+        pctx.save();
+        pctx.strokeStyle = BLKBDR_COL;
+        pctx.lineWidth = BLKBDR;
+        pctx.shadowColor = "rgba(255, 255, 224, 0.5)";
+        pctx.shadowBlur = 8;
+        pctx.beginPath();
+        pctx.roundRect(x + BLKBDR / 2, drawY + BLKBDR / 2, w - BLKBDR, h - BLKBDR, BLKBDR_R);
+        pctx.stroke();
+        pctx.restore();
+        // --- インライン化ここまで ---
+
         if (Selected == blkId) {
-            drImgShadow('cursor', rect);
+            // --- drImgShadowのインライン化 ---
+            pctx.save();
+            pctx.shadowColor = SHADOW;
+            pctx.shadowBlur = BLUR;
+            pctx.shadowOffsetX = 14;
+            pctx.shadowOffsetY = 14;
+            pctx.drawImage(imgSheet, ...SPRITE_MAP['cursor'], x, drawY, w, h);
+            pctx.restore();
+            // --- インライン化ここまで ---
         }
     }
-}
-
-/**
- * ブロックの枠線を描画します。rectは [x, y, w, h] の配列です。
- * @param {number[]} rect - 矩形 [x, y, w, h]
- */
-function drawBlkBorder(rect) {
-    const [x, y, w, h] = rect;
-    pctx.save();
-    pctx.strokeStyle = BLKBDR_COL;
-    pctx.lineWidth = BLKBDR;
-    pctx.shadowColor = "rgba(255, 255, 224, 0.5)"; // グロー効果
-    pctx.shadowBlur = 8;
-    pctx.beginPath();
-    pctx.roundRect(x + BLKBDR / 2, y + BLKBDR / 2, w - BLKBDR, h - BLKBDR, BLKBDR_R);
-    pctx.stroke();
-    pctx.restore();
 }
 
 function freedom() {
@@ -392,12 +368,12 @@ function freedom() {
 
 function speakUrianger(str) {
     const bblewidth = str.length * 9;
-    drImg("bble", BBRECT[0], BBRECT[1], bblewidth, BBRECT[3]);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["bble"], BBRECT[0], BBRECT[1], bblewidth, BBRECT[3]);
     pctx.textAlign = "left";
     pctx.font = "14px IPAGothic";
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, ULRECT[0] + 34, ULRECT[1] - 5);
-    drImg("urianger", ...ULRECT);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"], ...ULRECT);
 }
 
 function drawCanvasBorder() {
@@ -422,7 +398,7 @@ function drawCanvasBorder() {
 
 function drawAll() {
     pctx.fillStyle = FLR_COL;
-    drImg("wall", ...BDRECT);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["wall"], ...BDRECT);
 
     drawCanvasBorder();
     drawBlks();
@@ -450,7 +426,7 @@ function drawAll() {
     infoStr += `Hall bitmask   : ${infoHall?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `blkPos   : ${blkPos}\n`;
     infoStr += `cursor   : ${cursor}\n`;
-    drInfo(infoStr);
+    if (IS_DEBUG) drInfo(infoStr);
 }
 
 function drInfo(str) {
@@ -460,9 +436,9 @@ function drInfo(str) {
 }
 
 function drawButtons() {
-    drImg('rtry', ...rtryRect);
-    drImg('hint', ...hintRect);
-    drImg('mrcl', ...mrclRect);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP['rtry'], ...rtryRect);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP['hint'], ...hintRect);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP['mrcl'], ...mrclRect);
 }
 const drawEffects = () => {
     if (mrclFx) {
@@ -540,15 +516,15 @@ function canMove(blkId, mv) {
  */
 function updateStateInt(oldBitmap, newBitmap, blkId) {
     let tempState = stateInt;
+    const blkCode = BigInt(blkId);
     for (let i = 0; i < BRD_LEN; i++) {
-        const mask = BIT_MASKS[i];
-        // 古い位置の駒を空白(0)にする
-        if ((oldBitmap & mask) !== 0n) {
-            tempState &= NIBBLE_MASKS[i].clear;
+        const bitMask = 1n << BigInt(19 - i); // 右下(idx=19)がLSBのビットマスク
+        const shift = BigInt(i * 4);
+        if ((oldBitmap & bitMask) !== 0n) {
+            tempState &= ~(0xFn << shift); // 古い位置をクリア
         }
-        // 新しい位置に駒を置く
-        if ((newBitmap & mask) !== 0n) {
-            tempState |= NIBBLE_MASKS[i].set(blkId);
+        if ((newBitmap & bitMask) !== 0n) {
+            tempState |= (blkCode << shift); // 新しい位置にセット
         }
     }
     stateInt = tempState;
