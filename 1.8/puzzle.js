@@ -1,5 +1,8 @@
-// Minfilia JS version.1.8.1  SAVE THE ORACLE Web Edition
-const IS_DEBUG = false;
+---
+version: 1.8.1
+---
+// Minfilia JS version.{{ this.version }}  SAVE THE ORACLE Web Edition
+const IS_DEBUG = true;
 
 const CELL = 100;
 const W = 4, H = 5;
@@ -61,6 +64,7 @@ const SPRITE_MAP = {
     'hint': [600, 600, 100, 100],
     'rtry': [700, 600, 100, 100],
     'mrcl': [600, 500, 100, 100],
+    'undo': [700, 500, 100, 100],
     'mrcl2': [700, 500, 100, 100],
     'wall': [0, 400, 600, 800],
     'auto': [600, 600, 100, 100],
@@ -73,6 +77,7 @@ const SPRITE_MAP = {
 
 const SND_SEL = 'snd/select.wav'
 const SND_MOV = 'snd/move.wav'
+const SND_UNDO = 'snd/undo.wav'
 const SND_MRCL = 'snd/mrcl.wav' // miracle sound
 const SND_CLR = 'snd/clear.wav'
 const SND_SEL_VOL = 1
@@ -88,7 +93,7 @@ let stateInt; // ゲーム状態をBigIntで管理
 let statStr;  // デバッグ表示や互換性のために保持
 
 let voidflag;
-
+let snd_undo;
 //let pazzleCanvas, pctx, offCanvas;
 let snd_select, snd_move, snd_mrcl, snd_clr;
 let imgSheet = null;
@@ -98,6 +103,7 @@ const BTNSIZ = CELL * 7 / 8;
 const mrclRect = [CELL / 7, SCRN_H - CELL * 5 / 4, BTNSIZ, BTNSIZ];
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
+const undoRect = [SCRN_W - CELL * 15 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 
 let crsrRect = [];
 
@@ -116,6 +122,12 @@ let Freedom = 0;
 let gameTurns = 0;
 let gameHistory = [];
 let cursor = false;
+let commandSequence = []; // For command input
+const miracleCommand = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowright', 'arrowleft', 'arrowright', 'arrowleft','a',
+'b', ' ']; // Command sequence
+let commandInputTimer = null; // Timer for command input
+const COMMAND_TIMEOUT = 500; // 0.5 seconds
+
 
 let OrclIdx = {
     "down": "ryneD",
@@ -226,6 +238,8 @@ async function loadAllResources() {
         snd_mrcl.volume = SND_MRCL_VOL;
         snd_clr = await ldSound(SND_CLR);
         snd_clr.volume = SND_CLR_VOL;
+        snd_undo = await ldSound(SND_UNDO);
+        snd_undo.volume = SND_MOV_VOL; // 同じくらいの音量で
     } catch (e) {
         console.error("Failed to load sound resources:", e);
     }
@@ -258,6 +272,7 @@ function initGameState() {
     // Freedom degree = the number of movable nodes(statStr) from current nodes(statStr)
     Freedom = 0;
     cursor = true;
+    gameHistory = [];
 }
 
 const toGridXY = (x, y) => {
@@ -265,7 +280,8 @@ const toGridXY = (x, y) => {
     let gy = Math.floor((y - BDOFFY) / CELL);
     return { gx, gy };
 }
-const BLK_SIZE_BY_ID = [
+
+const INIT_BLK_SIZE_BY_ID = [
     null,    // 0: dummy
     [2, 2],  // 1: A
     [1, 2],  // 2: B
@@ -278,7 +294,7 @@ const BLK_SIZE_BY_ID = [
     [1, 1],  // 9: I
     [1, 1],  // 10: J
 ];
-
+let BLK_SIZE_BY_ID = INIT_BLK_SIZE_BY_ID;
 function drawBlks() {
     // 駒ID 1から10 (AからJ) までループ
     for (let blkId = 1; blkId <= 10; blkId++) {
@@ -289,10 +305,10 @@ function drawBlks() {
 
         // ビットマスクから左上の位置を特定
         const msbPos = getMsbPosition(blkBitmap);
-        const topLeftIndex = BRD_LEN - 1 - msbPos;
+        const idx = BRD_LEN - 1 - msbPos;
 
         // 描画用の矩形情報を取得
-        const rect = getBlkRect(topLeftIndex, blkId);
+        const rect = getBlkRect(idx, blkId);
         const [x, y, w, h] = rect;
         let drawY = y; // アニメーション用にY座標を別変数に
 
@@ -367,8 +383,16 @@ function freedom() {
 }
 
 function speakUrianger(str) {
-    const bblewidth = str.length * 9;
-    pctx.drawImage(imgSheet, ...SPRITE_MAP["bble"], BBRECT[0], BBRECT[1], bblewidth, BBRECT[3]);
+    const BUBBLE_CHAR_WIDTH = 14; // 1文字あたりの幅
+    const BUBBLE_MAX_CHARS = 30; // 最大文字数
+    const BUBBLE_MAX_WIDTH = BUBBLE_MAX_CHARS * BUBBLE_CHAR_WIDTH;
+    const BUBBLE_MIN_WIDTH = BUBBLE_MAX_WIDTH * 0.5; // 最小幅 (50%)
+
+    // 文字数から幅を計算し、最小・最大幅の範囲に収める
+    let bubbleWidth = str.length * BUBBLE_CHAR_WIDTH;
+    bubbleWidth = Math.max(BUBBLE_MIN_WIDTH, Math.min(bubbleWidth, BUBBLE_MAX_WIDTH));
+
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["bble"], BBRECT[0], BBRECT[1], bubbleWidth, BBRECT[3]);
     pctx.textAlign = "left";
     pctx.font = "14px IPAGothic";
     pctx.fillStyle = TXT_DARK;
@@ -396,6 +420,18 @@ function drawCanvasBorder() {
     pctx.restore();
 }
 
+const URIANGER_QUOTES = [
+    "Goodspeed Thancred...",
+    "計略を披露しましょう",
+    "世界は未だ混迷のなかに...",
+    "おや、わたくしとしたことが",
+    "暁のとき、ほどなく...",
+    "puzzle.js version {{ this.version }}",
+];
+let defaultUriangerSays = URIANGER_QUOTES[0];
+let UriangerSays = defaultUriangerSays; // 初期値
+let isCommandTyping = false; // Flag to check if user is typing a command
+
 function drawAll() {
     pctx.fillStyle = FLR_COL;
     pctx.drawImage(imgSheet, ...SPRITE_MAP["wall"], ...BDRECT);
@@ -408,21 +444,25 @@ function drawAll() {
 
     // Draw thus speaks Urianger
 
+    // 10ターンごとにデフォルトのセリフを変更
+    const quoteIndex = Math.floor(gameTurns / 10) % URIANGER_QUOTES.length;
+    defaultUriangerSays = URIANGER_QUOTES[quoteIndex];
+    if (!isCommandTyping) {
+        UriangerSays = defaultUriangerSays;
+    }
     Freedom = freedom();
-    //str="Freedom Degree is ..."+ Freedom;
-    str = "Goodspeed Sancred ...";
-    speakUrianger(str);
+    speakUrianger(UriangerSays);
 
     // 追加するデバッグ情報
     let infoStr = `Infomation\n`;
     infoStr += `Game Turns k   : ${gameTurns}\n`;
     infoStr += `Miracle Used   : ${mrclBtn ? 'Yes' : 'No'}\n`;
     infoStr += `Freedom Degree : ${Freedom}\n`;
-    infoStr += `Selected Blk : ${Selected} ${".ABCDEFGHIJ"[Selected]}\n`;
-    infoStr += `stateInt: 0x${stateInt?.toString(16) ?? 'N/A'}\n`;
-    infoStr += `Current State  : ${statStr ?? 'N/A'} (${statStr?.length ?? 0})\n`;
-    infoStr += `Shift          : ${infoShift?.toString(2).padStart(20, "0") ?? '---'}\n`;
-    infoStr += `Blk bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
+    infoStr += `Selected Blk   : blkId ${Selected}  charCode ${".ABCDEFGHIJ"[Selected]}\n`;
+    infoStr += `stateStr       : ${statStr ?? 'N/A'} (${statStr?.length ?? 0})\n`;
+    infoStr += `stateInt(0x)   : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'} (${statStr?.length ?? 0})\n`;
+    infoStr += `Shifted        : ${infoShift?.toString(2).padStart(20, "0") ?? '---'}\n`;
+    infoStr += `Block bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `Hall bitmask   : ${infoHall?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `blkPos   : ${blkPos}\n`;
     infoStr += `cursor   : ${cursor}\n`;
@@ -439,6 +479,7 @@ function drawButtons() {
     pctx.drawImage(imgSheet, ...SPRITE_MAP['rtry'], ...rtryRect);
     pctx.drawImage(imgSheet, ...SPRITE_MAP['hint'], ...hintRect);
     pctx.drawImage(imgSheet, ...SPRITE_MAP['mrcl'], ...mrclRect);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP['undo'], ...undoRect);
 }
 const drawEffects = () => {
     if (mrclFx) {
@@ -534,6 +575,9 @@ function updateStateInt(oldBitmap, newBitmap, blkId) {
 }
 
 function move(blkId, mv) {
+    // 移動前の状態を履歴に保存
+    gameHistory.push(stateInt);
+
     const blkBm = getBlkBitmap(blkId);
     let shiftedBlkBm;
 
@@ -551,6 +595,21 @@ function move(blkId, mv) {
 
     if (snd_move)
         snd_move.currentTime = 0, snd_move.play();
+}
+
+function undoMove() {
+    if (gameHistory.length > 0) {
+        stateInt = gameHistory.pop();
+        gameTurns--; // ターン数も戻す
+        statStr = COMMON.bigIntToState(stateInt); // デバッグ表示用
+
+        // 選択中の駒が消えていたら選択を解除（例：Thancredを選択）
+        if (getBlkBitmap(Selected) === 0n) {
+            Selected = 7;
+        }
+
+        if (snd_undo) snd_undo.currentTime = 0, snd_undo.play();
+    }
 }
 
 function blkBuster(blkId) {
@@ -571,17 +630,19 @@ function activateMiracle() {
     mrclAnim = true;
     mrclPhase = 1;
     mrclPhMod = performance.now();
-    let oblkId = 1;
 
     // stateIntから現在の駒リストを取得
     const currentBlks = new Set();
     for (let i = 0; i < BRD_LEN; i++) {
         const blkId = Number((stateInt >> BigInt(i * 4)) & 0xFn);
-        if (blkId > 0) {
+        if (blkId > 0) { // 0は空白なので除外
             currentBlks.add(blkId);
         }
     }
-    mrclBust = Array.from(currentBlks).filter(blkId => blkId != oblkId);  // 破壊されるリスト
+
+    // 破壊対象の駒IDリスト (B, C, D, E, F)
+    const destructibleBlkIds = [2, 3, 4, 5, 6];
+    mrclBust = Array.from(currentBlks).filter(blkId => destructibleBlkIds.includes(blkId));
 
     for (let i = mrclBust.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -646,11 +707,14 @@ const onMouseDown = (e) => {
         return;
     }
 
+    // Undo button
+    if (x >= undoRect[0] && x <= undoRect[0] + BTNSIZ && y >= undoRect[1] && y <= undoRect[1] + BTNSIZ) {
+        undoMove();
+        return;
+    }
+
     if (!(clrAnim || gameClr || mrclAnim)) {
         if (0 <= grid_x && grid_x < W && 0 <= grid_y && grid_y < H) {
-            // stateIntからクリックされた位置の駒IDを取得
-            // stateIntのビット格納順に合わせてインデックスを反転させる
-            // (0,0) -> 19, (3,4) -> 0
             const idx = (BRD_LEN - 1) - (grid_y * W + grid_x);
             const clicked_blkId = Number((stateInt >> BigInt(idx * 4)) & 0xFn);
 
@@ -659,20 +723,10 @@ const onMouseDown = (e) => {
                 Selected = clicked_blkId;
                 isDrag = true;
                 DSMP = [x, y];
-                // blkPosの更新は、必要であれば別途ロジックを追加
-                // const Blks = getBlksFromStatStr();
-                // if (Blks[Selected]) {
-                //    blkPos = [...Blks[Selected].pos];
-                // }
             }
         }
 
-        // Miracle btn
-        if (x >= mrclRect[0] && x <= mrclRect[0] + CELL && y >= mrclRect[1] && y <= mrclRect[1] + CELL) {
-            activateMiracle();
-        }
-
-    }
+            }
 }
 
 let onMouseUp = (e) => isDrag = false;
@@ -723,10 +777,6 @@ function updateGameState() {
 // clear or preclear Judje
 function judgeClear() {
     // 'A'の駒 (ID:1) がゴール位置 (x=1, y=3) にある状態のビットマスク。
-    // 盤面インデックス: 13, 14, 17, 18
-    // ビット位置: (19-13)=6, (19-14)=5, (19-17)=2, (19-18)=1 -> 0b00000000000001100110
-    // (1n << 6n) | (1n << 5n) | (1n << 2n) | (1n << 1n)
-    // 64 + 32 + 4 + 2 = 102
     const goalMask = 0b00000000000001100110n;
 
     // 現在の'A'の駒のビットマスクを取得
@@ -763,8 +813,74 @@ window.onload = async function () {
 
     window.addEventListener("keydown", (e) => {
         const modal = document.getElementById('modal');
-        if ((e.key === "m" || e.key === "M")) {
+        const key = e.key.toLowerCase();
+
+        if (key === "m") {
             modal.classList.toggle('is-active');
+            return; // モーダル表示時は他のキー操作を無効化
+        }
+
+        // --- Command and Speech Input Logic ---
+        if (commandInputTimer) {
+            clearTimeout(commandInputTimer);
+        }
+
+        const arrowMap = {
+            'arrowup': '↑',
+            'arrowdown': '↓',
+            'arrowleft': '←',
+            'arrowright': '→'
+        };
+        const displayChar = arrowMap[key] || (key.length === 1 ? key : null);
+
+        // コマンド入力の開始または継続
+        if (displayChar) {
+            if (!isCommandTyping) {
+                isCommandTyping = true;
+                UriangerSays = ""; // 最初の入力で吹き出しをクリア
+            }
+            if (UriangerSays.length < 24) {
+                UriangerSays += displayChar;
+            }
+            commandSequence.push(key);
+        } else if (e.key === 'Backspace') {
+            UriangerSays = UriangerSays.slice(0, -1);
+            commandSequence.pop();
+            if (UriangerSays.length === 0) { // 全て消したらリセット
+                isCommandTyping = false;
+                UriangerSays = defaultUriangerSays;
+                commandSequence = [];
+            }
+        } else if (e.key === 'Enter') {
+            isCommandTyping = false;
+            UriangerSays = defaultUriangerSays;
+            commandSequence = [];
+            return; // Enterキーではコマンド判定を行わない
+        }
+
+        // Keep the sequence array at the length of the command
+        if (commandSequence.length > miracleCommand.length) {
+            commandSequence.shift(); // Remove the oldest key press
+        }
+
+        // Check if the sequence matches
+        if (JSON.stringify(commandSequence) === JSON.stringify(miracleCommand)) {
+            console.log("Miracle Command Entered!");
+            activateMiracle();
+            commandSequence = []; // Reset the sequence
+            isCommandTyping = false;
+            UriangerSays = "Miracle!"; // 成功メッセージ
+            if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
+            setTimeout(() => { if(UriangerSays === "Miracle!") UriangerSays = defaultUriangerSays; }, 2000); // 2秒後に戻す
+        } else {
+            // Reset the sequence if no key is pressed for the timeout duration
+            commandInputTimer = setTimeout(() => {
+                commandSequence = [];
+                if (isCommandTyping) {
+                    isCommandTyping = false;
+                    UriangerSays = defaultUriangerSays;
+                }
+            }, COMMAND_TIMEOUT);
         }
     });
 
