@@ -44,7 +44,7 @@ const CLR_TXT_COL = TXT_LIGHT;
 const DRAG_THLD = CELL / 2; // mouse drag sensibility 0<fast<->slow >1
 
 const SPRITE = "img/imagesheet.webp" // sprites sheet
-const SPRITE_MAP = {
+const INIT_SPRITE_MAP = {
     'ryneD': [0, 0, 199, 199],
     'ryneR': [200, 0, 199, 199],
     'ryneU': [400, 0, 199, 199],
@@ -59,7 +59,7 @@ const SPRITE_MAP = {
     'b8': [700, 300, 100, 100],
     'b9': [600, 200, 100, 100],
     'b10': [700, 200, 100, 100],
-    'meol': [700, 200, 100, 100],
+    'meol': [700, 300, 100, 100],
     'hint': [600, 600, 100, 100],
     'rtry': [700, 600, 100, 100],
     'mrcl': [600, 500, 100, 100],
@@ -73,6 +73,7 @@ const SPRITE_MAP = {
     'urianger': [600, 1014, 200, 200],
     'cursor': [600, 700, 200, 250],
 };
+let SPRITE_MAP = INIT_SPRITE_MAP;
 
 const SND_SEL = 'snd/select.wav'
 const SND_MOV = 'snd/move.wav'
@@ -123,14 +124,9 @@ let gameHistory = [];
 let cursor = false;
 let commandSequence = []; // For command input
 
-const mrclCmd = ['arrowup','arrowup','arrowdown','arrowdown',
-                 'arrowleft','arrowright','arrowleft','arrowright','b','a',' '];
-
-const mrclCmds = {
-    Miracle: ['arrowup','arrowup','arrowdown','arrowdown',
-               'arrowleft','arrowright','arrowleft','arrowright','b','a',' '],
-    BSB: ['arrowdown','arrowup','x','y']  // Blight Soil Break
-};
+const mrclCmd = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown',
+    'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a', ' '];
+const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // Blight Soil Break
 
 
 let commandInputTimer = null; // Timer for command input
@@ -164,7 +160,6 @@ const NIBBLE_MASKS = Array.from({ length: BRD_LEN }, (_, i) => {
  * @returns {BigInt} 駒の位置を示すビットマスク
  */
 function getBlkBitmap(blkId) {
-
     const blkCode = BigInt(blkId);
     let bitmap = 0n;
     let shift = 0n;
@@ -260,6 +255,11 @@ function initGameState() {
     Selected = 7;    // when game start cursor set Suncred(blkId:7)
     cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
 
+    BLK_SIZE_BY_ID = INIT_BLK_SIZE_BY_ID;
+    SPRITE_MAP = INIT_SPRITE_MAP;
+
+
+    gameTurns = 0;
     gameClr = false;           // game clear flag
     clrAnim = false;        // clear animation flag
     clrAnimMod = 0;         //
@@ -303,6 +303,7 @@ const INIT_BLK_SIZE_BY_ID = [
     [1, 1],  // 10: J
 ];
 let BLK_SIZE_BY_ID = INIT_BLK_SIZE_BY_ID;
+
 function drawBlks() {
     // 駒ID 1から10 (AからJ) までループ
     for (let blkId = 1; blkId <= 10; blkId++) {
@@ -734,7 +735,7 @@ const onMouseDown = (e) => {
             }
         }
 
-            }
+    }
 }
 
 let onMouseUp = (e) => isDrag = false;
@@ -877,9 +878,19 @@ window.onload = async function () {
             activateMiracle();
             commandSequence = []; // Reset the sequence
             isCommandTyping = false;
-            UriangerSays = "Miracle!"; // 成功メッセージ
+            UriangerSays = "発達した技術は魔法に見えるものです"; // 成功メッセージ
             if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
-            setTimeout(() => { if(UriangerSays === "Miracle!") UriangerSays = defaultUriangerSays; }, 2000); // 2秒後に戻す
+            setTimeout(() => { if (UriangerSays === "Miracle!") UriangerSays = defaultUriangerSays; }, 2000);
+            // 2秒後に戻す
+        } else if (JSON.stringify(commandSequence) === JSON.stringify(bsbCmd)) {
+            console.log("Bright Soil Break Entered!");
+            activateBSB();
+            commandSequence = []; // Reset the sequence
+            isCommandTyping = false;
+            UriangerSays = "見事なスキル回しです"; // 成功メッセージ
+            if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
+            setTimeout(() => { if (UriangerSays === "Soil Break!") UriangerSays = defaultUriangerSays; }, 2000);
+            // 2秒後に戻す
         } else {
             // Reset the sequence if no key is pressed for the timeout duration
             commandInputTimer = setTimeout(() => {
@@ -902,4 +913,47 @@ window.onload = async function () {
     puzzleCanvas.addEventListener("mousemove", onMouseMove);
     puzzleCanvas.addEventListener("mouseup", onMouseUp);
     mainLoop();
+}
+
+//////////////////////
+
+/**
+ * Blight Soil Break
+ */
+const thancredId = 7;
+function activateBSB() {
+    if (Selected != thancredId) return;
+
+    const thancredBitmap = getBlkBitmap(thancredId);
+    if (thancredBitmap === 0n) return; // サンクレッドがいない
+
+    // サンクレッドの隣接マスを計算
+    const adjacentArea =
+        ((thancredBitmap & ~BigInt(UP)) << 4n) |    // 上
+        ((thancredBitmap & ~BigInt(DOWN)) >> 4n) |  // 下
+        ((thancredBitmap & ~BigInt(LEFT)) << 1n) |  // 左
+        ((thancredBitmap & ~BigInt(RIGHT)) >> 1n); // 右
+
+    // 1x2の中駒IDリスト
+    const targetBlkIds = [2, 3, 4, 5]; // 縦長の駒のみ。
+
+    for (const blkId of targetBlkIds) {
+        const bm = getBlkBitmap(blkId);
+        // 隣接しているかチェック
+        if ((bm & adjacentArea) !== 0n) {
+            console.log(`Blight Soil Break activated on blkId: ${blkId}`);
+
+            // 駒を1x1に変化させる （テーブルを直接書き換える）
+            BLK_SIZE_BY_ID[blkId] = [1, 1];
+            SPRITE_MAP[`b${blkId}`] = INIT_SPRITE_MAP['meol'];
+
+            //
+            const msbPos = BigInt(getMsbPosition(bm));
+            const newbm = 1n << msbPos;
+            updateStateInt(bm,newbm,blkId);
+
+            if (snd_mrcl) snd_mrcl.currentTime = 0, snd_mrcl.play(); // ミラクルと同じ音を再生
+            break; // 1体見つけたら終了
+        }
+    }
 }
