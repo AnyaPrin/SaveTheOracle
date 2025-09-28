@@ -73,13 +73,17 @@ const INIT_SPRITE_MAP = {
     'urianger': [600, 1014, 200, 200],
     'cursor': [600, 700, 200, 250],
 };
-let SPRITE_MAP = INIT_SPRITE_MAP;
 
-const SND_SEL = 'snd/select.wav'
-const SND_MOV = 'snd/move.wav'
-const SND_UNDO = 'snd/undo.wav'
-const SND_MRCL = 'snd/mrcl.wav' // miracle sound
-const SND_CLR = 'snd/clear.wav'
+let SPRITE_MAP = [];
+
+const SND_ROOT ='../snd/ffxiv_sps05001_mp3/'
+const SND_START = `${SND_ROOT}/FFXIV_Start_Game.mp3`
+const SND_SEL = `${SND_ROOT}/FFXIV_Confirm.mp3`
+const SND_MOV = `${SND_ROOT}/FFXIV_Obtain_Item.mp3`
+const SND_UNDO = `${SND_ROOT}/FFXIV_Untarget.mp3` // 一手戻す
+const SND_MRCL = `${SND_ROOT}/FFXIV_Limit_Break_Activated.mp3`
+const SND_CLR = `${SND_ROOT}/FFXIV_Enlist_Twin_Adders.mp3`
+const SND_START_VOL = 1
 const SND_SEL_VOL = 1
 const SND_MOV_VOL = 1
 const SND_MRCL_VOL = 1
@@ -93,9 +97,8 @@ let stateInt; // ゲーム状態をBigIntで管理
 let statStr;  // デバッグ表示や互換性のために保持
 
 let voidflag;
-let snd_undo;
 //let pazzleCanvas, pctx, offCanvas;
-let snd_select, snd_move, snd_mrcl, snd_clr;
+let snd_select, snd_move, snd_mrcl, snd_clr, snd_start;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
@@ -124,14 +127,18 @@ let gameHistory = [];
 let cursor = false;
 let commandSequence = []; // For command input
 
+// --- Retry Fade Effect ---
+let isFadingOut = false;
+let isFadingIn = false;
+let fadeStartTime = 0;
+const FADE_DURATION = 400; // 0.4秒
+
 const mrclCmd = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown',
     'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a', ' '];
 const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // Blight Soil Break
 
-
 let commandInputTimer = null; // Timer for command input
 const COMMAND_TIMEOUT = 500; // 0.5 seconds
-
 
 let OrclIdx = {
     "down": "ryneD",
@@ -233,6 +240,8 @@ const ldSound = (path) => {
 async function loadAllResources() {
     imgSheet = await ldSprite(SPRITE); // spritesheet
     try {
+        snd_start = await ldSound(SND_START);
+        snd_start.volume = SND_START_VOL;
         snd_select = await ldSound(SND_SEL);
         snd_select.volume = SND_SEL_VOL;
         snd_move = await ldSound(SND_MOV);
@@ -250,13 +259,17 @@ async function loadAllResources() {
 
 function initGameState() {
     console.log("initialize game")
+
+    BLK_SIZE_BY_ID = [...INIT_BLK_SIZE_BY_ID];  // 配列の*浅い*コピー （INIT_を変えない）
+
+    SPRITE_MAP = {...INIT_SPRITE_MAP};         // オブジェクトの＊浅い＊コピー （INIT_を変えない）
+
+    console.log('table reset');
+
     stateInt = COMMON.stateToBigInt(initStr);
     statStr = initStr; // for debug display
     Selected = 7;    // when game start cursor set Suncred(blkId:7)
     cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
-
-    BLK_SIZE_BY_ID = INIT_BLK_SIZE_BY_ID;
-    SPRITE_MAP = INIT_SPRITE_MAP;
 
 
     gameTurns = 0;
@@ -302,7 +315,7 @@ const INIT_BLK_SIZE_BY_ID = [
     [1, 1],  // 9: I
     [1, 1],  // 10: J
 ];
-let BLK_SIZE_BY_ID = INIT_BLK_SIZE_BY_ID;
+let BLK_SIZE_BY_ID = [];
 
 function drawBlks() {
     // 駒ID 1から10 (AからJ) までループ
@@ -347,11 +360,11 @@ function drawBlks() {
         // --- drawBlkBorderのインライン化 ---
         pctx.save();
         pctx.strokeStyle = BLKBDR_COL;
-        pctx.lineWidth = BLKBDR;
+        pctx.lineWidth = BLKBDR - 0.5;
         pctx.shadowColor = "rgba(255, 255, 224, 0.5)";
         pctx.shadowBlur = 8;
         pctx.beginPath();
-        pctx.roundRect(x + BLKBDR / 2, drawY + BLKBDR / 2, w - BLKBDR, h - BLKBDR, BLKBDR_R);
+        pctx.roundRect( x + BLKBDR / 2, drawY + BLKBDR / 2 , w - BLKBDR , h - BLKBDR, BLKBDR_R);
         pctx.stroke();
         pctx.restore();
         // --- インライン化ここまで ---
@@ -369,6 +382,9 @@ function drawBlks() {
         }
     }
 }
+
+
+
 
 function freedom() {
     let freedomCount = 0;
@@ -461,6 +477,22 @@ function drawAll() {
     }
     Freedom = freedom();
     speakUrianger(UriangerSays);
+
+    // --- Retry Fade Effect ---
+    if (isFadingOut || isFadingIn) {
+        let alpha = 0;
+        const elapsed = performance.now() - fadeStartTime;
+        if (isFadingOut) {
+            // フェードアウト
+            alpha = Math.min(1, elapsed / FADE_DURATION);
+        } else if (isFadingIn) {
+            // フェードイン
+            alpha = Math.max(0, 1 - (elapsed / FADE_DURATION));
+        }
+        pctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+        pctx.fillRect(0, 0, SCRN_W, SCRN_H);
+    }
+
 
     // 追加するデバッグ情報
     let infoStr = `Infomation\n`;
@@ -711,13 +743,21 @@ const onMouseDown = (e) => {
 
     // retry button
     if (x >= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
-        loadAllResources().then(drawAll);
+        // フェードアニメーションを開始
+        if (!isFadingOut && !isFadingIn) {
+            isFadingOut = true;
+            fadeStartTime = performance.now();
+            if (snd_start) snd_start.currentTime = 0, snd_start.play(); // フェード開始と同時に再生
+        }
+
         initGameState();
+
         return;
     }
 
     // Undo button
     if (x >= undoRect[0] && x <= undoRect[0] + BTNSIZ && y >= undoRect[1] && y <= undoRect[1] + BTNSIZ) {
+        if (isFadingOut || isFadingIn) return; // フェード中は操作不可
         undoMove();
         return;
     }
@@ -742,6 +782,23 @@ let onMouseUp = (e) => isDrag = false;
 
 function updateGameState() {
     let now = performance.now();
+
+    // --- Retry Fade Logic ---
+    if (isFadingOut) {
+        const elapsed = now - fadeStartTime;
+        if (elapsed >= FADE_DURATION) {
+            isFadingOut = false;
+            isFadingIn = true;
+            fadeStartTime = now;
+
+        }
+    } else if (isFadingIn) {
+        const elapsed = now - fadeStartTime;
+        if (elapsed >= FADE_DURATION) {
+            isFadingIn = false; // フェードイン完了
+        }
+    }
+
     if (clrAnim) {
         let elapsed = now - clrAnimMod;
         if (elapsed >= 500) {
@@ -802,6 +859,19 @@ function mainLoop() {
     requestAnimationFrame(mainLoop);
 }
 
+/** ブラウザ「ユーザーが操作してないじゃん」エラーのコンソール表示抑制
+ */
+function safePlay(audio) {
+    try {
+        audio.currentTime = 0;
+        audio.play().catch((e) => {
+            if (e.name !== 'NotAllowedError') console.error(e);
+        });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 let puzzleCanvas, pctx;
 let isMouseOverCanvas = false; // マウスがcanvas上にあるかを追跡するフラグ
 
@@ -809,13 +879,20 @@ window.onload = async function () {
     document.getElementById('close-modal').addEventListener('click', () => {
         document.getElementById('modal').classList.remove('is-active');
     });
+
     puzzleCanvas = document.getElementById('puzzlecanvas');
     pctx = puzzleCanvas.getContext("2d");
     puzzleCanvas.width = SCRN_W;
     puzzleCanvas.height = SCRN_H;
+
+    // 先にリソースを全て読み込む
+    await loadAllResources();
     initGameState();
 
-    await loadAllResources();
+    // --- ページロード時のフェードイン演出 ---
+    isFadingIn = true;
+    fadeStartTime = performance.now();
+    safePlay(snd_start);
 
     puzzleCanvas.addEventListener("mouseenter", () => isMouseOverCanvas = true);
     puzzleCanvas.addEventListener("mouseleave", () => isMouseOverCanvas = false);
@@ -947,7 +1024,7 @@ function activateBSB() {
             BLK_SIZE_BY_ID[blkId] = [1, 1];
             SPRITE_MAP[`b${blkId}`] = INIT_SPRITE_MAP['meol'];
 
-            //
+            // stateInt update
             const msbPos = BigInt(getMsbPosition(bm));
             const newbm = 1n << msbPos;
             updateStateInt(bm,newbm,blkId);
