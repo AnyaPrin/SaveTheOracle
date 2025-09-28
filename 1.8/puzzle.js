@@ -149,10 +149,11 @@ function getBlkBitmap(blkId) {
     let bitmap = 0n;
     let shift = 0n;
     for (let i = 0; i < BRD_LEN; i++) {
-        // stateIntのインデックス i (0-19) は、ビットマスクのインデックス (19-i) に対応
+        // stateIntはLSBから4bitずつ読んでいく。i=0は盤面の右下に対応する。
         if (((stateInt >> shift) & 0xFn) === blkCode) {
-            // BIT_MASKS[19-i] と同じ
-            bitmap |= (1n << BigInt(19 - i));
+            // 盤面の左上をMSB(ビット19)、右下をLSB(ビット0)とするビットマップを生成する。
+            // i=0(右下) -> bit 0, i=19(左上) -> bit 19
+            bitmap |= (1n << BigInt(i));
         }
         shift += 4n;
     }
@@ -178,13 +179,13 @@ const RIGHT = 0b00010001000100010001;
 /**
  * 盤面インデックスとブロック文字から描画用の矩形 [x, y, w, h] を返す
  */
-function getBlkRect(idx, char) {
+function getBlkRect(idx, blkId) {
     // 盤面上の左上座標
     const x = idx % W;
     const y = Math.floor(idx / W);
 
     // ブロックのサイズを取得
-    const [bw, bh] = BLK_SIZE_TABLE[char] || [1, 1];
+    const [bw, bh] = BLK_SIZE_BY_ID[blkId];
 
     // 描画座標
     const drawX = BDOFFX + x * CELL;
@@ -264,19 +265,19 @@ const toGridXY = (x, y) => {
     let gy = Math.floor((y - BDOFFY) / CELL);
     return { gx, gy };
 }
-
-const BLK_SIZE_TABLE = {
-    'A': [2, 2],
-    'B': [1, 2],
-    'C': [1, 2],
-    'D': [1, 2],
-    'E': [1, 2],
-    'F': [2, 1],
-    'G': [1, 1],
-    'H': [1, 1],
-    'I': [1, 1],
-    'J': [1, 1],
-};
+const BLK_SIZE_BY_ID = [
+    null,    // 0: dummy
+    [2, 2],  // 1: A
+    [1, 2],  // 2: B
+    [1, 2],  // 3: C
+    [1, 2],  // 4: D
+    [1, 2],  // 5: E
+    [2, 1],  // 6: F
+    [1, 1],  // 7: G
+    [1, 1],  // 8: H
+    [1, 1],  // 9: I
+    [1, 1],  // 10: J
+];
 
 function drawBlks() {
     // 駒ID 1から10 (AからJ) までループ
@@ -289,10 +290,9 @@ function drawBlks() {
         // ビットマスクから左上の位置を特定
         const msbPos = getMsbPosition(blkBitmap);
         const topLeftIndex = BRD_LEN - 1 - msbPos;
-        const char = String.fromCharCode('A'.charCodeAt(0) + blkId - 1);
 
         // 描画用の矩形情報を取得
-        const rect = getBlkRect(topLeftIndex, char);
+        const rect = getBlkRect(topLeftIndex, blkId);
         const [x, y, w, h] = rect;
         let drawY = y; // アニメーション用にY座標を別変数に
 
@@ -518,13 +518,16 @@ function updateStateInt(oldBitmap, newBitmap, blkId) {
     let tempState = stateInt;
     const blkCode = BigInt(blkId);
     for (let i = 0; i < BRD_LEN; i++) {
-        const bitMask = 1n << BigInt(19 - i); // 右下(idx=19)がLSBのビットマスク
-        const shift = BigInt(i * 4);
+        // i=0は盤面の左上、i=19は盤面の右下
+        // stateIntの更新とビットマップのチェック方向を揃える
+        const bitPosition = BigInt(BRD_LEN - 1 - i);
+        const bitMask = 1n << bitPosition; // ビットマップ上のマスク (左上=MSB)
+        const nibbleShift = bitPosition * 4n; // stateInt上のニブル位置
         if ((oldBitmap & bitMask) !== 0n) {
-            tempState &= ~(0xFn << shift); // 古い位置をクリア
+            tempState &= ~(0xFn << nibbleShift); // 古い位置をクリア
         }
         if ((newBitmap & bitMask) !== 0n) {
-            tempState |= (blkCode << shift); // 新しい位置にセット
+            tempState |= (blkCode << nibbleShift); // 新しい位置にセット
         }
     }
     stateInt = tempState;
