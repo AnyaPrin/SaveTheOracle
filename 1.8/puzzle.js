@@ -83,11 +83,14 @@ const SND_MOV = `${SND_ROOT}/FFXIV_Obtain_Item.mp3`
 const SND_UNDO = `${SND_ROOT}/FFXIV_Untarget.mp3` // 一手戻す
 const SND_MRCL = `${SND_ROOT}/FFXIV_Limit_Break_Activated.mp3`
 const SND_CLR = `${SND_ROOT}/FFXIV_Enlist_Twin_Adders.mp3`
-const SND_START_VOL = 1
-const SND_SEL_VOL = 1
-const SND_MOV_VOL = 1
-const SND_MRCL_VOL = 1
-const SND_CLR_VOL = 0.8
+
+const SND_MASTER_VOL = 0.1
+const SND_START_VOL = SND_MASTER_VOL/2
+const SND_SEL_VOL = SND_MASTER_VOL/2
+const SND_MOV_VOL = SND_MASTER_VOL/4
+const SND_MRCL_VOL = SND_MASTER_VOL/2
+const SND_CLR_VOL = SND_MASTER_VOL/2
+
 const MRCL_ROT_DUR = 500; // Miracle
 const MRCL_BUST_DELAY = 200;
 const MRCL_FX_DUR = 20;
