@@ -81,10 +81,15 @@ let statStr;  // デバッグ表示や互換性のために保持
 
 let voidflag;
 
+//let pazzleCanvas, pctx, offCanvas;
+let snd_select, snd_move, snd_mrcl, snd_clr;
+let imgSheet = null;
+
 const BTNSIZ = CELL * 7 / 8;
 const mrclRect = [CELL / 7, SCRN_H - CELL * 5 / 4, BTNSIZ, BTNSIZ];
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
+
 let crsrRect = [];
 
 let Selected;
@@ -110,9 +115,63 @@ let OrclIdx = {
     "up": "ryneU"
 };
 
-//let pazzleCanvas, pctx, offCanvas;
-let snd_select, snd_move, snd_mrcl, snd_clr;
-let imgSheet = null;
+// --- Bitwise Operation Helpers ---
+
+// 各マスに対応する20ビットマスクのテーブル (例: BIT_MASKS[0] は最下位ビット)
+const BIT_MASKS = Array.from({ length: BRD_LEN }, (_, i) => 1n << BigInt(i));
+
+// 各マスに対応する80ビット stateInt 上のニブルマスクのテーブル
+const NIBBLE_MASKS = Array.from({ length: BRD_LEN }, (_, i) => {
+    const shift = BigInt(i * 4);
+    return {
+        clear: ~(0xFn << shift),      // そのマスを0にするためのクリアマスク
+        set: (id) => BigInt(id) << shift // そのマスに駒IDをセットするための値
+    };
+});
+
+/**
+ * stateInt から指定した駒のビットマスクを生成します。
+ * @param {number} pieceId - 駒のID (1-10 for A-J)
+ * @returns {BigInt} 駒の位置を示すビットマスク
+ */
+function getPieceBitmap(pieceId) {
+    // stateIntは左上(idx=0)が最上位ビット、右下(idx=19)が最下位ビット
+    // ビットマスクは右下(idx=19)が最下位ビット(LSB)になるように変更
+    const pieceCode = BigInt(pieceId);
+    let bitmap = 0n;
+    for (let i = 0; i < BRD_LEN; i++) {
+        // (BRD_LEN - 1 - i) は、stateIntのインデックス(左上=0)をビットマスクのインデックス(右下=0)に変換
+        const stateIntIndex = BRD_LEN - 1 - i;
+        if (((stateInt >> BigInt(i * 4)) & 0xFn) === pieceCode) {
+            bitmap |= BIT_MASKS[stateIntIndex];
+        }
+    }
+    return bitmap;
+}
+
+let infoBm, infoShift, infoC, infoHall;
+const UP = 0b11110000000000000000;
+const DOWN = 0b00000000000000001111;
+const LEFT = 0b10001000100010001000;
+const RIGHT = 0b00010001000100010001;
+
+/**
+ * 盤面インデックスとブロック文字から描画用の矩形 [x, y, w, h] を返す
+ */
+function getBlkRect(idx, char) {
+    // 盤面上の左上座標
+    const x = idx % W;
+    const y = Math.floor(idx / W);
+
+    // ブロックのサイズを取得
+    const [bw, bh] = BLK_SIZE_TABLE[char] || [1, 1];
+
+    // 描画座標
+    const drawX = BDOFFX + x * CELL;
+    const drawY = BDOFFY + y * CELL;
+
+    return [drawX, drawY, bw * CELL, bh * CELL];
+}
 
 function drHFlipImg(key, x, y, w, h) {
     pctx.save()
@@ -239,25 +298,9 @@ const BLK_SIZE_TABLE = {
     'J': [1, 1],
 };
 
-/**
- * 盤面インデックスとブロック文字から描画用の矩形 [x, y, w, h] を返す
- */
-function getBlkRect(idx, char) {
-    // 盤面上の左上座標
-    const x = idx % W;
-    const y = Math.floor(idx / W);
-
-    // ブロックのサイズを取得
-    const [bw, bh] = BLK_SIZE_TABLE[char] || [1, 1];
-
-    // 描画座標
-    const drawX = BDOFFX + x * CELL;
-    const drawY = BDOFFY + y * CELL;
-
-    return [drawX, drawY, bw * CELL, bh * CELL];
-}
 
 function drawBlocks() {
+    // TODO
     const currentStatStr = COMMON.bigIntToState(stateInt);
     const seenChars = new Set();
     const charCodeA = 'A'.charCodeAt(0);
@@ -325,45 +368,6 @@ function drawBlockBorder(x, y, w, h) {
     pctx.restore();
 }
 
-// --- Bitwise Operation Helpers ---
-
-// 各マスに対応する20ビットマスクのテーブル (例: BIT_MASKS[0] は最下位ビット)
-const BIT_MASKS = Array.from({ length: BRD_LEN }, (_, i) => 1n << BigInt(i));
-
-// 各マスに対応する80ビット stateInt 上のニブルマスクのテーブル
-const NIBBLE_MASKS = Array.from({ length: BRD_LEN }, (_, i) => {
-    const shift = BigInt(i * 4);
-    return {
-        clear: ~(0xFn << shift),      // そのマスを0にするためのクリアマスク
-        set: (id) => BigInt(id) << shift // そのマスに駒IDをセットするための値
-    };
-});
-
-/**
- * stateInt から指定した駒のビットマスクを生成します。
- * @param {number} pieceId - 駒のID (1-10 for A-J)
- * @returns {BigInt} 駒の位置を示すビットマスク
- */
-function getPieceBitmap(pieceId) {
-    // stateIntは左上(idx=0)が最上位ビット、右下(idx=19)が最下位ビット
-    // ビットマスクは右下(idx=19)が最下位ビット(LSB)になるように変更
-    const pieceCode = BigInt(pieceId);
-    let bitmap = 0n;
-    for (let i = 0; i < BRD_LEN; i++) {
-        // (BRD_LEN - 1 - i) は、stateIntのインデックス(左上=0)をビットマスクのインデックス(右下=0)に変換
-        const stateIntIndex = BRD_LEN - 1 - i;
-        if (((stateInt >> BigInt(i * 4)) & 0xFn) === pieceCode) {
-            bitmap |= BIT_MASKS[stateIntIndex];
-        }
-    }
-    return bitmap;
-}
-
-let infoBm, infoShift, infoC, infoHall;
-const UP = 0b11110000000000000000;
-const DOWN = 0b00000000000000001111;
-const LEFT = 0b10001000100010001000;
-const RIGHT = 0b00010001000100010001;
 function freedom() {
     let freedomCount = 0;
     const directions = ["up", "down", "left", "right"];
