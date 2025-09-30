@@ -2,25 +2,30 @@
 // puzzle.js version.1.8.1
 const IS_DEBUG = true;
 
-const CELL = 100;
-const W = 4, H = 5;
+const CELL = 100;  // graphical pixel
+
+const W = 4, H = 5;  // logical board size
+
 const BRD_LEN = W * H;
+
 const GOAL_X = 1, GOAL_Y = 3;
 const CLR_GOAL_X = 1, CLR_GOAL_Y = 5;
 
 const SCRN_W = 600;
 const SCRN_H = 800;
+
 console.log("screen width x height: ", SCRN_W, " x ", SCRN_H);
 
-const BLKBDR = 6; // 枠線の太さ
-const BLKBDR_COL = "#1c1c1c"; // 枠線の色
-const BLKBDR_R = 8; // 角丸の半径
-const BLK_COL = "#1564C8";
+const BLKBDR = 6;              // block frame depth
+const BLKBDR_COL = "#1c1c1c";  // block border color
+const BLKBDR_R = 8;            // block corner round
 const BDOFFX = CELL + BLKBDR / 2;
 const BDOFFY = CELL / 2 + BLKBDR / 2;
-const BDRECT = [0, 0, SCRN_W, SCRN_H];
-const BBRECT = [10, SCRN_H - 210, 200, 48];
-const ULRECT = [0, 620, 200, 200];
+
+const BDRECT = [0, 0, SCRN_W, SCRN_H];      // board rect
+
+const ULBBRECT = [14, SCRN_H - 210, 200, 48]; // Ulianger bubble rect
+const ULRECT = [0, 620, 200, 200];  // Ulianger
 
 const SHADOW = "rgba(0, 0, 0, 1)";
 const BLUR = 14;
@@ -69,7 +74,7 @@ const INIT_SPRITE_MAP = {
     'auto': [600, 600, 100, 100],
     'grph': [700, 600, 100, 100],
     'quit': [700, 700, 100, 100],
-    'bble': [600, 965, 200, 48],
+    'bbbl': [600, 965, 200, 48],
     'urianger': [600, 1014, 200, 200],
     'cursor': [600, 700, 200, 250],
 };
@@ -411,21 +416,16 @@ function freedom() {
 }
 
 function speakUrianger(str) {
-    const BUBBLE_CHAR_WIDTH = 14; // 1文字あたりの幅
-    const BUBBLE_MAX_CHARS = 30; // 最大文字数
-    const BUBBLE_MAX_WIDTH = BUBBLE_MAX_CHARS * BUBBLE_CHAR_WIDTH;
-    const BUBBLE_MIN_WIDTH = BUBBLE_MAX_WIDTH * 0.5; // 最小幅 (50%)
-
-    // 文字数から幅を計算し、最小・最大幅の範囲に収める
-    let bubbleWidth = str.length * BUBBLE_CHAR_WIDTH;
-    bubbleWidth = Math.max(BUBBLE_MIN_WIDTH, Math.min(bubbleWidth, BUBBLE_MAX_WIDTH));
-
-    pctx.drawImage(imgSheet, ...SPRITE_MAP["bble"], BBRECT[0], BBRECT[1], bubbleWidth, BBRECT[3]);
+    const MAX = 400;    // bubble max pixel
+    const MIN = 100;    // bubble min pixel
+    let w = pctx.measureText(str).width;        // 文字列のピクセル単位の幅を返す
+    w = Math.max(MIN, Math.min(w, MAX)) + 40;   //
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["bbbl"], ULBBRECT[0], ULBBRECT[1], w, ULBBRECT[3]);
     pctx.textAlign = "left";
-    pctx.font = "14px IPAGothic";
+    pctx.font = "14px MeiryoUI";
     pctx.fillStyle = TXT_DARK;
     pctx.fillText(str, ULRECT[0] + 34, ULRECT[1] - 5);
-    pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"], ...ULRECT);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"],...ULRECT);
 }
 
 function drawCanvasBorder() {
@@ -450,9 +450,11 @@ function drawCanvasBorder() {
 
 const URIANGER_QUOTES = [
     "Goodspeed Thancred...",
-    "計略を披露しましょう",
+    "計略を披露しましょう...",
     "世界は未だ混迷のなかに...",
     "暁のとき、ほどなく...",
+    "おや、わたくしとしたことが...",
+    "...",
 ];
 
 let defaultUriangerSays = URIANGER_QUOTES[0];
