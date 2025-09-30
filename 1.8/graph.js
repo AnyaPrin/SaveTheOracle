@@ -1,3 +1,5 @@
+const VERTEX_JSON '../data/vertex_data.json';
+const GAIA_GLB '../obj/gaia_node.glb';   // 3d model of Gaia
 const graphCanvas = document.getElementById('graphcanvas');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 600/700, 0.1, 1000);
@@ -22,10 +24,9 @@ controls.dampingFactor = 0.05;
 controls.screenSpacePanning = true;
 controls.minDistance = 0.1;
 controls.maxDistance = 10;
-
 const loader = new THREE.GLTFLoader();
 loader.load(
-    '../obj/gaia_node.glb',
+    GAIA_GLB,
     function (gltf) {
         const model = gltf.scene;
         scene.add(model);

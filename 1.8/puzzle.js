@@ -84,10 +84,10 @@ const SND_UNDO = `${SND_ROOT}/FFXIV_Untarget.mp3` // 一手戻す
 const SND_MRCL = `${SND_ROOT}/FFXIV_Limit_Break_Activated.mp3`
 const SND_CLR = `${SND_ROOT}/FFXIV_Enlist_Twin_Adders.mp3`
 
-const SND_MASTER_VOL = 0.8
+const SND_MASTER_VOL = 1
 const SND_START_VOL = SND_MASTER_VOL/2
-const SND_SEL_VOL = SND_MASTER_VOL/2
-const SND_MOV_VOL = SND_MASTER_VOL/4
+const SND_SEL_VOL = SND_MASTER_VOL
+const SND_MOV_VOL = SND_MASTER_VOL/2
 const SND_MRCL_VOL = SND_MASTER_VOL/4
 const SND_CLR_VOL = SND_MASTER_VOL/4
 
@@ -454,7 +454,7 @@ const URIANGER_QUOTES = [
     "世界は未だ混迷のなかに...",
     "おや、わたくしとしたことが",
     "暁のとき、ほどなく...",
-    "puzzle.js version {{ this.version }}",
+    "puzzle.js version {{ site.version }}",
 ];
 let defaultUriangerSays = URIANGER_QUOTES[0];
 let UriangerSays = defaultUriangerSays; // 初期値

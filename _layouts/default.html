@@ -1,177 +1,177 @@
 ---
+title: SAVE THE ORACLE WEB
+version: 1.8.1
+baseurl: "/SaveTheOracle/"
 ---
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-  <style>
-    @font-face {
-    font-family: 'MeiryoB';
-    src: url('{{ "../fonts/MeiryoUI-Bold.woff2" | relative_url }}') format('woff2'),
-      url('{{ "/fonts/MeiryoUI-Bold.woff" | relative_url }}') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Nyashi';
-    src: url('{{ "/fonts/Nyashi.woff2" | relative_url }}') format('woff2'),
-      url('{{ "/fonts/Nyashi.woff" | relative_url }}') format('woff');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
-  }
-  </style>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ page.title | default: site.title }}</title>
-  <style>
-      body {
-        background: var(--bg-color);
-        color: var(--text-color);
-        font-family: 'MeiryoB', 'Meiryo', 'Arial', sans-serif;
-        margin: 24px;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: left;
-        padding: 40px;
-        overflow: hidden;
-      }
+    <head>
+        <style>
+            @font-face {
+                font-family: 'Meiryo';
+                src: url('{{ "../fonts/Meiryo-Bold.woff2" | relative_url }}') format('woff2'),
+                url('{{ "../fonts/Meiryo-Bold.woff" | relative_url }}') format('woff');
+                font-weight: bold;
+                font-style: normal;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'MeiryoUI';
+                src: url('{{ "../fonts/MeiryoUI-Bold.woff2" | relative_url }}') format('woff2'),
+                url('{{ "../fonts/MeiryoUI-Bold.woff" | relative_url }}') format('woff');
+                font-weight: bold;
+                font-style: normal;
+                font-display: swap;
+            }
+            @font-face {
+                font-family: 'Nyashi';
+                src: url('{{ "../fonts/Nyashi.woff2" | relative_url }}') format('woff2'),
+                url('{{ "../fonts/Nyashi.woff" | relative_url }}') format('woff');
+                font-weight: bold;
+                font-style: normal;
+                font-display: swap;
+            }
+        </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ page.title | default: site.title }}</title>
+        <style>
+            :root {
+                --link: #92b2c8;
+                --menu: #92b2c8;
+                --bg-color: #000001;
+                --text-color: #f0f0f0;
+                --panel: rgba(255, 255, 255, 0.05);
+                --panela: rgba(0, 0, 0, 0.15);
+                --acc-b: #1269bf;
+                --acc-g: #2d333b;
+                --border: #444c56;
+                --shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15);
+            }
+            body {
+                background: var(--bg-color);
+                color: var(--text-color);
+                font-family: 'MeiryoB', 'Meiryo', 'Arial', sans-serif;
+                margin: 24px;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: left;
+                padding: 40px;
+                overflow: hidden;
+            }
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2.5%;
+                background: var(--panel);
+                font-size: 14pt;
+                color: var(--text-color);
+                padding: 8px 16px;
+                box-shadow: var(--shadow);
+                z-index: 100;
+            }
+            footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: var(--panel);
+                color: var(--text-color);
+                font-size: 0.5em;
+                text-align: left;
+                opacity: 0.7;
+                padding: 8px 16px;
+                box-shadow: var(--shadow);
+            }
+            main {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                font-size: 0.75rem;
+                max-width: 600px;
+                margin-top: 40px;
+                background: var(--panel);
+                border-radius: 16px;
+                box-shadow: var(--shadow);
+                border: 1px solid var(--border);
+                text-align: left;
+            }
+            h2 {
+                color: var(--acc-b);
+                font-size: 1rem;
+                margin-bottom: 0.8em;
+            }
+            p {
+                font-size: 0.75rem;
+                line-height: 1.7;
+                margin-bottom: 1.5em;
+            }
+            .btn {
+                display: inline-block;
+                padding: 0.3em 1em;
+                color: #fff;
+                background: var(--acc-g);
+                border-radius: 3px;
+                border: none;
+                font-size: 0.8rem;
+                font-weight: bold;
+                text-decoration: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+                transition: background-color 0.2s;
+                cursor: pointer;
+            }
+            .btn2 {
+                display: inline-block;
+                padding: 0.3em 1em;
+                color: var(--text-color);
+                background: var(--panel);
+                border-radius: 3px;
+                border: none;
+                font-size: 0.8rem;
+                font-weight: bold;
+                text-decoration: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+                transition: background-color 0.2s;
+                cursor: pointer;
+            }
 
-      header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 2.5%;
-        background: var(--panel);
-        font-size: 14pt;
-        color: var(--text-color);
-        padding: 8px 16px;
-        box-shadow: var(--shadow);
-        z-index: 100;
-      }
+            .btn:hover,
+            .btn:focus {
+                background: var(--acc-b);
+                outline: none;
+            }
 
-      footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: var(--panel);
-        color: var(--text-color);
-        font-size: 0.5em;
-        text-align: left;
-        opacity: 0.7;
-        padding: 8px 16px;
-        box-shadow: var(--shadow);
-      }
-      main {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        font-size: 0.75rem;
-        max-width: 600px;
-        margin-top: 40px;
-        background: var(--panel);
-        border-radius: 16px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border);
-        text-align: left;
-      }
+            @media (max-width: 700px) {
+                main {
+                    max-width: 95vw;
+                    padding: 20px 4vw;
+                }
 
-      h2 {
-        color: var(--acc-b);
-        font-size: 1rem;
-        margin-bottom: 0.8em;
-      }
+                header {
+                    padding: 24px 0 12px 0;
+                }
+            }
 
-      p {
-        font-size: 0.75rem;
-        line-height: 1.7;
-        margin-bottom: 1.5em;
-      }
-
-      .btn {
-        display: inline-block;
-        padding: 0.3em 1em;
-        color: #fff;
-        background: var(--acc-g);
-        border-radius: 3px;
-        border: none;
-        font-size: 0.8rem;
-        font-weight: bold;
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-        transition: background-color 0.2s;
-        cursor: pointer;
-      }
-
-      .btn2 {
-        display: inline-block;
-        padding: 0.3em 1em;
-        color: var(--text-color);
-        background: var(--panel);
-        border-radius: 3px;
-        border: none;
-        font-size: 0.8rem;
-        font-weight: bold;
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-        transition: background-color 0.2s;
-        cursor: pointer;
-      }
-
-      .btn:hover,
-      .btn:focus {
-        background: var(--acc-b);
-        outline: none;
-      }
-
-      .btn2:hover,
-      .btn2:focus {
-        background: var(--acc-b);
-        outline: none;
-      }
-
-      @media (max-width: 700px) {
-        main {
-          max-width: 95vw;
-          padding: 20px 4vw;
-        }
-
-        header {
-          padding: 24px 0 12px 0;
-        }
-      }
-
-    :root {
-        --link: #92b2c8;
-        --menu: #92b2c8;
-        --bg-color: #000001;
-        --text-color: #f0f0f0;
-        --panel: rgba(255, 255, 255, 0.05);
-        --panela: rgba(0, 0, 0, 0.15);
-        --acc-b: #1269bf;
-        --acc-g: #2d333b;
-        --border: #444c56;
-        --shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15);
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <span style="font-size:16pt">Save The Oracle</span>
-    <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
-  </header>
-  {{ content }}
-  <footer>
-    <hr>
-    FINAL FANTASY XIV ⒸSQUARE ENIX <br>
-    <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
-      mifilia.js {{ page.version | site.version }} &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
-    <span style="position:fixed;right:20px;">
-      <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
-        <img width="20" src="{{ '../img/github-mark-white.png' | relative_url }}"> GitHub </a> </span>
-  </footer>
-</body>
+        </style>
+    </head>
+    <body>
+        <header>
+            <span style="font-size:16pt">Save The Oracle</span>
+            <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
+        </header>
+        {{ content }}
+        <footer>
+            <hr>
+            FINAL FANTASY XIV ⒸSQUARE ENIX <br>
+            <a class="btn" href="https://github.com/AnyaPrin" target="_blank" rel="noopener">
+                mifilia.js '{{ page.version | default: site.version }}'
+                &copy; 2025 AnyaPrin / Powered by GitHub Pages </a>
+            <span style="position:fixed;right:20px;">
+                <a class="btn" href="https://github.com/" target="_blank" rel="noopener">
+                    <img width="20" src="{{ '../img/github-mark-white.png' | relative_url }}"> GitHub </a> </span>
+        </footer>
+    </body>
 </html>
