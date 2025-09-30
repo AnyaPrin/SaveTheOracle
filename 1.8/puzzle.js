@@ -452,10 +452,9 @@ const URIANGER_QUOTES = [
     "Goodspeed Thancred...",
     "計略を披露しましょう",
     "世界は未だ混迷のなかに...",
-    "おや、わたくしとしたことが",
     "暁のとき、ほどなく...",
-    "puzzle.js version {{ site.version }}",
 ];
+
 let defaultUriangerSays = URIANGER_QUOTES[0];
 let UriangerSays = defaultUriangerSays; // 初期値
 let isCommandTyping = false; // Flag to check if user is typing a command
@@ -496,7 +495,6 @@ function drawAll() {
         pctx.fillRect(0, 0, SCRN_W, SCRN_H);
     }
 
-
     // 追加するデバッグ情報
     let infoStr = `Infomation\n`;
     infoStr += `Game Turns k   : ${gameTurns}\n`;
@@ -512,6 +510,7 @@ function drawAll() {
     infoStr += `cursor   : ${cursor}\n`;
     if (IS_DEBUG) drInfo(infoStr);
 }
+
 
 function drInfo(str) {
     const infoDiv = document.getElementById('info');
@@ -795,11 +794,13 @@ function updateGameState() {
             fadeStartTime = now;
 
         }
+        safePlay(snd_start);
     } else if (isFadingIn) {
         const elapsed = now - fadeStartTime;
         if (elapsed >= FADE_DURATION) {
             isFadingIn = false; // フェードイン完了
         }
+
     }
 
     if (clrAnim) {
@@ -893,9 +894,10 @@ window.onload = async function () {
     initGameState();
 
     // --- ページロード時のフェードイン演出 ---
+
     isFadingIn = true;
     fadeStartTime = performance.now();
-    safePlay(snd_start);
+
 
     puzzleCanvas.addEventListener("mouseenter", () => isMouseOverCanvas = true);
     puzzleCanvas.addEventListener("mouseleave", () => isMouseOverCanvas = false);
@@ -982,7 +984,6 @@ window.onload = async function () {
             }, COMMAND_TIMEOUT);
         }
     });
-
 
     const windowsClipboard = document.getElementById('clipboard');
     if (windowsClipboard) {
