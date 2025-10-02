@@ -415,16 +415,22 @@ function freedom() {
     return freedomCount;
 }
 
+
 function speakUrianger(str) {
+    const letterSpacing = 0; // ★文字間の追加スペースをピクセルで指定
     const MAX = 400;    // bubble max pixel
     const MIN = 100;    // bubble min pixel
-    let w = pctx.measureText(str).width;        // 文字列のピクセル単位の幅を返す
+
+    pctx.font = "13px MeiryoUI"; // measureTextの前にフォントを設定
+    let w = pctx.measureText(str).width + (str.length > 0 ? (str.length - 1) * letterSpacing : 0);
     w = Math.max(MIN, Math.min(w, MAX)) + 40;   //
     pctx.drawImage(imgSheet, ...SPRITE_MAP["bbbl"], ULBBRECT[0], ULBBRECT[1], w, ULBBRECT[3]);
     pctx.textAlign = "left";
-    pctx.font = "14px MeiryoUI";
     pctx.fillStyle = TXT_DARK;
-    pctx.fillText(str, ULRECT[0] + 34, ULRECT[1] - 5);
+
+    pctx.letterSpacing = `${letterSpacing}px`;
+    pctx.fillText(str, ULRECT[0] + 30, ULRECT[1] - 5);
+    pctx.letterSpacing = "0px";
     pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"],...ULRECT);
 }
 
@@ -448,16 +454,19 @@ function drawCanvasBorder() {
     pctx.restore();
 }
 
-const URIANGER_QUOTES = [
-    "Goodspeed Thancred...",
-    "計略を披露しましょう...",
-    "世界は未だ混迷のなかに...",
-    "暁のとき、ほどなく...",
-    "おや、わたくしとしたことが...",
-    "...",
-];
+const URIANGER_QUOTES = {
+    'start': "Goodspeed Thancred...",
+    'default1': "世界は未だ混迷のなかに...",
+    'default2': "暁のとき、ほどなく...",
+    'stuck': "おや、わたくしとしたことが...",
+    'clear': "道は開かれました",
+    'miracle': "計略を披露しましょう",
+    'commandSuccessMiracle': "発達した技術は魔法に見えるもの",
+    'commandSuccessBSB': "見事なスキル回しです",
+    'thancredSelected': "サンクレッド、あなたに託します",
+};
 
-let defaultUriangerSays = URIANGER_QUOTES[0];
+let defaultUriangerSays = URIANGER_QUOTES['0'];
 let UriangerSays = defaultUriangerSays; // 初期値
 let isCommandTyping = false; // Flag to check if user is typing a command
 
@@ -473,13 +482,26 @@ function drawAll() {
 
     // Draw thus speaks Urianger
 
-    // 10ターンごとにデフォルトのセリフを変更
-    const quoteIndex = Math.floor(gameTurns / 10) % URIANGER_QUOTES.length;
-    defaultUriangerSays = URIANGER_QUOTES[quoteIndex];
+    // --- 状況に応じたセリフ選択ロジック ---
+    Freedom = freedom();
+    if (gameClr) {
+        defaultUriangerSays = URIANGER_QUOTES['clear'];
+    } else if (mrclAnim) {
+        defaultUriangerSays = URIANGER_QUOTES['miracle'];
+    } else if (Freedom === 0 && !mrclBtn) { // ミラクル未使用で詰んだ場合
+        defaultUriangerSays = URIANGER_QUOTES['stuck'];
+    } else if (Selected === 7) {
+        defaultUriangerSays = URIANGER_QUOTES['thancredSelected'];
+    } else if (gameTurns === 0) {
+        defaultUriangerSays = URIANGER_QUOTES['start'];
+    } else {
+        // 10ターンごとにデフォルトセリフを切り替え
+        defaultUriangerSays = (Math.floor(gameTurns / 10) % 2 === 0) ? URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
+    }
+
     if (!isCommandTyping) {
         UriangerSays = defaultUriangerSays;
     }
-    Freedom = freedom();
     speakUrianger(UriangerSays);
 
     // --- Retry Fade Effect ---
@@ -950,18 +972,18 @@ window.onload = async function () {
             activateMiracle();
             commandSequence = []; // Reset the sequence
             isCommandTyping = false;
-            UriangerSays = "発達した技術は魔法に見えるものです"; // 成功メッセージ
+            UriangerSays = URIANGER_QUOTES['commandSuccessMiracle']; // 成功メッセージ
             if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
-            setTimeout(() => { if (UriangerSays === "Miracle!") UriangerSays = defaultUriangerSays; }, 2000);
+            setTimeout(() => { UriangerSays = defaultUriangerSays; }, 2000);
             // 2秒後に戻す
         } else if (JSON.stringify(commandSequence) === JSON.stringify(bsbCmd)) {
             console.log("Bright Soil Break Entered!");
             activateBSB();
             commandSequence = []; // Reset the sequence
             isCommandTyping = false;
-            UriangerSays = "見事なスキル回しです"; // 成功メッセージ
+            UriangerSays = URIANGER_QUOTES['commandSuccessBSB']; // 成功メッセージ
             if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
-            setTimeout(() => { if (UriangerSays === "Soil Break!") UriangerSays = defaultUriangerSays; }, 2000);
+            setTimeout(() => { UriangerSays = defaultUriangerSays; }, 2000);
             // 2秒後に戻す
         } else {
             // Reset the sequence if no key is pressed for the timeout duration
