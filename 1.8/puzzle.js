@@ -738,13 +738,11 @@ const onMouseDown = (e) => {
 
     // retry button
     if (x >= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
-        // フェードアニメーションを開始
         if (!isFadingOut && !isFadingIn) {
             isFadingOut = true;
             fadeStartTime = performance.now();
             if (snd_start) snd_start.currentTime = 0, snd_start.play(); // フェード開始と同時に再生
         }
-        initGameState();
         return;
     }
 
@@ -777,12 +775,15 @@ function updateGameState() {
     let now = performance.now();
 
     // --- Retry Fade Logic ---
+    let isFading = isFadingOut || isFadingIn;
     if (isFadingOut) {
         const elapsed = now - fadeStartTime;
         if (elapsed >= FADE_DURATION) {
             isFadingOut = false;
             isFadingIn = true;
             fadeStartTime = now;
+            // フェードアウト完了時にゲーム状態をリセット
+            initGameState();
 
         }
         safePlay(snd_start);
@@ -797,7 +798,12 @@ function updateGameState() {
     if (exitAnim) {
         let elapsed = now - exitAnimMod;
         if (elapsed >= 500) {
-            gameClr = true;
+            // アニメーション完了後、オラクルをゲーム状態から削除
+            if (getBlkBitmap(1) !== 0n) {
+                const oracleBitmap = getBlkBitmap(1);
+                updateStateInt(oracleBitmap, 0n, 1); // 駒を盤上から消す
+                statStr = COMMON.bigIntToState(stateInt);
+            }
         }
     }
 
