@@ -106,7 +106,7 @@ let statStr;  // デバッグ表示や互換性のために保持
 
 let voidflag;
 //let pazzleCanvas, pctx, offCanvas;
-let snd_select, snd_move, snd_mrcl, snd_clr, snd_start;
+let snd_select, snd_move, snd_mrcl, snd_clr, snd_start, snd_undo;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
@@ -116,7 +116,7 @@ const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
 const undoRect = [SCRN_W - CELL * 15 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 
-let crsrRect = [];
+let cursorRect = [];
 
 let Selected;
 let gameClr;
@@ -292,7 +292,6 @@ function initGameState() {
     mrclBtn = false;    // Miracle Flash button flag
     mrclAnim = false;  // Miracle Flash Animation Activate
     mrclPhase = 0;         // phase flag
-    mrclST = 0;           // start flag
     mrclBust = [];     // 破壊するブロックのリスト
     mrclFx = false;
     mrclFxMod = 0;
@@ -549,17 +548,6 @@ function drText(str, x, y, px) {
     pctx.fillText(str, x, y);
 }
 
-function drText(str, x, y, px) {
-    const dw = 1;
-    pctx.textAlign = "left";
-    pctx.font = px + "px sans-serif";
-    //    pctx.fillStyle = "rgba(0,0,0,1)";      // shadow
-    //    pctx.fillText(str, x + dw, y + dw);
-    //    pctx.fillStyle = "rgba(28,28,28,1)";     // pseudo3D-text
-    //    pctx.fillText(str, x + dw, y + dw);
-    pctx.fillStyle = TXT_DARK;
-    pctx.fillText(str, x, y);
-}
 
 function canMove(blkId, mv) {
     const blkBm = getBlkBitmap(blkId);
