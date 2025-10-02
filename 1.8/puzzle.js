@@ -8,8 +8,8 @@ const W = 4, H = 5;  // logical board size
 
 const BRD_LEN = W * H;
 
-const GOAL_X = 1, GOAL_Y = 3;
-const CLR_GOAL_X = 1, CLR_GOAL_Y = 5;
+const GOAL_X = 1, GOAL_Y = 3;// パズルのゴール
+const EXIT_X = 1, EXIT_Y = 5;// ボードの外
 
 const SCRN_W = 600;
 const SCRN_H = 800;
@@ -120,15 +120,15 @@ let crsrRect = [];
 
 let Selected;
 let gameClr;
-let clrAnim;
-let clrAnimMod;
+let exitAnim;
+let exitAnimMod;
 let isDrag;
 let DSMP;
 
 let blkPos;       // Block Posttion
 let mrclBtn, mrclAnim, mrclPhase, mrclPhMod;
 let mrclBust = [];    // 破壊される駒(blkId)の配列
-let mrclFx, mrclFxMod, clr_mrclPlayed;
+let mrclFx, mrclFxMod;
 let Freedom = 0;
 let gameTurns = 0;
 let gameHistory = [];
@@ -282,8 +282,8 @@ function initGameState() {
 
     gameTurns = 0;
     gameClr = false;           // game clear flag
-    clrAnim = false;        // clear animation flag
-    clrAnimMod = 0;         //
+    exitAnim = false;        // clear animation flag
+    exitAnimMod = 0;         //
     isDrag = false;
     DSMP = [0, 0];
     blkPos = [0, 0];        // blk position
@@ -296,7 +296,6 @@ function initGameState() {
     mrclBust = [];     // 破壊するブロックのリスト
     mrclFx = false;
     mrclFxMod = 0;
-    clr_mrclPlayed = false;
 
     // Freedom degree = the number of movable nodes(statStr) from current nodes(statStr)
     Freedom = 0;
@@ -345,13 +344,15 @@ function drawBlks() {
         let orclKey = "down"; // デフォルトの向き
 
         if (blkId == 1) { // メインブロックのアニメーション処理
-            if (clrAnim) { // クリアアニメーション
-                const elapsed = performance.now() - clrAnimMod;
+            if (exitAnim) { // パズルをクリアしたら、オラクルは城の外へ自動移動
+                const elapsed = performance.now() - exitAnimMod;
                 if (elapsed < 500) {
                     const progress = elapsed / 500;
-                    const startY = GOAL_Y * CELL + BDOFFY; // 元のY
-                    const endY = CLR_GOAL_Y * CELL + BDOFFY; // 目的のY
+                    const startY = GOAL_Y * CELL + BDOFFY;   // 元のY
+                    const endY = EXIT_Y * CELL + BDOFFY; // 目的のY
                     drawY = startY + (endY - startY) * progress;
+                } else {
+                    y = EXIT_Y * CELL+BDOFFY;
                 }
             } else if (mrclAnim && mrclPhase == 1) { // ミラクルフラッシュ回転
                 const elapsed = performance.now() - mrclPhMod;
@@ -486,11 +487,10 @@ function drawAll() {
     if (isFadingOut || isFadingIn) {
         let alpha = 0;
         const elapsed = performance.now() - fadeStartTime;
+        // performance.now() タイムスタンプをミリ秒で返す。
         if (isFadingOut) {
-            // フェードアウト
             alpha = Math.min(1, elapsed / FADE_DURATION);
         } else if (isFadingIn) {
-            // フェードイン
             alpha = Math.max(0, 1 - (elapsed / FADE_DURATION));
         }
         pctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
@@ -635,6 +635,7 @@ function move(blkId, mv) {
     }
 
     updateStateInt(blkBm, shiftedBlkBm, blkId);
+
     gameTurns++;
     statStr = COMMON.bigIntToState(stateInt); // for debug display
 
@@ -696,14 +697,14 @@ function activateMiracle() {
     if (snd_mrcl) snd_mrcl.currentTime = 0, snd_mrcl.play();
 }
 
-let startClrAnim = () => {
-    clrAnim = true;
-    clrAnimModM = performance.now();
+let startExitAnim = () => {
+    exitAnim = true;
+    exitAnimMod = performance.now();
     if (snd_clr) snd_clr.currentTime = 0, snd_clr.play();
 }
 
 const onMouseMove = (e) => {
-    if (!isDrag || !Selected || clrAnim || mrclAnim) return;
+    if (!isDrag || !Selected || exitAnim || mrclAnim) return;
     let rect = puzzleCanvas.getBoundingClientRect();
     let x = e.clientX - rect.left;
     let y = e.clientY - rect.top;
@@ -713,16 +714,18 @@ const onMouseMove = (e) => {
     let mv;
     if (Math.abs(dx) > DRAG_THLD) mv = dx > 0 ? "right" : "left";
     if (Math.abs(dy) > DRAG_THLD && Math.abs(dy) > Math.abs(dx)) mv = dy > 0 ? "down" : "up";
-
     if (mrclAnim) return;
+
     if (mv) {
-        // クリア可能状態で、オラクル(1)を下に動かした場合
-        if (judgeClear() && Selected == 1 && mv == "down") {
-            startClrAnim();
-        } else if (canMove(Selected, mv)) {
+        // ゴール位置にいるオラクル(blkId=1)を下に動かすと、外へでるアニメーションがはじまる
+        if (Selected == 1 && gameClr && mv == "down") {
+                startExitAnim();
+        } else if (canMove(Selected, mv)) { // 普通の駒の動き
             move(Selected, mv);
             DSMP = [x, y];                   //  Selected position
         } else {
+            // 動けない方向
+            // snd_doshin.play() 衝突音
         }
     }
 }
@@ -766,7 +769,7 @@ const onMouseDown = (e) => {
         return;
     }
 
-    if (!(clrAnim || gameClr || mrclAnim)) {
+    if (!(exitAnim || gameClr || mrclAnim)) {
         if (0 <= grid_x && grid_x < W && 0 <= grid_y && grid_y < H) {
             const idx = (BRD_LEN - 1) - (grid_y * W + grid_x);
             const clicked_blkId = Number((stateInt >> BigInt(idx * 4)) & 0xFn);
@@ -805,15 +808,14 @@ function updateGameState() {
 
     }
 
-    if (clrAnim) {
-        let elapsed = now - clrAnimMod;
+    if (exitAnim) {
+        let elapsed = now - exitAnimMod;
         if (elapsed >= 500) {
-            // アニメーション終了後、最終状態に更新
-            // move(1, "down") を呼び出すなどして stateInt を更新する
             gameClr = true;
-            clrAnim = false;
+            exitAnim = false;
         }
     }
+
     // Miracle Flsh
     if (mrclAnim) {
         let elapsed = now - mrclPhMod;
@@ -846,27 +848,22 @@ function updateGameState() {
     }
 }
 
-// clear or preclear Judje
-function judgeClear() {
-    // 'A'の駒 (ID:1) がゴール位置 (x=1, y=3) にある状態のビットマスク。
-    const goalMask = 0b00000000000001100110n;
-
-    // 現在の'A'の駒のビットマスクを取得
-    const blkABitmap = getBlkBitmap(1);
-
-    // ゴール状態と一致するか判定
-    return blkABitmap === goalMask;
-}
 
 function mainLoop() {
     updateGameState();
     drawAll();
 
+    const goalMask = 0b00000000000001100110n;
+    const blkABitmap = getBlkBitmap(1);
+
+    // puzzle clear Judje
+    if (blkABitmap === goalMask) {
+        gameClr = true;
+    }
+
     requestAnimationFrame(mainLoop);
 }
 
-/** ブラウザ「ユーザーが操作してないじゃん」エラーのコンソール表示抑制
- */
 function safePlay(audio) {
     try {
         audio.currentTime = 0;

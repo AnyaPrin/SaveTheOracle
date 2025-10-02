@@ -85,7 +85,9 @@ window.addEventListener('resize', () => {
 });
 
 function animate() {
+
     requestAnimationFrame(animate);
+
     controls.update();
     if (scene.children.length > 0) {
         scene.children[1].rotation.x += 0.005;
