@@ -356,7 +356,7 @@ function drawBlks() {
                 const idx = Math.floor((elapsed / frame_duration) % 4);
                 orclKey = ["up", "left", "down", "right"][idx];
             } else {
-
+                
             }
 
             pctx.drawImage(imgSheet, ...SPRITE_MAP[OrclIdx[orclKey]], x, drawY, w, h);
