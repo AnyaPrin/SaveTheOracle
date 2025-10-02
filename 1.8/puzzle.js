@@ -463,7 +463,7 @@ const URIANGER_QUOTES = {
     'miracle': "計略を披露しましょう",
     'commandSuccessMiracle': "発達した技術は魔法に見えるもの",
     'commandSuccessBSB': "見事なスキル回しです",
-    'thancredSelected': "サンクレッド、あなたに託します",
+    'thancredSelected': "...",
 };
 
 let defaultUriangerSays = URIANGER_QUOTES['0'];
@@ -488,15 +488,15 @@ function drawAll() {
         defaultUriangerSays = URIANGER_QUOTES['clear'];
     } else if (mrclAnim) {
         defaultUriangerSays = URIANGER_QUOTES['miracle'];
-    } else if (Freedom === 0 && !mrclBtn) { // ミラクル未使用で詰んだ場合
+    } else if (Freedom === 0 && !mrclBtn) {
         defaultUriangerSays = URIANGER_QUOTES['stuck'];
     } else if (Selected === 7) {
         defaultUriangerSays = URIANGER_QUOTES['thancredSelected'];
     } else if (gameTurns === 0) {
         defaultUriangerSays = URIANGER_QUOTES['start'];
-    } else {
-        // 10ターンごとにデフォルトセリフを切り替え
-        defaultUriangerSays = (Math.floor(gameTurns / 10) % 2 === 0) ? URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
+    } else {        // 10ターンごとにデフォルトセリフを切り替え
+        defaultUriangerSays = (Math.floor(gameTurns / 10) % 2 === 0) ?
+            URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
     }
 
     if (!isCommandTyping) {
