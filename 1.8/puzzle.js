@@ -143,7 +143,7 @@ const FADE_DURATION = 400; // 0.4秒
 
 const mrclCmd = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown',
     'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a', ' '];
-const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // Blight Soil Break
+const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // BSB:Blight Soil Break
 
 let commandInputTimer = null; // Timer for command input
 const COMMAND_TIMEOUT = 500; // 0.5 seconds
