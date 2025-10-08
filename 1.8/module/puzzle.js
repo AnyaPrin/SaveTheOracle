@@ -67,15 +67,15 @@ const INIT_SPRITE_MAP = {
     'meol': [700, 300, 100, 100],
     'hint': [600, 600, 100, 100],
     'rtry': [700, 600, 100, 100],
-    'mrcl': [600, 500, 100, 100],
-    'undo': [700, 500, 100, 100],
-    'mrcl2': [700, 500, 100, 100],
     'wall': [0, 400, 600, 800],
     'auto': [600, 600, 100, 100],
     'grph': [700, 600, 100, 100],
     'quit': [700, 700, 100, 100],
     'bbbl': [600, 965, 200, 48],
     'urianger': [600, 1014, 200, 200],
+    'pixy0': [600, 500, 100, 100],  // turns piller
+    'pixy1': [700, 500, 100, 100],  //
+    'undo': [700, 500, 100, 100],
     'cursor': [600, 700, 200, 250],
 };
 
@@ -102,7 +102,8 @@ const MRCL_FX_DUR = 20;
 const MRCL_COL = "rgba(255,100,100,";
 const initStr = "BAACBAACDFFEDIJEG..H";
 let stateInt; // ゲーム状態をBigIntで管理
-let statStr;  // デバッグ表示や互換性のために保持
+let stateStr;  // デバッグ表示や互換性のために保持
+
 
 let voidflag;
 //let pazzleCanvas, pctx, offCanvas;
@@ -110,11 +111,11 @@ let snd_select, snd_move, snd_mrcl, snd_clr, snd_start, snd_undo;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
-
-const mrclRect = [CELL / 7, SCRN_H - CELL * 5 / 4, BTNSIZ, BTNSIZ];
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
-const undoRect = [SCRN_W - CELL * 15 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
+const PIXY_Y = SCRN_H - CELL * 5 / 4;
+let pixyRect = [CELL / 7, PIXY_Y, CELL, CELL];
+//console.log("pixyRect:", pixyRect);
 
 let cursorRect = [];
 
@@ -143,7 +144,7 @@ const FADE_DURATION = 400; // 0.4秒
 
 const mrclCmd = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown',
     'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a', ' '];
-const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // Blight Soil Break
+const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // BSB:Blight Soil Break
 
 let commandInputTimer = null; // Timer for command input
 const COMMAND_TIMEOUT = 500; // 0.5 seconds
@@ -275,7 +276,7 @@ function initGameState() {
     console.log('table reset');
 
     stateInt = COMMON.stateToBigInt(initStr);
-    statStr = initStr; // for debug display
+    stateStr = initStr; // for debug display
     Selected = 7;    // when game start cursor set Suncred(blkId:7)
     cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
 
@@ -295,7 +296,7 @@ function initGameState() {
     mrclFx = false;
     mrclFxMod = 0;
 
-    // Freedom degree = the number of movable nodes(statStr) from current nodes(statStr)
+    // Freedom degree = the number of movable nodes(stateStr) from current nodes(stateStr)
     Freedom = 0;
     cursor = true;
     gameHistory = [];
@@ -341,8 +342,8 @@ function drawBlks() {
 
         let orclKey = "down"; // デフォルトの向き
 
-        if (blkId == 1) { // メインブロックのアニメーション処理
-            if (exitAnim) { // パズルをクリアしたら、オラクルは城の外へ自動移動
+        if (blkId == 1) {                     // メインブロックのアニメーション処理
+            if (exitAnim) {                   // パズルをクリアしたらオラクルは城の外へ自動移動
                 const elapsed = performance.now() - exitAnimMod;
                 if (elapsed < 500) {
                     const progress = elapsed / 500;
@@ -356,7 +357,7 @@ function drawBlks() {
                 const idx = Math.floor((elapsed / frame_duration) % 4);
                 orclKey = ["up", "left", "down", "right"][idx];
             } else {
-                
+
             }
 
             pctx.drawImage(imgSheet, ...SPRITE_MAP[OrclIdx[orclKey]], x, drawY, w, h);
@@ -415,16 +416,22 @@ function freedom() {
     return freedomCount;
 }
 
+
 function speakUrianger(str) {
+    const letterSpacing = 0; // ★文字間の追加スペースをピクセルで指定
     const MAX = 400;    // bubble max pixel
     const MIN = 100;    // bubble min pixel
-    let w = pctx.measureText(str).width;        // 文字列のピクセル単位の幅を返す
+
+    pctx.font = "13px MeiryoUI"; // measureTextの前にフォントを設定
+    let w = pctx.measureText(str).width + (str.length > 0 ? (str.length - 1) * letterSpacing : 0);
     w = Math.max(MIN, Math.min(w, MAX)) + 40;   //
     pctx.drawImage(imgSheet, ...SPRITE_MAP["bbbl"], ULBBRECT[0], ULBBRECT[1], w, ULBBRECT[3]);
     pctx.textAlign = "left";
-    pctx.font = "14px MeiryoUI";
     pctx.fillStyle = TXT_DARK;
-    pctx.fillText(str, ULRECT[0] + 34, ULRECT[1] - 5);
+
+    pctx.letterSpacing = `${letterSpacing}px`;
+    pctx.fillText(str, ULRECT[0] + 30, ULRECT[1] - 5);
+    pctx.letterSpacing = "0px";
     pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"],...ULRECT);
 }
 
@@ -448,16 +455,19 @@ function drawCanvasBorder() {
     pctx.restore();
 }
 
-const URIANGER_QUOTES = [
-    "Goodspeed Thancred...",
-    "計略を披露しましょう...",
-    "世界は未だ混迷のなかに...",
-    "暁のとき、ほどなく...",
-    "おや、わたくしとしたことが...",
-    "...",
-];
+const URIANGER_QUOTES = {
+    'start': "Goodspeed Thancred...",
+    'default1': "世界は未だ混迷のなかに...",
+    'default2': "暁のとき、ほどなく...",
+    'stuck': "おや、わたくしとしたことが...",
+    'clear': "道は開かれました",
+    'miracle': "計略を披露しましょう",
+    'commandSuccessMiracle': "発達した技術は魔法に見えるもの",
+    'commandSuccessBSB': "見事なスキル回しです",
+    'thancredSelected': "...",
+};
 
-let defaultUriangerSays = URIANGER_QUOTES[0];
+let defaultUriangerSays = URIANGER_QUOTES['0'];
 let UriangerSays = defaultUriangerSays; // 初期値
 let isCommandTyping = false; // Flag to check if user is typing a command
 
@@ -468,18 +478,32 @@ function drawAll() {
     drawCanvasBorder();
     drawBlks();
     drawButtons();
+
     drawEffects();
     let str, x, y;
 
     // Draw thus speaks Urianger
 
-    // 10ターンごとにデフォルトのセリフを変更
-    const quoteIndex = Math.floor(gameTurns / 10) % URIANGER_QUOTES.length;
-    defaultUriangerSays = URIANGER_QUOTES[quoteIndex];
+    // --- 状況に応じたセリフ選択ロジック ---
+    Freedom = freedom();
+    if (gameClr) {
+        defaultUriangerSays = URIANGER_QUOTES['clear'];
+    } else if (mrclAnim) {
+        defaultUriangerSays = URIANGER_QUOTES['miracle'];
+    } else if (Freedom === 0 && !mrclBtn) {
+        defaultUriangerSays = URIANGER_QUOTES['stuck'];
+    } else if (Selected === 7) {
+        defaultUriangerSays = URIANGER_QUOTES['thancredSelected'];
+    } else if (gameTurns === 0) {
+        defaultUriangerSays = URIANGER_QUOTES['start'];
+    } else {        // 10ターンごとにデフォルトセリフを切り替え
+        defaultUriangerSays = (Math.floor(gameTurns / 10) % 2 === 0) ?
+            URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
+    }
+
     if (!isCommandTyping) {
         UriangerSays = defaultUriangerSays;
     }
-    Freedom = freedom();
     speakUrianger(UriangerSays);
 
     // --- Retry Fade Effect ---
@@ -502,8 +526,8 @@ function drawAll() {
     infoStr += `Miracle Used   : ${mrclBtn ? 'Yes' : 'No'}\n`;
     infoStr += `Freedom Degree : ${Freedom}\n`;
     infoStr += `Selected Blk   : blkId ${Selected}  charCode ${".ABCDEFGHIJ"[Selected]}\n`;
-    infoStr += `stateStr       : ${statStr ?? 'N/A'} (${statStr?.length ?? 0})\n`;
-    infoStr += `stateInt(0x)   : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'} (${statStr?.length ?? 0})\n`;
+    infoStr += `stateStr       : ${stateStr ?? 'N/A'} (${stateStr?.length ?? 0})\n`;
+    infoStr += `stateInt(0x)   : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'} (${stateStr?.length ?? 0})\n`;
     infoStr += `Shifted        : ${infoShift?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `Block bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
     infoStr += `Hall bitmask   : ${infoHall?.toString(2).padStart(20, "0") ?? '---'}\n`;
@@ -519,12 +543,19 @@ function drInfo(str) {
     infoDiv.style.whiteSpace = 'pre-wrap'; // この行を追加
 }
 
+
 function drawButtons() {
     pctx.drawImage(imgSheet, ...SPRITE_MAP['rtry'], ...rtryRect);
     pctx.drawImage(imgSheet, ...SPRITE_MAP['hint'], ...hintRect);
-    pctx.drawImage(imgSheet, ...SPRITE_MAP['mrcl'], ...mrclRect);
-    pctx.drawImage(imgSheet, ...SPRITE_MAP['undo'], ...undoRect);
+    let delta = Math.floor(Math.random() * 3);
+    if (delta > 0) {
+        pctx.drawImage(imgSheet, ...SPRITE_MAP[`pixy0`], ...pixyRect);
+    } else {
+        pctx.drawImage(imgSheet, ...SPRITE_MAP['pixy1'], ...pixyRect);
+    }
 }
+
+
 const drawEffects = () => {
     if (mrclFx) {
         let elapsed = performance.now() - mrclFxMod;
@@ -615,17 +646,18 @@ function move(blkId, mv) {
     let shiftedBlkBm;
 
     switch (mv) {
-        case "up": shiftedBlkBm = blkBm << 4n; break;
-        case "down": shiftedBlkBm = blkBm >> 4n; break;
-        case "left": shiftedBlkBm = blkBm << 1n; break;
-        case "right": shiftedBlkBm = blkBm >> 1n; break;
-        default: return; // 不正な移動方向なら何もしない
+    case "up": shiftedBlkBm = blkBm << 4n; break;
+    case "down": shiftedBlkBm = blkBm >> 4n; break;
+    case "left": shiftedBlkBm = blkBm << 1n; break;
+    case "right": shiftedBlkBm = blkBm >> 1n; break;
+    default:
+        return; // 不正な移動方向なら何もしない
     }
-
     updateStateInt(blkBm, shiftedBlkBm, blkId);
+    pixyRect[1] = pixyRect[1] - (++gameTurns);
+    if (pixyRect[1] < 0) pixyRect[1] = PIXY_Y;
 
-    gameTurns++;
-    statStr = COMMON.bigIntToState(stateInt); // for debug display
+    stateStr = COMMON.bigIntToState(stateInt); // for debug display
 
     if (snd_move)
         snd_move.currentTime = 0, snd_move.play();
@@ -635,7 +667,7 @@ function undoMove() {
     if (gameHistory.length > 0) {
         stateInt = gameHistory.pop();
         gameTurns--; // ターン数も戻す
-        statStr = COMMON.bigIntToState(stateInt); // デバッグ表示用
+        stateStr = COMMON.bigIntToState(stateInt); // デバッグ表示用
 
         // 選択中の駒が消えていたら選択を解除（例：Thancredを選択）
         if (getBlkBitmap(Selected) === 0n) {
@@ -652,7 +684,7 @@ function blkBuster(blkId) {
     updateStateInt(blkBm, 0n, blkId);
 
     if (snd_select) snd_select.currentTime = 0, snd_select.play();
-    statStr = COMMON.bigIntToState(stateInt); // for debug display
+    stateStr = COMMON.bigIntToState(stateInt); // for debug display
     mrclFx = true;
     mrclFxMod = performance.now();
     return true;
@@ -718,13 +750,13 @@ const onMouseMove = (e) => {
     }
 }
 
-// save statStr in windows clipboard
-async function statStrClipboard() {
+// save stateStr in windows clipboard
+async function stateStrClipboard() {
     try {
-        await navigator.clipboard.writeText(statStr);
-        console.log('statStr copied to windows clipboard successfully!');
+        await navigator.clipboard.writeText(stateStr);
+        console.log('stateStr copied to windows clipboard successfully!');
     } catch (err) {
-        console.error('Failed to copy statStr:', err);
+        console.error('Failed to copy stateStr:', err);
     }
 }
 
@@ -738,18 +770,16 @@ const onMouseDown = (e) => {
 
     // retry button
     if (x >= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
-        // フェードアニメーションを開始
         if (!isFadingOut && !isFadingIn) {
             isFadingOut = true;
             fadeStartTime = performance.now();
             if (snd_start) snd_start.currentTime = 0, snd_start.play(); // フェード開始と同時に再生
         }
-        initGameState();
         return;
     }
 
     // Undo button
-    if (x >= undoRect[0] && x <= undoRect[0] + BTNSIZ && y >= undoRect[1] && y <= undoRect[1] + BTNSIZ) {
+    if (x >= pixyRect[0] && x <= pixyRect[0] + BTNSIZ && y >= pixyRect[1] && y <= pixyRect[1] + BTNSIZ) {
         if (isFadingOut || isFadingIn) return; // フェード中は操作不可
         undoMove();
         return;
@@ -777,12 +807,15 @@ function updateGameState() {
     let now = performance.now();
 
     // --- Retry Fade Logic ---
+    let isFading = isFadingOut || isFadingIn;
     if (isFadingOut) {
         const elapsed = now - fadeStartTime;
         if (elapsed >= FADE_DURATION) {
             isFadingOut = false;
             isFadingIn = true;
             fadeStartTime = now;
+            // フェードアウト完了時にゲーム状態をリセット
+            initGameState();
 
         }
         safePlay(snd_start);
@@ -797,7 +830,12 @@ function updateGameState() {
     if (exitAnim) {
         let elapsed = now - exitAnimMod;
         if (elapsed >= 500) {
-            gameClr = true;
+            // アニメーション完了後、オラクルをゲーム状態から削除
+            if (getBlkBitmap(1) !== 0n) {
+                const oracleBitmap = getBlkBitmap(1);
+                updateStateInt(oracleBitmap, 0n, 1); // 駒を盤上から消す
+                stateStr = COMMON.bigIntToState(stateInt);
+            }
         }
     }
 
@@ -944,18 +982,18 @@ window.onload = async function () {
             activateMiracle();
             commandSequence = []; // Reset the sequence
             isCommandTyping = false;
-            UriangerSays = "発達した技術は魔法に見えるものです"; // 成功メッセージ
+            UriangerSays = URIANGER_QUOTES['commandSuccessMiracle']; // 成功メッセージ
             if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
-            setTimeout(() => { if (UriangerSays === "Miracle!") UriangerSays = defaultUriangerSays; }, 2000);
+            setTimeout(() => { UriangerSays = defaultUriangerSays; }, 2000);
             // 2秒後に戻す
         } else if (JSON.stringify(commandSequence) === JSON.stringify(bsbCmd)) {
             console.log("Bright Soil Break Entered!");
             activateBSB();
             commandSequence = []; // Reset the sequence
             isCommandTyping = false;
-            UriangerSays = "見事なスキル回しです"; // 成功メッセージ
+            UriangerSays = URIANGER_QUOTES['commandSuccessBSB']; // 成功メッセージ
             if (commandInputTimer) clearTimeout(commandInputTimer); // Clear timer on success
-            setTimeout(() => { if (UriangerSays === "Soil Break!") UriangerSays = defaultUriangerSays; }, 2000);
+            setTimeout(() => { UriangerSays = defaultUriangerSays; }, 2000);
             // 2秒後に戻す
         } else {
             // Reset the sequence if no key is pressed for the timeout duration
@@ -971,7 +1009,7 @@ window.onload = async function () {
 
     const windowsClipboard = document.getElementById('clipboard');
     if (windowsClipboard) {
-        windowsClipboard.addEventListener('click', statStrClipboard);
+        windowsClipboard.addEventListener('click', stateStrClipboard);
     }
 
     puzzleCanvas.addEventListener("mousedown", onMouseDown);
@@ -979,6 +1017,7 @@ window.onload = async function () {
     puzzleCanvas.addEventListener("mouseup", onMouseUp);
     mainLoop();
 }
+
 
 //////////////////////
 
@@ -1022,3 +1061,5 @@ function activateBSB() {
         }
     }
 }
+
+export {stateStr, stateInt};

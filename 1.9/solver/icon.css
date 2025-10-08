@@ -1,0 +1,52 @@
+            /* Icon-based UI styles */
+            .action-buttons,
+            .icon-group {
+                display: flex;
+                justify-content: flex-start;
+                gap: 0;
+                align-items: center;
+            }
+
+            .action-buttons {
+                margin: 14px 0;
+
+            }
+
+            .icon-btn {
+                -webkit-appearance: none;
+                /* Reset default button styles */
+                -moz-appearance: none;
+                appearance: none;
+                background: none;
+                padding: 0;
+                font-family: inherit;
+                color: inherit;
+                width: 56px;
+                /* Icon styles */
+                height: 56px;
+                background-color: #3a3a3a;
+                border: 2px solid #5a5a5a;
+                border-radius: 6px;
+                display: inline-flex;
+                /* Use flex to center content */
+                align-items: center;
+                justify-content: center;
+
+                font-size: 2em;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                user-select: none;
+                margin: 0;
+            }
+
+            .action-buttons.searching .icon-btn-label:not(.active-search) {
+                opacity: 0.4;
+                pointer-events: none;
+            }
+
+            .icon-btn:hover:not(:disabled) {
+                background-color: #4a4a4a;
+                border-color: var(--primary-accent-color);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            }
