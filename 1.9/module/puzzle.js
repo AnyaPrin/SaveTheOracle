@@ -14,6 +14,9 @@ const EXIT_X = 1, EXIT_Y = 5;// ボードの外
 const SCRN_W = 600;
 const SCRN_H = 800;
 
+const ULRECT =   [14, 620, 200, 200];  // Ulianger
+const ULBBRECT = [ULRECT[0]+114, ULRECT[1]-23, ULRECT[2], 48]; // Ulianger bubble rect
+
 console.log("screen width x height: ", SCRN_W, " x ", SCRN_H);
 
 const BLKBDR = 6;              // block frame depth
@@ -24,8 +27,6 @@ const BDOFFY = CELL / 2 + BLKBDR / 2;
 
 const BDRECT = [0, 0, SCRN_W, SCRN_H];      // board rect
 
-const ULBBRECT = [14, SCRN_H - 210, 200, 48]; // Ulianger bubble rect
-const ULRECT = [0, 620, 200, 200];  // Ulianger
 
 const SHADOW = "rgba(0, 0, 0, 1)";
 const BLUR = 14;
@@ -65,8 +66,8 @@ const INIT_SPRITE_MAP = {
     'b9': [600, 200, 100, 100],
     'b10': [700, 200, 100, 100],
     'meol': [700, 300, 100, 100],
-    'hint': [600, 600, 100, 100],
-    'rtry': [700, 600, 100, 100],
+    'hint': [600, 600, 100, 99],
+    'rtry': [700, 600, 100, 99],
     'wall': [0, 400, 600, 800],
     'auto': [600, 600, 100, 100],
     'grph': [700, 600, 100, 100],
@@ -113,8 +114,9 @@ let imgSheet = null;
 const BTNSIZ = CELL * 7 / 8;
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
 const hintRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL, BTNSIZ, BTNSIZ];
-const PIXY_Y = SCRN_H - CELL * 5 / 4;
-let pixyRect = [CELL / 7, PIXY_Y, CELL, CELL];
+
+const PIXY_Y = SCRN_H - 170;
+let pixyRect = [14, PIXY_Y, CELL*0.57, CELL*0.57];
 //console.log("pixyRect:", pixyRect);
 
 let cursorRect = [];
@@ -131,7 +133,7 @@ let mrclBtn, mrclAnim, mrclPhase, mrclPhMod;
 let mrclBust = [];    // 破壊される駒(blkId)の配列
 let mrclFx, mrclFxMod;
 let Freedom = 0;
-let gameTurns = 0;
+let gameTurn = 0;
 let gameHistory = [];
 let cursor = false;
 let commandSequence = []; // For command input
@@ -280,7 +282,7 @@ function initGameState() {
     Selected = 7;    // when game start cursor set Suncred(blkId:7)
     cursorRect = [BDOFFX, BDOFFY + CELL * 4, CELL, CELL];
 
-    gameTurns = 0;
+    gameTurn = 0;
     gameClr = false;           // game clear flag
     exitAnim = false;        // clear animation flag
     exitAnimMod = 0;         //
@@ -430,9 +432,10 @@ function speakUrianger(str) {
     pctx.fillStyle = TXT_DARK;
 
     pctx.letterSpacing = `${letterSpacing}px`;
-    pctx.fillText(str, ULRECT[0] + 30, ULRECT[1] - 5);
+    pctx.fillText(str, ULBBRECT[0]+14, ULBBRECT[1]+25);
+
     pctx.letterSpacing = "0px";
-    pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"],...ULRECT);
+    pctx.drawImage(imgSheet, ...SPRITE_MAP["urianger"], ...ULRECT);
 }
 
 function drawCanvasBorder() {
@@ -494,10 +497,10 @@ function drawAll() {
         defaultUriangerSays = URIANGER_QUOTES['stuck'];
     } else if (Selected === 7) {
         defaultUriangerSays = URIANGER_QUOTES['thancredSelected'];
-    } else if (gameTurns === 0) {
+    } else if (gameTurn === 0) {
         defaultUriangerSays = URIANGER_QUOTES['start'];
     } else {        // 10ターンごとにデフォルトセリフを切り替え
-        defaultUriangerSays = (Math.floor(gameTurns / 10) % 2 === 0) ?
+        defaultUriangerSays = (Math.floor(gameTurn / 10) % 2 === 0) ?
             URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
     }
 
@@ -521,18 +524,13 @@ function drawAll() {
     }
 
     // 追加するデバッグ情報
-    let infoStr = `Infomation\n`;
-    infoStr += `Game Turns k   : ${gameTurns}\n`;
+    let infoStr = `DEBUG INFORMATION\n\n`;
+    infoStr += `Game Turn      : ${gameTurn}\n`;
     infoStr += `Miracle Used   : ${mrclBtn ? 'Yes' : 'No'}\n`;
     infoStr += `Freedom Degree : ${Freedom}\n`;
-    infoStr += `Selected Blk   : blkId ${Selected}  charCode ${".ABCDEFGHIJ"[Selected]}\n`;
-    infoStr += `stateStr       : ${stateStr ?? 'N/A'} (${stateStr?.length ?? 0})\n`;
-    infoStr += `stateInt(0x)   : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'} (${stateStr?.length ?? 0})\n`;
-    infoStr += `Shifted        : ${infoShift?.toString(2).padStart(20, "0") ?? '---'}\n`;
-    infoStr += `Block bitmap   : ${infoBm?.toString(2).padStart(20, "0") ?? '---'}\n`;
-    infoStr += `Hall bitmask   : ${infoHall?.toString(2).padStart(20, "0") ?? '---'}\n`;
-    infoStr += `blkPos   : ${blkPos}\n`;
-    infoStr += `cursor   : ${cursor}\n`;
+    infoStr += `Selected Block : blkId ${Selected}(${".ABCDEFGHIJ"[Selected]})\n`;
+    infoStr += `State String   : ${stateStr ?? 'N/A'}\n`;
+    infoStr += `State Integer  : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'}\n`;
     if (IS_DEBUG) drInfo(infoStr);
 }
 
@@ -543,16 +541,17 @@ function drInfo(str) {
     infoDiv.style.whiteSpace = 'pre-wrap'; // この行を追加
 }
 
-
+let pixyFlap = 0;
 function drawButtons() {
     pctx.drawImage(imgSheet, ...SPRITE_MAP['rtry'], ...rtryRect);
     pctx.drawImage(imgSheet, ...SPRITE_MAP['hint'], ...hintRect);
-    let delta = Math.floor(Math.random() * 3);
-    if (delta > 0) {
+    pixyFlap = gameTurn % 2;
+    if (pixyFlap == 0) {
         pctx.drawImage(imgSheet, ...SPRITE_MAP[`pixy0`], ...pixyRect);
     } else {
         pctx.drawImage(imgSheet, ...SPRITE_MAP['pixy1'], ...pixyRect);
     }
+
 }
 
 
@@ -654,7 +653,7 @@ function move(blkId, mv) {
         return; // 不正な移動方向なら何もしない
     }
     updateStateInt(blkBm, shiftedBlkBm, blkId);
-    pixyRect[1] = pixyRect[1] - (++gameTurns);
+    pixyRect[1] = pixyRect[1] - (++gameTurn);
     if (pixyRect[1] < 0) pixyRect[1] = PIXY_Y;
 
     stateStr = COMMON.bigIntToState(stateInt); // for debug display
@@ -666,7 +665,7 @@ function move(blkId, mv) {
 function undoMove() {
     if (gameHistory.length > 0) {
         stateInt = gameHistory.pop();
-        gameTurns--; // ターン数も戻す
+        gameTurn--; // ターン数も戻す
         stateStr = COMMON.bigIntToState(stateInt); // デバッグ表示用
 
         // 選択中の駒が消えていたら選択を解除（例：Thancredを選択）
@@ -902,9 +901,6 @@ let puzzleCanvas, pctx;
 let isMouseOverCanvas = false; // マウスがcanvas上にあるかを追跡するフラグ
 
 window.onload = async function () {
-    document.getElementById('close-modal').addEventListener('click', () => {
-        document.getElementById('modal').classList.remove('is-active');
-    });
     puzzleCanvas = document.getElementById('puzzlecanvas');
     pctx = puzzleCanvas.getContext("2d");
     puzzleCanvas.width = SCRN_W;
@@ -917,24 +913,14 @@ window.onload = async function () {
     // --- ページロード時のフェードイン演出 ---
     isFadingIn = true;
     fadeStartTime = performance.now();
-
     puzzleCanvas.addEventListener("mouseenter", () => isMouseOverCanvas = true);
     puzzleCanvas.addEventListener("mouseleave", () => isMouseOverCanvas = false);
-
     window.addEventListener("keydown", (e) => {
-        const modal = document.getElementById('modal');
-        const key = e.key.toLowerCase();
-
-        if (key === "s") {
-            modal.classList.toggle('is-active');
-            return;
-        }
-
         // --- Command and Speech Input Logic ---
         if (commandInputTimer) {
             clearTimeout(commandInputTimer);
         }
-
+        const key = e.key.toLowerCase();
         const arrowMap = { // for command
             'arrowup': '↑',
             'arrowdown': '↓',

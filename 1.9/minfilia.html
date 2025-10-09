@@ -24,16 +24,15 @@
                 position: fixed;
                 top: 564px;
                 left: 644px;
-                width: 440px;
-                height: 320px;
                 background: var(--panel);
                 font-size: 10pt;
+                border-radius: 16px;
+                padding: 10px;
                 z-index: 100;
             }
 
             #solver {
                 display: block;
-                font-family: 'Nimbus Mono', 'IPAゴシック', 'courier', 'Ariel';
                 position: fixed;
                 top: 64px;
                 left: 644px;
@@ -41,6 +40,8 @@
                 height: 320px;
                 background: var(--panel);
                 font-size: 10pt;
+                border-radius: 16px;
+                padding: 10px;
                 z-index: 100;
             }
 
@@ -244,13 +245,11 @@
         <header>
             <span style="font-size:16pt">Save The Oracle</span>
             <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
-            <button id="open-solver-btn">ソルバーにデータを送る</button>
         </header>
         <main>
             <canvas id="puzzlecanvas" class="fade"></canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
             <div id="info">Info.</div>
-
             <div id="modal">
                 <div class="modal-content" id="solver">
                     <div id="close-modal"></div>
@@ -287,17 +286,16 @@
     <script type="module" src="module/nodegraph.js"></script>
     <script type="module">
         import { stateStr } from "./module/puzzle.js";
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('modal').classList.remove('is-active');
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('modal');
             const openSolverBtn = document.getElementById('open-solver-btn');
             if (openSolverBtn) {
                 openSolverBtn.addEventListener('click', () => {
-                    const solverURL = `solver/solver.html?state=${stateStr}`;
-                    const solverIframe = parent.document.getElementById("solver");
-                    if (solverIframe) {
-                        solverIframe.src = solverURL;
-                    } else {
-                        window.open(solverURL, '_blank');
-                    }
                 });
             }
         });
