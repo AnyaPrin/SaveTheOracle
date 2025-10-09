@@ -459,18 +459,19 @@ function drawCanvasBorder() {
 }
 
 const URIANGER_QUOTES = {
-    'start': "Goodspeed Thancred...",
-    'default1': "世界は未だ混迷のなかに...",
-    'default2': "暁のとき、ほどなく...",
-    'stuck': "おや、わたくしとしたことが...",
+    'start': "かけがえのないものを守れるように",
+    'default1': "世界は未だ混迷のなか",
+    'default2': "師は「智を用いよ」と教えました",
+    'default3': "心が揺れたのです",
+    'stuck': "心が揺れたのです",
     'clear': "道は開かれました",
-    'miracle': "計略を披露しましょう",
-    'commandSuccessMiracle': "発達した技術は魔法に見えるもの",
-    'commandSuccessBSB': "見事なスキル回しです",
-    'thancredSelected': "...",
+    'miracle': "天の巡りはやがて暁の日を導かん",
+    'commandSuccessMiracle': "あなたは昔から無茶をする",
+    'commandSuccessBSB': "あなたは昔から無茶をする",
+    'thancredSelected': "かけがえのないものを守れるように",
 };
 
-let defaultUriangerSays = URIANGER_QUOTES['0'];
+const defaultUriangerSays = URIANGER_QUOTES['0'];
 let UriangerSays = defaultUriangerSays; // 初期値
 let isCommandTyping = false; // Flag to check if user is typing a command
 
@@ -490,23 +491,25 @@ function drawAll() {
     // --- 状況に応じたセリフ選択ロジック ---
     Freedom = freedom();
     if (gameClr) {
-        defaultUriangerSays = URIANGER_QUOTES['clear'];
+        UriangerSays = URIANGER_QUOTES['clear'];
     } else if (mrclAnim) {
-        defaultUriangerSays = URIANGER_QUOTES['miracle'];
+        UriangerSays = URIANGER_QUOTES['miracle'];
     } else if (Freedom === 0 && !mrclBtn) {
-        defaultUriangerSays = URIANGER_QUOTES['stuck'];
+        UriangerSays = URIANGER_QUOTES['stuck'];
     } else if (Selected === 7) {
-        defaultUriangerSays = URIANGER_QUOTES['thancredSelected'];
+        UriangerSays = URIANGER_QUOTES['thancredSelected'];
     } else if (gameTurn === 0) {
-        defaultUriangerSays = URIANGER_QUOTES['start'];
+        UriangerSays = URIANGER_QUOTES['start'];
     } else {        // 10ターンごとにデフォルトセリフを切り替え
-        defaultUriangerSays = (Math.floor(gameTurn / 10) % 2 === 0) ?
-            URIANGER_QUOTES['default1'] : URIANGER_QUOTES['default2'];
+        let q = (Math.floor(gameTurn / 10) % 3) ;
+        switch (q) {
+        case 0: UriangerSays = URIANGER_QUOTES['default1'];  break;
+        case 1: UriangerSays = URIANGER_QUOTES['default2'];  break;
+        case 2: UriangerSays = URIANGER_QUOTES['default3']; break;
+        default: UriangerSays = URIANGER_QUOTES['default1']; break;
+        }
     }
 
-    if (!isCommandTyping) {
-        UriangerSays = defaultUriangerSays;
-    }
     speakUrianger(UriangerSays);
 
     // --- Retry Fade Effect ---
