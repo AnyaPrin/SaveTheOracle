@@ -83,6 +83,7 @@ const SND_MOV = `${SND_ROOT}/FFXIV_Confirm.mp3`
 const SND_UNDO = `${SND_ROOT}/FFXIV_Untarget.mp3` // 一手戻す
 const SND_MRCL = `${SND_ROOT}/FFXIV_Limit_Break_Activated.mp3`
 const SND_CLR = `${SND_ROOT}/FFXIV_Enlist_Twin_Adders.mp3`
+const SND_SOLVER = `${SND_ROOT}/FFXIV_Linkshell_Transmission.mp3`
 
 const SND_MASTER_VOL = 1
 const SND_START_VOL = SND_MASTER_VOL/2
@@ -90,6 +91,7 @@ const SND_SEL_VOL = SND_MASTER_VOL/2
 const SND_MOV_VOL = SND_MASTER_VOL/2
 const SND_MRCL_VOL = SND_MASTER_VOL/4
 const SND_CLR_VOL = SND_MASTER_VOL/4
+const SND_SOLVER_VOL = SND_MASTER_VOL/4
 
 const MRCL_ROT_DUR = 500; // Miracle
 const MRCL_BUST_DELAY = 200;
@@ -99,10 +101,9 @@ const initStr = "BAACBAACDFFEDIJEG..H";
 let stateInt; // ゲーム状態をBigIntで管理
 let stateStr;  // デバッグ表示や互換性のために保持
 
-
 let voidflag;
 //let pazzleCanvas, pctx, offCanvas;
-let snd_select, snd_move, snd_mrcl, snd_clr, snd_start, snd_undo;
+let snd_select, snd_move, snd_mrcl, snd_clr, snd_start, snd_undo, snd_solver;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
@@ -257,6 +258,8 @@ async function loadAllResources() {
         snd_clr.volume = SND_CLR_VOL;
         snd_undo = await ldSound(SND_UNDO);
         snd_undo.volume = SND_MOV_VOL; // 同じくらいの音量で
+        snd_solver = await ldSound(SND_SOLVER);
+        snd_solver.volume = SND_SOLVER_VOL; // 同じくらいの音量で
     } catch (e) {
         console.error("Failed to load sound resources:", e);
     }
@@ -550,7 +553,6 @@ function drawButtons() {
 
 }
 
-
 const drawEffects = () => {
     if (mrclFx) {
         let elapsed = performance.now() - mrclFxMod;
@@ -669,7 +671,7 @@ function undoMove() {
             Selected = 7;
         }
 
-        if (snd_undo) snd_undo.currentTime = 0, snd_undo.play();
+
     }
 }
 
@@ -777,13 +779,28 @@ const onMouseDown = (e) => {
     if (x >= hintRect[0] && x <= hintRect[0] + CELL && y >= hintRect[1] && y <= hintRect[1] + CELL) {
         if (isFadingOut || isFadingIn) return;
         const solver = document.getElementById('solver');
+        const isOpening = !solver.classList.contains('is-active'); // 開く動作ならtrue
         solver.classList.toggle('is-active');
+
+        if (isOpening) {
+            if (snd_solver) {
+                snd_solver.currentTime = 0;
+                snd_solver.play();
+            }
+        } else {
+            if (snd_move) {
+                snd_move.currentTime = 0;
+                snd_move.play();
+            }
+        }
+
         return;
     }
 
     // Undo button
     if (x >= pixyRect[0] && x <= pixyRect[0] + BTNSIZ && y >= pixyRect[1] && y <= pixyRect[1] + BTNSIZ) {
         if (isFadingOut || isFadingIn) return; // フェード中は操作不可
+        if (snd_undo) snd_undo.currentTime = 0, snd_undo.play();
         undoMove();
         return;
     }
@@ -903,7 +920,6 @@ function safePlay(audio) {
 
 let puzzleCanvas, pctx;
 let isMouseOverCanvas = false; // マウスがcanvas上にあるかを追跡するフラグ
-
 window.onload = async function () {
     puzzleCanvas = document.getElementById('puzzlecanvas');
     pctx = puzzleCanvas.getContext("2d");

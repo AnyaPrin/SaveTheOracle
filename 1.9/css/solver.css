@@ -21,6 +21,11 @@ button {
     border-radius:3px;
 }
 
+button:hover .tooltip{
+    visibility: visible;
+    opacity: 1;
+}
+
 button:hover {
     transform: translateY(-1.5px);
 }
