@@ -1,12 +1,9 @@
 // Minfilia JS SAVE THE ORACLE Web Edition
 // puzzle.js version.1.8.1
 const IS_DEBUG = true;
-
 const CELL = 100;  // graphical pixel
-
-const W = 4, H = 5;  // logical board size
-
-const BRD_LEN = W * H;
+const BRDW = 4, BRDH = 5;  // logical board size
+const BRD_LEN = BRDW * BRDH;
 
 const GOAL_X = 1, GOAL_Y = 3;// パズルのゴール
 const EXIT_X = 1, EXIT_Y = 5;// ボードの外
@@ -36,10 +33,7 @@ let style = getComputedStyle(canvas);
 
 const SELECTEDCOL = "rgba(215,225,2,0.5)";
 const TRANSPARENT = "rgba(0,0,0,0)";
-
 const GOAL_COL = "#00FF00";
-
-
 const CELL_COL = "#282801";
 const FLR_COL = "#0A0A0A";  // floor
 const ORCL_COL = "#C8C8B4";
@@ -84,15 +78,15 @@ let SPRITE_MAP = [];
 
 const SND_ROOT ='../snd/ffxiv_sps05001_mp3/'
 const SND_START = `${SND_ROOT}/FFXIV_Start_Game.mp3`
-const SND_SEL = `${SND_ROOT}/FFXIV_Confirm.mp3`
-const SND_MOV = `${SND_ROOT}/FFXIV_Obtain_Item.mp3`
+const SND_SEL = `${SND_ROOT}/FFXIV_Obtain_Item.mp3`
+const SND_MOV = `${SND_ROOT}/FFXIV_Confirm.mp3`
 const SND_UNDO = `${SND_ROOT}/FFXIV_Untarget.mp3` // 一手戻す
 const SND_MRCL = `${SND_ROOT}/FFXIV_Limit_Break_Activated.mp3`
 const SND_CLR = `${SND_ROOT}/FFXIV_Enlist_Twin_Adders.mp3`
 
 const SND_MASTER_VOL = 1
 const SND_START_VOL = SND_MASTER_VOL/2
-const SND_SEL_VOL = SND_MASTER_VOL
+const SND_SEL_VOL = SND_MASTER_VOL/2
 const SND_MOV_VOL = SND_MASTER_VOL/2
 const SND_MRCL_VOL = SND_MASTER_VOL/4
 const SND_CLR_VOL = SND_MASTER_VOL/4
@@ -214,8 +208,8 @@ const RIGHT = 0b00010001000100010001;
  */
 function getBlkRect(idx, blkId) {
     // 盤面上の左上座標
-    const x = idx % W;
-    const y = Math.floor(idx / W);
+    const x = idx % BRDW;
+    const y = Math.floor(idx / BRDW);
 
     // ブロックのサイズを取得
     const [bw, bh] = BLK_SIZE_BY_ID[blkId];
@@ -537,7 +531,6 @@ function drawAll() {
     if (IS_DEBUG) drInfo(infoStr);
 }
 
-
 function drInfo(str) {
     const infoDiv = document.getElementById('info');
     infoDiv.textContent = str;
@@ -656,7 +649,7 @@ function move(blkId, mv) {
         return; // 不正な移動方向なら何もしない
     }
     updateStateInt(blkBm, shiftedBlkBm, blkId);
-    pixyRect[1] = pixyRect[1] - (++gameTurn);
+    pixyRect[1] = pixyRect[1] - (++gameTurn)/1000;
     if (pixyRect[1] < 0) pixyRect[1] = PIXY_Y;
 
     stateStr = COMMON.bigIntToState(stateInt); // for debug display
@@ -780,6 +773,14 @@ const onMouseDown = (e) => {
         return;
     }
 
+    // solver button
+    if (x >= hintRect[0] && x <= hintRect[0] + CELL && y >= hintRect[1] && y <= hintRect[1] + CELL) {
+        if (isFadingOut || isFadingIn) return;
+        const solver = document.getElementById('solver');
+        solver.classList.toggle('is-active');
+        return;
+    }
+
     // Undo button
     if (x >= pixyRect[0] && x <= pixyRect[0] + BTNSIZ && y >= pixyRect[1] && y <= pixyRect[1] + BTNSIZ) {
         if (isFadingOut || isFadingIn) return; // フェード中は操作不可
@@ -788,8 +789,8 @@ const onMouseDown = (e) => {
     }
 
     if (!(exitAnim || gameClr || mrclAnim)) {
-        if (0 <= grid_x && grid_x < W && 0 <= grid_y && grid_y < H) {
-            const idx = (BRD_LEN - 1) - (grid_y * W + grid_x);
+        if (0 <= grid_x && grid_x < BRDW && 0 <= grid_y && grid_y < BRDH) {
+            const idx = (BRD_LEN - 1) - (grid_y * BRDW + grid_x);
             const clicked_blkId = Number((stateInt >> BigInt(idx * 4)) & 0xFn);
 
             if (clicked_blkId !== 0) {

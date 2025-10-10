@@ -3,229 +3,159 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="minfilia.css">
+        <title>Save The Oracle WEB</title>
+        <link rel="stylesheet" href="css/tooltips.css">
+        <link rel="stylesheet" href="css/solution.css">
+        <link rel="stylesheet" href="css/solver.css">
+        <link rel="stylesheet" href="css/boardedit.css">
+        <link rel="stylesheet" href="css/nodegraph.css">
         <style>
             :root {
-                --link: #92b2c8;
-                --menu: #92b2c8;
-                --bg-color: #000001;
-                --text-color: #f0f0f0;
-                --panel: rgba(255, 255, 255, 0.05);
-                --panela: rgba(0, 0, 0, 0.15);
-                --acc-b: #2f81f7;
-                --acc-g: #2d333b;
-                --border: #444c56;
-                --shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15);
+                --link:    rgba(0, 50, 80, 0.15);
+                --menu:    rgba(12, 93, 123, 0.5);
+                --bg:      rgba(0, 15, 18, 0.41);
+                --text:    #f0f0f0;
+                --dark:    #1f1f1f;
+                --panel:   rgba(55, 55, 55, 0.05);
+                --panela:  rgba(0, 50, 80, 0.15);
+                --acc-b:   rgba(255, 255, 123, 1);
+                --acc-g:   rgba(42, 143, 143, 0.9);
+                --border:  #444444;
+                --shadow:     0 4px 12px rgba(43, 43, 43, 0.5);
+                --button:     rgba(43, 43, 43, 1);
+                --success:    rgba(12, 123, 123, 1);
+                --info-bg:    rgba(123, 123, 123, 1);
+                --tab:        rgba(12, 93, 123, 0.5);
+                --half-trans: rgba(43, 43, 43, 0.5);
+	        background: black;
+	        color: white;
+	        border: 1px solid var(--border);
+	        box-shadow: var(--shadow);
+	        border-radius: 16px;
+	        font-family: 'Segoe UI', 'Meiryo', 'Arial', sans-serif;
             }
-
+            body {
+	        min-height: 100vh;
+	        padding: 40px;
+	        overflow: hidden;
+            }
+            header,footer {
+	        position: fixed;
+	        background-color: var(--panela);
+	        left: 0;
+	        width: 100%;
+	        padding: 8px 16px;
+	        font-size: 0.5em;
+	        opacity: 0.7;
+	        text-align: left;
+	        z-index: 100;
+            }
+            header {
+	        top: 0;
+	        height: 2.5%;
+            }
+            footer {
+	        bottom: 0;
+            }
+            label {
+	        background-color: var(--panela);
+                width:0;
+                height:0;
+            }
             #info {
+                background-color: -var(--info-bg);
                 display: block;
                 font-family: 'Nimbus Mono', 'IPAゴシック', 'courier', 'Ariel';
                 position: fixed;
-                top: 564px;
+                top: 664px;
                 left: 644px;
-                background: var(--panel);
                 font-size: 10pt;
                 border-radius: 16px;
                 padding: 10px;
                 z-index: 100;
             }
-
-            #solver {
-                display: block;
-                position: fixed;
-                top: 64px;
-                left: 644px;
-                width: 440px;
-                height: 320px;
-                background: var(--panel);
-                font-size: 10pt;
-                border-radius: 16px;
-                padding: 10px;
-                z-index: 100;
+            .info {
+                padding: 15px;
+                margin-bottom: 20px;
+                text-align: left;
+            }
+            .info p {
+                margin: 0;
+                line-height: 1.6;
             }
 
-            #offhcanvas {
-                background: black;
-                z-index: 200;
+            .btn {
+                color:white;
+                background-color:var(--button);
+	        display: inline-block;
+	        padding: 0px;
+                margin: 0px;
+	        border-radius: 3px;
+	        border: none;
+	        font-size: 0.8rem;
+	        font-weight: bold;
+	        text-decoration: none;
+	        transition: background 0.2s;
+	        cursor: pointer;
             }
 
-            #modal {
-                position: fixed;
-                top: 0;
-                left: -100vw;           /* 画面左側に隠す */
-                width: 100vw;
-                height: 100vh;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                transition: left 0.5s ease-in-out;
-                /* アニメーションを追加 */
-                z-index: 200;
+            .btn:hover, .btn:focus {
+	        outline: none;
             }
 
-            #modal.is-active {
-                left: 0;
-                pointer-events: auto;          /* アクティブなときにクリックを有効化 */
-            }
-            .modal-content {
-                background-color: var(--panel);
-                padding: 2em;
-                border-radius: 16px;
-                color: var(--text-color);
-                box-shadow: var(--shadow);
-                max-width: 400px;
-                height: 100%;
-                transform: translateX(-100%);
-                transition: transform 0.5s ease-in-out;
-            }
-
-            #modal.is-active .modal-content {
-                transform: translateX(0);
-            }
-
-
-            #close-modal {
+            .tab-title {
                 position: absolute;
-                top: 10px;
-                right: 20px;
-                font-size: 1em;
-                color: var(--text-color);
+                top: 100px;
+                left: 492px;
+                color:white;
+                font-size: 15px;
+                text-align: center;
+                transform: rotate(90deg);
+                transform-origin: right top;
+                display: inline-block;
+            }
+
+            .icon-btn img {
+                margin:0;
+                padding:0;
+                gap:0;
+            }
+
+            #solver.modal {
+                position: relative;
+                display: block;
+                left: 40px;
+                top: 64px;
+                width: 480px;
+                height: 270px;
+                padding:20px;
+                margin:20px;
+                background-color: var(--bg);
+                background-image: url('img/bg_bfs.webp');
+                background-size: 640px;
+                border-right: 24px solid var(--tab);
+                border-radius: 24px;
+                box-shadow: var(--shadow);
+                transition: left 0.5s ease-in-out;
+                z-index: 200;
+            }
+            #solver.modal.is-active {
+                transform: translateX(0);
+                left: 600px;
+            }
+
+            #close-solver {
+                position: absolute;
                 background: none;
                 border: none;
                 cursor: pointer;
             }
-
-            button {
-                position: fixed;
-                top: 10px;
-                left: 500px;
-                padding: 1px 12px;
-                font-size: 9pt;
-                background-color: var(--acc-g);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                box-shadow: var(--shadow);
-                z-index: 1000;
-            }
-
-            /* switch */
-            .canvas-container {
-                position: relative;
-                display: inline-block;
-            }
-
-            /* Canvas本体 */
-            #graphcanvas {
-                position: fixed;
-                top: 60px;
-                left: 640px;
-                width: 1024px;
-                height: 800px;
-                background: black;
-                z-index: 1;
-                border-radius: 14px;
-            }
-
-            #graphcanvas.fade {
-                opacity: 0;
-                transition: opacity 0.8s ease-in-out;
-            }
-
-            #graphcanvas.fade.visible {
-                opacity: 1;
-            }
-
-            #puzzlecanvas {
-                display: block;
-                position: fixed;
-                top: 60px;
-                left: 30px;
-                width: 600px;
-                height: 800px;
-                background: black;
-                z-index: 1200;
-                border-radius: 14px;
-            }
-
-            /* スイッチ配置 */
-            .switch-vertical {
-                position: fixed;
-                top: 84px;
-                right: 24px;
-                width: 20px;
-                height: 40px;
-                z-index: 1000;
-                border: 2px solid #999;
-                border-radius: 20px;
-                box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.6), 0 4px 8px rgba(0, 0, 0, 0.3);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .switch-vertical input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-
-            .switch-label {
-                position: absolute;
-                top: -24px;
-            }
-
-            .slider-vertical {
-                position: absolute;
-                cursor: pointer;
-                background: radial-gradient(circle at 30% 30%, #000, #012158);
-                box-shadow: 1px 1px 1px rgba(24, 20, 84, 0.4);
-                border: 2px solid #032389;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #032359;
-                transition: 0.4s;
-                border-radius: 8px;
-            }
-
-            .slider-vertical:before {
-                position: absolute;
-                content: "";
-                width: 17px;
-                height: 18px;
-                left: 0px;
-                top: 0.5px;
-                background: radial-gradient(circle at 30% 30%, #697952, #1a238c);
-                transition: 0.5s;
-                border-radius: 8px;
-            }
-
-            input:checked+.slider-vertical {
-                background: radial-gradient(circle at 40% 30%, #032359, #014178);
-            }
-
-            input:checked+.slider-vertical:before {
-                transform: translateY(18px);
-            }
-
-            .icon-btn img {
-                width: 24px;
-                height: 24px;
-            }
-
-
             #clipboard {
                 position: fixed;
                 top: 10px;
                 right: 50px;
                 width: 0;
                 height: 0;
-                display: none;
                 z-index: 2000;
             }
         </style>
@@ -233,32 +163,82 @@
         <script src="../lib/GLTFLoader.js"></script>
         <script src="../lib/OrbitControls.js"></script>
         <script src="../lib/common.js"></script>
-        <title>Save The Oracle WEB</title>
-        <button id="clipboard" class="icon-btn">
-            <img src="../img/icon/clipboard.png" alt="stateStr copy to Clipboard">
-        </button>
-
-
     </head>
-
     <body>
+        <div class="modal" id="solver"><div id="close-solver"></div>
+            <div class='ui-panel'>
+                <div class="tab-title">SOLVER</div>
+                <input type="text" id="initial-state-input" maxlength="20" minlength="20" title="state string">
+                <button id="set-state-btn" >OK</button>
+                <div id="set-state-status"></div>
+                <button class="icon-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS"></button>
+                <span class="tooltip-text"><strong>Brave Forwards Search (BFS)</strong><br>アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。</span>
+                <button class="icon-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*"></button>
+                <span class="tooltip-text"><strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、このパズルではBFSより遅いことが多い。</span>
+                <button class="icon-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*"></button>
+                <span class="tooltip-text"><strong>Ironworks Designed Astar (IDA*)</strong><br>シドが開発したのかもしれないヒューリステッィク法を取り入れたIDDFS改良版。メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)</span>
+                <br>
+                <button id="save-btn" class="icon-btn" disabled><img src="img/icon/save.png" alt="Save"></button>
+                <span class="tooltip-text"><strong>探索結果を保存 (Save)</strong><br>今回の探索で訪れた盤面データを、ブラウザのローカルストレージに保存します。既に保存されているデータがある場合は、新しいデータが追加（マージ）されます。保存したデータは「探索データの利用」オプションを有効にすることで、次回以降の探索を高速化するために利用できます。</span>
+                <button id="check-data-btn" class="icon-btn"><img src="img/icon/check.png" alt="Check"></button>
+                <span class="tooltip-text"><strong>データ整合性チェック</strong><br>探索済みデータに重複がないかチェックし、必要であればクリーンアップします。</span>
+                <button id="option-btn" class="icon-btn"><img src="../img/icon/config.png" alt="Settings"></button>
+                <span class="tooltip-text"><strong>詳細設定</strong><br>エディター他</span><div id="save-status"></div>
+            </div>
+
+            <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
+                <div id="option-panel" class="option-panel" hidden>
+                    <strong>OPTIONS</strong><br>
+                    <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
+                        最短解による剪定 </label><span id="pruning-data-status" hidden></span>
+                    <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
+                        探索データの利用 </label><span id="local-visited-data-status" hidden></span>
+
+                    <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic">
+                        <span style="text-decoration: line-through;text-decoration-color:#ff3818;">IDA* h 関数不使用 (＝IDDFS)</span><span style="color:#ff3808;">故障中！</span></label>
+                    <p>─</p>
+                    <strong>BOARD EDITOR</strong><br>
+                    <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
+                        <input type="checkbox" id="allow-subset-pieces">
+                        駒のサブセットを許す
+                    </label>
+                    <div style="margin:8px 0 0; " class="horizontal-panel">
+                        <div class="grid-wrapper">
+                            <div id="source-grid" class="editor-grid"></div>
+                            <button class="editor-btn" id="reset-editor-btn">RESET</button>
+                        </div>
+                        <span style="padding:0px 10px 0px">⇒</span>
+                        <div class="grid-wrapper">
+                            <div id="target-grid" class="editor-grid"></div>
+                            <button class="editor-btn" id="apply-editor-btn">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="solution-panel">
+            <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
+            <div id="search-summary" hidden>
+                <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
+                <div id="status"></div>
+                <div id="progress-details"></div>
+            </div>
+            <div id="solution-path"></div>
+            <div id="drag-handle-right" class="drag-handle drag-handle-side" title="Drag to move"></div>
+            <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
+        </div>
+
+
         <header>
             <span style="font-size:16pt">Save The Oracle</span>
-            <span style="font-size:10pt"> Final Fantasy XIV unofficial mini-game</span>
+            <span style="font-size:10pt"> - Final Fantasy XIV unofficial mini-game -</span>
+            <hr>
         </header>
         <main>
             <canvas id="puzzlecanvas" class="fade"></canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
-            <div id="info">Info.</div>
-            <div id="modal">
-                <div class="modal-content" id="solver">
-                    <div id="close-modal"></div>
-                    <h2>Solver.</h2>
-                </div>
-            </div>
-
-
-
+            <div id="info"></div>
             <label class="switch-vertical">
                 <script>
                     function toggleFade() {
@@ -270,7 +250,6 @@
                 <span class="slider-vertical"></span>
                 <div class="switch-label">nodes</div>
             </label>
-
         </main>
         <footer>
             <hr>
@@ -284,21 +263,14 @@
     </body>
     <script type="module" src="module/puzzle.js"></script>
     <script type="module" src="module/nodegraph.js"></script>
+    <script type="module" src="module/solver.js"></script>
+    <script type="module" src="module/solution.js"></script>
     <script type="module">
         import { stateStr } from "./module/puzzle.js";
-
-        document.getElementById('close-modal').addEventListener('click', () => {
-            document.getElementById('modal').classList.remove('is-active');
+        document.getElementById('close-solver').addEventListener('click', () => {
+            document.getElementById('solver').classList.remove('is-active');
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('modal');
-            const openSolverBtn = document.getElementById('open-solver-btn');
-            if (openSolverBtn) {
-                openSolverBtn.addEventListener('click', () => {
-                });
-            }
-        });
     </script>
 
 </html>

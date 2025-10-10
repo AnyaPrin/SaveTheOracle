@@ -1,0 +1,120 @@
+.board {
+    white-space: pre;
+    font-family: monospace;
+    line-height: 1.1;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    text-align: left;
+    border: 2px solid var(--border);
+    display: inline-block;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: var(--bg);
+}
+
+button {
+    background: transparent;
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    cursor: pointer;
+    border-radius:3px;
+}
+
+button:hover {
+    transform: translateY(-1.5px);
+}
+
+button:disabled {
+    background-color: var(--disabled);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+#start-buttons-group {
+    display: flex;
+    align-items: left;
+    gap: 0;
+}
+
+#save-status {
+    font-size: 0.9em;
+    color: var(--error-color);
+    margin-top: 10px;
+    min-height: 20px;
+}
+
+#save-status[style*="color: rgb(76, 175, 80)"] {
+    /* For success message */
+    color: var(--success-color) !important;
+}
+
+.board-input-container {
+    display: flex;
+    align-items: left;
+    gap: 10px;
+    padding: 24px 0 10px 0;
+    margin-bottom: 10px;
+
+}
+
+#initial-state-input {
+
+    font-family: monospace;
+    width: 22ch;
+    font-size: 1em;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--bg);
+    color: var(--text);
+}
+#set-state-btn:hover {
+    background-color: var(--acc-b);
+}
+
+#set-state-btn {
+    color:inherit;
+    width:48px;
+    height:28px;
+    padding: 0;
+    margin: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+#set-state-status {
+    min-height: 1.2em;
+    font-size: 0.9em;
+    text-align: left;
+    margin-top: 5px;
+}
+
+#set-state-status[style*="color: rgb(76, 175, 80)"] {
+    /* For success message */
+    color: var(--success) !important;
+}
+
+.pruning-selection {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.pruning-selection label {
+    margin: 0 10px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+#pruning-data-status {
+    color: var(--text);
+    margin-left: 0px;
+}
+
+#local-visited-data-status {
+    color: var(--text);
+    margin-left: 10px;
+    font-size: 0.9em;
+}

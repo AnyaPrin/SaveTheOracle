@@ -1,0 +1,49 @@
+/* Icon-based UI styles */
+.icon-btn:hover:not(:disabled) {
+    background-color: var(--button);
+    border-color: var(--acc-b);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+.action-buttons.searching .icon-btn-label:not(.active-search) {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.action-buttons, .icon-group {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0;
+    align-items: center;
+}
+
+.action-buttons {
+    margin: 0;
+    padding: 0;
+}
+
+.icon-btn:disabled {
+    background-color: #2a2a2a;
+    border-color: #424242;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.icon-group input {
+    position: absolute;
+    opacity: 0;
+    width: 100px;
+    height: 0;
+    min-width:100px;
+}
+
+.icon-btn {
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing:box-border;
+}
