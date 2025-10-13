@@ -110,7 +110,9 @@ let snd_select, snd_move, snd_mrcl, snd_clr, snd_start, snd_undo, snd_solver;
 let imgSheet = null;
 
 const BTNSIZ = CELL * 7 / 8;
+
 const rtryRect = [SCRN_W - CELL * 7 / 8, SCRN_H - CELL * 2, BTNSIZ, BTNSIZ];
+
 
 
 const PIXY_Y = SCRN_H - 170;
@@ -136,7 +138,7 @@ let gameHistory = [];
 let cursor = false;
 let commandSequence = []; // For command input
 
-// --- Retry Fade Effect ---
+// --- Fade Effect ---
 export let isFadingOut = false;
 let isFadingIn = false;
 let fadeStartTime = 0;
@@ -148,6 +150,8 @@ const bsbCmd = ['arrowdown', 'arrowup', 'x', 'y', ' '];  // BSB:Blight Soil Brea
 
 let commandInputTimer = null; // Timer for command input
 const COMMAND_TIMEOUT = 500; // 0.5 seconds
+
+const infoDiv = document.getElementById('info');
 
 let OrclIdx = {
     "down": "ryneD",
@@ -515,7 +519,7 @@ function drawAll() {
 
     speakUrianger(UriangerSays);
 
-    // --- Retry Fade Effect ---
+    // --- Fade Effect ---
     if (isFadingOut || isFadingIn) {
         let alpha = 0;
         const elapsed = performance.now() - fadeStartTime;
@@ -529,7 +533,7 @@ function drawAll() {
         pctx.fillRect(0, 0, SCRN_W, SCRN_H);
     }
 
-    // 追加するデバッグ情報
+    // Debug Information
     let infoStr = `DEBUG INFORMATION\n\n`;
     infoStr += `Game Turn      : ${gameTurn}\n`;
     infoStr += `Miracle Used   : ${mrclBtn ? 'Yes' : 'No'}\n`;
@@ -537,13 +541,10 @@ function drawAll() {
     infoStr += `Selected Block : blkId ${Selected}(${".ABCDEFGHIJ"[Selected]})\n`;
     infoStr += `State String   : ${stateStr ?? 'N/A'}\n`;
     infoStr += `State Integer  : ${stateInt?.toString(16).padStart(20, '0') ?? 'N/A'}\n`;
-    if (IS_DEBUG) drInfo(infoStr);
-}
-
-function drInfo(str) {
-    const infoDiv = document.getElementById('info');
-    infoDiv.textContent = str;
-    infoDiv.style.whiteSpace = 'pre-wrap'; // この行を追加
+    if (IS_DEBUG) {
+        infoDiv.textContent = infoStr;
+        infoDiv.style.whiteSpace = 'pre-wrap';
+    }
 }
 
 let pixyFlap = 0;

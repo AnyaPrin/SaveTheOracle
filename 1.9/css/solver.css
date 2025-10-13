@@ -30,6 +30,8 @@ button:hover {
     transform: translateY(-1.5px);
 }
 
+
+
 button:disabled {
     background-color: var(--disabled);
     cursor: not-allowed;

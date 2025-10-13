@@ -91,9 +91,11 @@
             }
             #hint:hover, #retry:hover {
                 transform: translateY(-1.5px);
+                cursor: pointer;
             }
-
-
+            #hint:active, #retry:active {
+                transform: translateY(1.5px);
+            }
             #info {
                 background-color: -var(--info-bg);
                 display: block;
@@ -276,27 +278,58 @@
                 margin-left: 10px;
                 font-size: 0.9em;
             }
+
         </style>
     </head>
     <body>
+        <div id="hint" onclick='btnHint();'></div>
+        <div id="retry" onclick='btnRetry();'> </div>
         <div id="solver">
             <div id="close-solver"></div>
             <div class="tab" id="solver-tab" onclick='tglPanel()'>SOLVER</div>
-            <audio id="oSnd" src="snd/openSnd.mp3" style="display:none;"></audio>
-            <audio id="cSnd" src="snd/closeSnd.mp3" style="display:none;"></audio>
+            <audio id="sndOpen" src="snd/openSnd.mp3" style="display:none;"></audio>
+            <audio id="sndClose" src="snd/closeSnd.mp3" style="display:none;"></audio>
+            <audio id="sndStart" src="snd/start.mp3" style="display:none;"></audio>
             <script>
-                const p = document.getElementById('solver');
-                const o = document.getElementById('oSnd');
-                const c = document.getElementById('cSnd');
+                const sol = document.getElementById('solver');
+                const o = document.getElementById('sndOpen');
+                const c = document.getElementById('sndClose');
+                const s = document.getElementById('sndStart');
+                const loc = document.location;
                 function tglPanel() {
-                    const isO =!p.classList.contains('active');
+                    const isO =!sol.classList.contains('active');
                     o.volume =0.5;
                     c.volume =0.5;
-                    p.classList.toggle('active');
+                    sol.classList.toggle('active');
                     if (isO) {
                         o.play();
                     }else{
                         c.play();
+                    }
+                }
+                function btnHint() {
+                    const isO =!sol.classList.contains('active');
+                    o.volume =0.5;
+                    c.volume =0.5;
+                    sol.classList.toggle('active');
+                    if (isO) {
+                        o.play();
+                    }else{
+                        c.play();
+                    }
+                }
+                function btnRetry() {
+                    c.volume = 0.5;
+                    const pr = c.play();
+                    if (pr !== undefined) {
+                        pr.then(() => {
+                            c.addEventListener('ended', () => {
+                                loc.reload();
+                            });
+                        }).catch((error) => {
+                            console.error('audio error:', error);
+                            loc.reload();
+                        });
                     }
                 }
             </script>
@@ -318,7 +351,6 @@
                 </button>
                 <div id="save-status"></div>
             </div>
-
             <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
                 <div id="opt-panel" class="opt-panel" hidden>
                     <strong>OPTIONS</strong><br>
@@ -375,10 +407,6 @@
         <main>
             <canvas id="puzzlecanvas" class="fade"></canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
-            <div id=puzzle-btn>
-                <div class="puzzle-btn" id="hint" ></div>
-                <div class="puzzle-btn" id="retry" onclick='location.reload()'> </div>
-            </div>
             <div id="info"></div>
             <label class="switch-vertical">
                 <script>
