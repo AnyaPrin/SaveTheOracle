@@ -1,23 +1,22 @@
-const SolutionDisplay = (function() {
-
+export const SolDisp = (function() {
     // Module-private variables
-    let _solutionPathDiv;
+    let _solPath;
     let _initialStateInput;
     let _handleSetState;
-    let _stateToPieces;
+    let _stateToBlks;
     let _COMMON;
 
     /**
      * Renders the sequence of solution boards in the result panel.
      * @param {string[]} path - An array of state strings representing the solution path.
      */
-    function displaySolution(path) {
+    function dispSol(path) {
         let html = '';
 
         path.forEach((state, index) => {
             const prevState = path[index - 1] || null;
-            const currentPieces = _stateToPieces(state);
-            let movedPiece = null;
+            const currentBlks = _stateToBlks(state);
+            let movedBlk = null;
 
             // 1. Identify the moved piece by finding which piece moved into a previously empty space.
             // This is more robust against state normalization than comparing characters.
@@ -30,13 +29,13 @@ const SolutionDisplay = (function() {
                     }
                 }
                 if (movedToPos !== -1) {
-                    movedPiece = currentPieces.find(p => p.positions.includes(movedToPos));
+                    movedBlk = currentBlks.find(p => p.positions.includes(movedToPos));
                 }
             }
 
             // 2. Build the HTML for the board grid.
             const pieceMap = Array(_COMMON.WIDTH * _COMMON.HEIGHT).fill(null);
-            for (const piece of currentPieces) {
+            for (const piece of currentBlks) {
                 for (const pos of piece.positions) {
                     pieceMap[pos] = piece;
                 }
@@ -52,7 +51,7 @@ const SolutionDisplay = (function() {
                     classList.push(`piece`);
                     // Show the piece character only in its top-left cell
                     if (i === piece.positions[0]) cellContent = piece.char;
-                    if (movedPiece && piece.id === movedPiece.id) classList.push('moved-piece');
+                    if (movedBlk && piece.id === movedBlk.id) classList.push('moved-piece');
                     // Add classes to remove inner borders
                     const x = i % _COMMON.WIDTH;
                     const y = Math.floor(i / _COMMON.WIDTH);
@@ -68,13 +67,13 @@ const SolutionDisplay = (function() {
 
             // 3. Build the HTML for the highlight overlay.
             let overlayHtml = '';
-            if (movedPiece) {
+            if (movedBlk) {
                 // Calculate position and size for the absolutely positioned overlay
                 const cellWidth = 65 / _COMMON.WIDTH;
                 const cellHeight = 80 / _COMMON.HEIGHT;
 
                 let minX = _COMMON.WIDTH, minY = _COMMON.HEIGHT;
-                for (const pos of movedPiece.positions) {
+                for (const pos of movedBlk.positions) {
                     minX = Math.min(minX, pos % _COMMON.WIDTH);
                     minY = Math.min(minY, Math.floor(pos / _COMMON.WIDTH));
                 }
@@ -82,8 +81,8 @@ const SolutionDisplay = (function() {
                 const style = `
 top: ${minY * cellHeight}px;
 left: ${minX * cellWidth}px;
-width: ${movedPiece.width * cellWidth}px;
-height: ${movedPiece.height * cellHeight}px;`;
+width: ${movedBlk.width * cellWidth}px;
+height: ${movedBlk.height * cellHeight}px;`;
                 overlayHtml = `<div class="moved-piece-overlay" style="${style}"></div>`;
             }
 
@@ -93,14 +92,14 @@ height: ${movedPiece.height * cellHeight}px;`;
 <div class="step-board clickable-board solution-board-grid" data-state="${state}">
 ${boardCellsHtml}${overlayHtml}</div></div>`;
         });
-        _solutionPathDiv.innerHTML = html;
+        _solPath.innerHTML = html;
     }
 
     /**
      * Handles clicks on the solution path to set the initial state.
      * @param {MouseEvent} e - The click event.
      */
-    function handleSolutionPathClick(e) {
+    function handleSolPathClick(e) {
         const boardDiv = e.target.closest('.clickable-board');
         if (boardDiv) {
             const state = boardDiv.dataset.state;
@@ -113,18 +112,17 @@ ${boardCellsHtml}${overlayHtml}</div></div>`;
         }
     }
     function init(config) {
-        _solutionPathDiv = config.solutionPathDiv;
+        _solPath = config.solPath;
         _initialStateInput = config.initialStateInput;
         _handleSetState = config.handleSetState;
-        _stateToPieces = config.stateToPieces;
+        _stateToBlks = config.stateToBlks;
         _COMMON = config.COMMON;
-
-        _solutionPathDiv.addEventListener('click', handleSolutionPathClick);
+        _solPath.addEventListener('click', handleSolPathClick);
     }
 
     // Public interface
     return {
         init: init,
-        displaySolution: displaySolution
+        dispSol: dispSol
     };
 })();

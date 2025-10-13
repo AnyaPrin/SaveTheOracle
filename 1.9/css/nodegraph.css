@@ -3,7 +3,19 @@
                 position: relative;
                 display: inline-block;
             }
+
             /* Canvas本体 */
+            #puzzlecanvas {
+                background-color: var(--bg);
+                display: block;
+                position: fixed;
+                top: 60px;
+                left: 30px;
+                width: 600px;
+                height: 800px;
+                border-radius: 14px;
+                z-index: 1200;
+            }
             #graphcanvas {
                 position: fixed;
                 top: 60px;
@@ -13,26 +25,12 @@
                 z-index: 1;
                 border-radius: 14px;
             }
-
-            #graphcanvas.fade {
-                opacity: 0;
-                transition: opacity 0.8s ease-in-out;
-            }
-
             #graphcanvas.fade.visible {
                 opacity: 1;
             }
-
-            #puzzlecanvas {
-                background-color: var(--bg);
-                display: block;
-                position: fixed;
-                top: 60px;
-                left: 30px;
-                width: 600px;
-                height: 800px;
-                z-index: 1200;
-                border-radius: 14px;
+            #graphcanvas.fade {
+                opacity: 0;
+                transition: opacity 0.8s ease-in-out;
             }
 
             /* NODE GRAPH SWITCH */

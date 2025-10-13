@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Save The Oracle WEB</title>
-        <link rel="stylesheet" href="css/tooltips.css">
+        <link rel="stylesheet" href="css/tltips.css">
         <link rel="stylesheet" href="css/solution.css">
         <link rel="stylesheet" href="css/solver.css">
         <link rel="stylesheet" href="css/boardedit.css">
@@ -20,7 +20,7 @@
                 --panela:  rgba(0, 50, 80, 0.15);
                 --acc-b:   rgba(255, 255, 123, 1);
                 --acc-g:   rgba(42, 143, 143, 0.9);
-                --border:  #444444;
+                --border:  #251510;
                 --shadow:     0 4px 12px rgba(43, 43, 43, 0.5);
                 --button:     rgba(43, 43, 43, 1);
                 --success:    rgba(12, 123, 123, 1);
@@ -61,6 +61,39 @@
                 width:0;
                 height:0;
             }
+
+            #hint, #retry {
+                padding:0;
+                margin:0;
+                display: block;
+                position: fixed;
+	        background-color: rgba(43, 43, 43, 0.9);
+                box-shadow: 2px 2px 2px 2px rgba(43, 43, 43, 0.4);
+                height: 60px;
+                width: 60px;
+                border-radius: 50%;
+	        border: 5px solid var(--border);
+                z-index: 2000;
+            }
+
+            #retry {
+                background-image:url('./img/icon/retry.png');
+                background-size:60px;
+                top: 664px;
+                left: 544px;
+            }
+            #hint {
+                background-image:url('./img/icon/hint.png');
+                background-size:60px;
+                top: 740px;
+                left: 544px;
+
+            }
+            #hint:hover, #retry:hover {
+                transform: translateY(-1.5px);
+            }
+
+
             #info {
                 background-color: -var(--info-bg);
                 display: block;
@@ -101,30 +134,34 @@
             .btn:hover, .btn:focus {
 	        outline: none;
             }
-
-            .tab-title {
+            #solver-tab {
                 position: absolute;
-                top: 100px;
-                left: 492px;
+                top: 310px;
+                left: 250px;
+                width: 245px;
+                height: 25px;
+                padding:0 24px 0;
                 color:white;
                 font-size: 15px;
-                text-align: center;
+                text-align: left;
                 transform: rotate(90deg);
                 transform-origin: right top;
                 display: inline-block;
             }
-
+            #solver-tab:hover {
+                cursor: pointer;
+                color: var(--acc-b);
+            }
             .icon-btn img {
                 margin:0;
                 padding:0;
                 gap:0;
             }
-
-            #solver.modal {
+            #solver {
                 position: relative;
                 display: block;
                 left: 40px;
-                top: 64px;
+                top: 4px;
                 width: 480px;
                 height: 270px;
                 padding:20px;
@@ -138,11 +175,10 @@
                 transition: left 0.5s ease-in-out;
                 z-index: 200;
             }
-            #solver.modal.is-active {
+            #solver.active {
                 transform: translateX(0);
-                left: 600px;
+                left: 580px;
             }
-
             #close-solver {
                 position: absolute;
                 background: none;
@@ -157,59 +193,147 @@
                 height: 0;
                 z-index: 2000;
             }
-
             .ui-panel {
                 display:absolute;
                 border:0;
                 padding:0;
                 margin:0;
                 position:0;
-
             }
-
+            .sol-panel {
+                padding: 14px 24px;
+                font-size: 14px;
+                width: 800px;
+                max-width: 800px;
+                min-width: 800px;
+                height: calc(800 * 1.618)px; /* 黄金比 */
+                max-height: calc(800 * 1.618)px;
+                min-height: calc(800 * 1.618)px;
+                background-image: url('img/background2');
+                background-color: rgba(44, 44, 44, 0.85);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                box-sizing: border-box;
+                border-radius: 18px;
+                position: absolute;
+                left:41px;top: 276px;
+                padding: 20px 20px;
+                background: transparent;
+                box-shadow: none;
+                align-items: center;
+                overflow-y: hidden;
+                scrollbar-width: thin;
+                scrollbar-color: var(--button) var(--bg);
+                z-index: 9000;
+            }
+            #start-pos {
+                font-family: monospace;
+                width: 22ch;
+                font-size: 1em;
+                padding: 7px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                background-color: var(--bg);
+                color: var(--text);
+            }
+            #set-state-btn:hover {
+                background-color: var(--acc-b);
+            }
+            #set-state-btn {
+                color:inherit;
+                width:48px;
+                height:28px;
+                padding: 0;
+                margin: 0;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            #set-state-status {
+                min-height: 1.2em;
+                font-size: 0.9em;
+                text-align: left;
+                margin-top: 5px;
+            }
+            #set-state-status[style*="color: rgb(76, 175, 80)"] {
+                /* For success message */
+                color: var(--success) !important;
+            }
+            .prun-selection {
+                margin-bottom: 20px;
+                text-align: left;
+            }
+            .prun-selection label {
+                margin: 0 10px;
+                font-size: 1em;
+                cursor: pointer;
+            }
+            #prun-data-status {
+                color: var(--text);
+                margin-left: 0px;
+            }
+            #local-visited-data-status {
+                color: var(--text);
+                margin-left: 10px;
+                font-size: 0.9em;
+            }
         </style>
-        <script src="../lib/three.min.js"></script>
-        <script src="../lib/GLTFLoader.js"></script>
-        <script src="../lib/OrbitControls.js"></script>
-        <script src="../lib/common.js"></script>
     </head>
     <body>
-        <div class="modal" id="solver"><div id="close-solver"></div>
+        <div id="solver">
+            <div id="close-solver"></div>
+            <div class="tab" id="solver-tab" onclick='tglPanel()'>SOLVER</div>
+            <audio id="oSnd" src="snd/openSnd.mp3" style="display:none;"></audio>
+            <audio id="cSnd" src="snd/closeSnd.mp3" style="display:none;"></audio>
+            <script>
+                const p = document.getElementById('solver');
+                const o = document.getElementById('oSnd');
+                const c = document.getElementById('cSnd');
+                function tglPanel() {
+                    const isO =!p.classList.contains('active');
+                    o.volume =0.5;
+                    c.volume =0.5;
+                    p.classList.toggle('active');
+                    if (isO) {
+                        o.play();
+                    }else{
+                        c.play();
+                    }
+                }
+            </script>
             <div class='ui-panel'>
-                <div class="tab-title">SOLVER</div>
-                <input type="text" id="initial-state-input" maxlength="20" minlength="20" title="state string">
+                <input type="text" id="start-pos" maxlength="20" minlength="20" title="start state string">
                 <button id="set-state-btn" >OK</button>
                 <div id="set-state-status"></div>
                 <button class="icon-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS">
-                    <span class="tooltip"><strong>Brave Forwards Search (BFS)</strong><br>アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。</span>
+                    <span class="tltip"><strong>Brave Forwards Search (BFS)</strong><br>アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。</span>
                 </button>
                 <button class="icon-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*">
-                    <span class="tooltip"><strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、このパズルではBFSより遅いことが多い。</span>
+                    <span class="tltip"><strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、このパズルではBFSより遅いことが多い。</span>
                 </button>
                 <button class="icon-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*">
-                    <span class="tooltip"><strong>Ironworks Designed Astar (IDA*)</strong><br>シドが開発したのかもしれないヒューリステッィク法を取り入れたIDDFS改良版。メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)</span>
+                    <span class="tltip"><strong>Ironworks Designed Astar (IDA*)</strong><br>シドが開発したのかもしれないヒューリステッィク法を取り入れたIDDFS改良版。メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)</span>
                 </button>
-                <button style="margin-left:6px;" class="icon-btn" id="option"><img src="img/icon/config.png" alt="Settings">
-                    <span class="tooltip"><strong>詳細設定</strong></span>
+                <button style="margin-left:6px;" class="icon-btn" id="opt"><img src="img/icon/config.png" alt="Settings">
+                    <span class="tltip"><strong>詳細設定</strong></span>
                 </button>
                 <div id="save-status"></div>
             </div>
 
             <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
-                <div id="option-panel" class="option-panel" hidden>
+                <div id="opt-panel" class="opt-panel" hidden>
                     <strong>OPTIONS</strong><br>
                     <button id="save-btn" class="icon-btn" disabled><img src="img/icon/save.png" alt="Save">
-                        <span class="tooltip"><strong>探索結果を保存 (Save)</strong><br>今回の探索で訪れた盤面データを、ブラウザのローカルストレージに保存します。既に保存されているデータがある場合は、新しいデータが追加（マージ）されます。保存したデータは「探索データの利用」オプションを有効にすることで、次回以降の探索を高速化するために利用できます。</span>
+                        <span class="tltip"><strong>探索結果を保存 (Save)</strong><br>今回の探索で訪れた盤面データを、ブラウザのローカルストレージに保存します。既に保存されているデータがある場合は、新しいデータが追加（マージ）されます。保存したデータは「探索データの利用」オプションを有効にすることで、次回以降の探索を高速化するために利用できます。</span>
                     </button>
                     <button id="check-data-btn" class="icon-btn"><img src="img/icon/check.png" alt="Check">
-                        <span class="tooltip"><strong>データ整合性チェック</strong><br>探索済みデータに重複がないかチェックし、必要であればクリーンアップします。</span>
+                        <span class="tltip"><strong>データ整合性チェック</strong><br>探索済みデータに重複がないかチェックし、必要であればクリーンアップします。</span>
                     </button>
-                    <label class="checkbox-label"><input type="checkbox" id="pruning-enabled" disabled>
-                        最短解による剪定 </label><span id="pruning-data-status" hidden></span>
+                    <label class="checkbox-label"><input type="checkbox" id="prun-enabled" disabled>
+                        最短解による剪定 </label><span id="prun-data-status" hidden></span>
                     <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
                         探索データの利用 </label><span id="local-visited-data-status" hidden></span>
 
-                    <label class="checkbox-label" id="ida-option-label" hidden><input type="checkbox" id="ida-no-heuristic">
+                    <label class="checkbox-label" id="ida-opt-label" hidden><input type="checkbox" id="ida-no-heuristic">
                         <span style="text-decoration: line-through;text-decoration-color:#ff3818;">IDA* h 関数不使用 (＝IDDFS)</span><span style="color:#ff3808;">故障中！</span></label>
                     <p>─</p>
                     <strong>BOARD EDITOR</strong><br>
@@ -219,12 +343,12 @@
                     </label>
                     <div style="margin:8px 0 0; " class="horizontal-panel">
                         <div class="grid-wrapper">
-                            <div id="source-grid" class="editor-grid"></div>
+                            <div id="src-grid" class="editor-grid"></div>
                             <button class="editor-btn" id="reset-editor-btn">RESET</button>
                         </div>
                         <span style="padding:0px 10px 0px">⇒</span>
                         <div class="grid-wrapper">
-                            <div id="target-grid" class="editor-grid"></div>
+                            <div id="tgt-grid" class="editor-grid"></div>
                             <button class="editor-btn" id="apply-editor-btn">OK</button>
                         </div>
                     </div>
@@ -232,19 +356,17 @@
             </div>
         </div>
 
-        <div class="solution-panel">
+        <div class="sol-panel">
             <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
             <div id="search-summary" hidden>
                 <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
                 <div id="status"></div>
                 <div id="progress-details"></div>
             </div>
-            <div id="solution-path"></div>
+            <div id="sol-path"></div>
             <div id="drag-handle-right" class="drag-handle drag-handle-side" title="Drag to move"></div>
             <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
         </div>
-
-
         <header>
             <span style="font-size:16pt">Save The Oracle</span>
             <span style="font-size:10pt"> - Final Fantasy XIV unofficial mini-game -</span>
@@ -253,6 +375,10 @@
         <main>
             <canvas id="puzzlecanvas" class="fade"></canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
+            <div id=puzzle-btn>
+                <div class="puzzle-btn" id="hint" ></div>
+                <div class="puzzle-btn" id="retry" onclick='location.reload()'> </div>
+            </div>
             <div id="info"></div>
             <label class="switch-vertical">
                 <script>
@@ -265,6 +391,7 @@
                 <span class="slider-vertical"></span>
                 <div class="switch-label">nodes</div>
             </label>
+
         </main>
         <footer>
             <hr>
@@ -276,16 +403,20 @@
                     <img width="20" src="../img/github-mark-white.png"> GitHub </a> </span>
         </footer>
     </body>
+    <script src="../lib/three.min.js"></script>
+    <script src="../lib/GLTFLoader.js"></script>
+    <script type="module" src="../lib/OrbitControls.js"></script>
+    <script type="module" src="module/common.js"></script>
+    <script type="module" src="module/main.js"></script>
     <script type="module" src="module/puzzle.js"></script>
     <script type="module" src="module/nodegraph.js"></script>
     <script type="module" src="module/solver.js"></script>
-    <script type="module" src="module/solution.js"></script>
+    <script type="module" src="module/soldisp.js"></script>
     <script type="module">
-        import { stateStr } from "./module/puzzle.js";
+        import { stateStr } from "./module/main.js";
         document.getElementById('close-solver').addEventListener('click', () => {
-            document.getElementById('solver').classList.remove('is-active');
+            document.getElementById('solver').classList.remove('active');
         });
-
     </script>
 
 </html>

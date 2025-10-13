@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let searchStartTime, timerInterval, mikotoTimer = null;
   let currentSolver = null;
 
-  const MIKOTO_SPEECH_WAIT = 5000; // デバッグ用に5秒に設定
+  const MIKOTO_SPEECH_WAIT = 5000; // 1000 = 1秒
   const topContainer = document.querySelector('.ui-panel .controls-container');
   const statusDiv = document.getElementById('status');
   const searchSummaryDiv = document.getElementById('search-summary');

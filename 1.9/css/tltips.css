@@ -1,4 +1,4 @@
-.tooltip {
+.tltip {
     color: white;
     visibility: hidden;
     width: 280px;
@@ -19,12 +19,12 @@
 }
 
 /* ホバー時にツールチップを表示 */
-.tooltip.visible {
+.tltip.visible {
     visibility: visible;
     opacity: 1;
 }
 
-.tooltip-text strong {
+.tltip-text strong {
     color: var(--acc-b);
     font-weight: bold;
 }

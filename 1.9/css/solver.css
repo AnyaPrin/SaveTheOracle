@@ -21,7 +21,7 @@ button {
     border-radius:3px;
 }
 
-button:hover .tooltip{
+button:hover .tltip{
     visibility: visible;
     opacity: 1;
 }
@@ -64,62 +64,53 @@ button:disabled {
 
 }
 
-#initial-state-input {
-
-    font-family: monospace;
-    width: 22ch;
-    font-size: 1em;
-    padding: 7px;
+/* --- Option Panel Styles --- */
+.opt-panel {
+    display: none;
+    position: absolute;
+    font-size: 0.8em;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
+    width: 243px;
+    max-width: 243px;
+    min-width: 243px;
+    backdrop-filter: blur(4px);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background-color: var(--bg);
-    color: var(--text);
+    border-radius: 6px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 12px var(--shadow);
 }
-#set-state-btn:hover {
+
+.opt-panel:not([hidden]) {
+    display: block;
+}
+
+
+#opt-panel input[type='checkbox'] {
+    appearance: none;
+    height: 14px;
+    width: 14px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background-color: transparent;
+}
+
+#opt-panel input[type='checkbox']:checked {
     background-color: var(--acc-b);
+    width: 14px;
+    height: 14px;
 }
 
-#set-state-btn {
-    color:inherit;
-    width:48px;
-    height:28px;
-    padding: 0;
-    margin: 0;
-    border-radius: 8px;
+#opt-panel strong {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--acc-b);
+}
+
+#opt-panel.editor-btn {
+    padding: 4px 0;
+    width: 80px;
+    margin: 1px 0 0;
     border: 1px solid var(--border);
-    flex-shrink: 0;
-}
-
-#set-state-status {
-    min-height: 1.2em;
-    font-size: 0.9em;
-    text-align: left;
-    margin-top: 5px;
-}
-
-#set-state-status[style*="color: rgb(76, 175, 80)"] {
-    /* For success message */
-    color: var(--success) !important;
-}
-
-.pruning-selection {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.pruning-selection label {
-    margin: 0 10px;
-    font-size: 1em;
-    cursor: pointer;
-}
-
-#pruning-data-status {
-    color: var(--text);
-    margin-left: 0px;
-}
-
-#local-visited-data-status {
-    color: var(--text);
-    margin-left: 10px;
-    font-size: 0.9em;
 }
