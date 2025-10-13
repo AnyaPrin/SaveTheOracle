@@ -102,7 +102,7 @@ const MRCL_FX_DUR = 20;
 const MRCL_COL = "rgba(255,100,100,";
 const initStr = "BAACBAACDFFEDIJEG..H";
 let stateInt; // ゲーム状態をBigIntで管理
-let stateStr;  // デバッグ表示や互換性のために保持
+let stateStr=initStr;  // デバッグ表示や互換性のために保持
 
 let voidflag;
 //let pazzleCanvas, pctx, offCanvas;
@@ -484,17 +484,16 @@ let isCommandTyping = false; // Flag to check if user is typing a command
 function drawAll() {
     pctx.drawImage(imgSheet, ...SPRITE_MAP["wall"], ...BDRECT);
     pctx.fillStyle = FLR_COL;
-    pctx.fillRect( BDOFFX, BDOFFY, BRDW*CELL, BRDH*CELL, BLKBDR_R);
+
+    //pctx.fillRect( BDOFFX, BDOFFY, BRDW*CELL, BRDH*CELL);
 
     drawCanvasBorder();
     drawBlks();
     drawButtons();
-
     drawEffects();
     let str, x, y;
 
     // Draw thus speaks Urianger
-
     // --- 状況に応じたセリフ選択ロジック ---
     Freedom = freedom();
     if (gameClr) {
@@ -516,9 +515,7 @@ function drawAll() {
         default: UriangerSays = URIANGER_QUOTES['default1']; break;
         }
     }
-
     speakUrianger(UriangerSays);
-
     // --- Fade Effect ---
     if (isFadingOut || isFadingIn) {
         let alpha = 0;
@@ -545,6 +542,8 @@ function drawAll() {
         infoDiv.textContent = infoStr;
         infoDiv.style.whiteSpace = 'pre-wrap';
     }
+
+    // draw Solver
 }
 
 let pixyFlap = 0;
@@ -770,8 +769,9 @@ const onMouseDown = (e) => {
     let { gx, gy } = toGridXY(x, y);
     let grid_x = gx;
     let grid_y = gy;
+
     // retry button
-    if (x >= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
+    if (x>= rtryRect[0] && x <= rtryRect[0] + CELL && y >= rtryRect[1] && y <= rtryRect[1] + CELL) {
         if (!isFadingOut && !isFadingIn) {
             isFadingOut = true;
             fadeStartTime = performance.now(); // time stamp
@@ -1003,6 +1003,5 @@ window.onload = async function () {
     puzzleCanvas.addEventListener("mouseup", onMouseUp);
     mainLoop();
 }
-
 
 export { stateStr, stateInt};

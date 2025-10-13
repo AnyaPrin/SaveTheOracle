@@ -5,17 +5,6 @@
             }
 
             /* Canvas本体 */
-            #puzzlecanvas {
-                background-color: var(--bg);
-                display: block;
-                position: fixed;
-                top: 60px;
-                left: 30px;
-                width: 600px;
-                height: 800px;
-                border-radius: 14px;
-                z-index: 1200;
-            }
             #graphcanvas {
                 position: fixed;
                 top: 60px;

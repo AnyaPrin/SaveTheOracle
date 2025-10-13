@@ -1,5 +1,8 @@
 import { SolDisp } from "./soldisp.js";
 import { COMMON } from "./common.js";
+import { stateStr } from './main.js';
+const DEFULT_START_POS = "BAACBAACDFFEDIJEG..H";  // 探索開始の配置状態
+let START_POS = stateStr;
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
@@ -10,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const summary = document.getElementById('search-summary');
     const progress = document.getElementById('progress-details');
     const solPath = document.getElementById('sol-path');
-    const defStart = document.getElementById('start-pos');
+    const startPos = document.getElementById('start-pos');
     const svBtn = document.getElementById('sv-btn');
     const setStBtn = document.getElementById('set-state-btn');
     const ckDtBtn = document.getElementById('check-data-btn');
@@ -50,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '../img/mikoto/slide_5.webp'
         ]
     };
-    let START_POS = "BAACBAACDFFEDIJEG..H";  // 探索開始の配置状態
+
     let optPathData = { rawSet: null, normalizedSet: null, array: null };
     let loVstDt = {
         fullset: { set: new Set(), status: '未読込' },
@@ -61,16 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const MIKOTO_SPEECH_WAIT = 5000; // デバッグ用に5秒に設定
 
-    defStart.value = START_POS;
+    startPos.value = stateStr;
     const FULL_SET_SIGN = COMMON.getBlksSign(START_POS);
-
 
     //// --- URLパラメータから探索開始状態を読み込む ---
     //const urlParams = new URLSearchParams(window.location.search);
     //const stateFromUrl = urlParams.get('state');
     //if (stateFromUrl) {
         //// URLに 'state' パラメータがあれば、その値を探索開始状態として設定
-        // defStart.value = stateFromUrl.toUpperCase();
+        // startPos.value = stateFromUrl.toUpperCase();
         //// 既存の盤面設定処理を呼び出して、検証とUI更新を行う
     // handleSetState();
     //}
@@ -481,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         svBtn.disabled = isSearching;
         ckDtBtn.disabled = isSearching;
         setStBtn.disabled = isSearching;
-        defStart.disabled = isSearching;
+        startPos.disabled = isSearching;
         prunCb.disabled = isSearching || !optPathData.normalizedSet;
 
         const currentSign = getBlksSign(START_POS);
@@ -509,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleSetState() {
-        const newState = defStart.value.trim().toUpperCase();
+        const newState = startPos.value.trim().toUpperCase();
         setSt.textContent = '';
         if (newState.length !== COMMON.WIDTH * COMMON.HEIGHT) {
             setSt.style.color = COLORS.error;
@@ -878,7 +880,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     BlkMap[pos] = Blk;
                 }
             }
-
             gridElement.querySelectorAll('.editor-grid-cell').forEach((cell, i) => {
                 const Blk = BlkMap[i];
                 let classList = ['editor-grid-cell'];
@@ -898,7 +899,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.className = classList.join(' ');
             });
         }
-
         function clearPreview() {
             if (previewPositions.length > 0) {
                 previewPositions.forEach(pos => {
@@ -916,13 +916,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             previewPositions = positions;
         }
-
         function updateAllRenders() {
             renderGridWithBlks(srcGrid, srcBlks);
             renderGridWithBlks(tgtGrid, tgtBlks);
             updateHighlightOverlay();
         }
-
         function resetEditor() {
             srcBlks = stateToBlks(INITIAL_SRC_STATE);
             tgtBlks = [];
@@ -1143,8 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`空きマスが2つ未満です。駒を右クリックして盤面から取り除いてください。`);
                 return;
             }
-
-            defStart.value = finalState;
+            startPos.value = finalState;
             handleSetState();
         });
         resetBtn.addEventListener('click', resetEditor);
@@ -1158,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     SolDisp.init({
         solPath: document.getElementById('sol-path'),
-        defStart: document.getElementById('start-pos'),
+        startPos: document.getElementById('start-pos'),
         handleSetState: handleSetState,
         stateToBlks: stateToBlks,
         COMMON: COMMON

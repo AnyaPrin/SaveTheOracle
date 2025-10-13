@@ -61,7 +61,6 @@
                 width:0;
                 height:0;
             }
-
             #hint, #retry {
                 padding:0;
                 margin:0;
@@ -79,14 +78,14 @@
             #retry {
                 background-image:url('./img/icon/retry.png');
                 background-size:60px;
-                top: 664px;
-                left: 544px;
+                top: 660px;
+                left: 540px;
             }
             #hint {
                 background-image:url('./img/icon/hint.png');
                 background-size:60px;
                 top: 740px;
-                left: 544px;
+                left: 540px;
 
             }
             #hint:hover, #retry:hover {
@@ -278,10 +277,36 @@
                 margin-left: 10px;
                 font-size: 0.9em;
             }
+            #puzzlecanvas {
+                background-color: var(--bg);
+                background-image: 'img/bacground.png';
+                display: block;
+                position: fixed;
+                top: 60px;
+                left: 30px;
+                width: 600px;
+                height: 800px;
+                border-radius: 14px;
+                z-index: 1200;
+            }
+            #game-aria {
+                background-color: var(--bg);
+                background:none;
+                display: block;
+                position: fixed;
+                top: 108px;
+                left: 128px;
+                width: 410px;
+                height: 510px;
+                border-radius: 14px;
+                z-index: 1200;
+            }
 
         </style>
     </head>
     <body>
+
+
         <div id="hint" onclick='btnHint();'></div>
         <div id="retry" onclick='btnRetry();'> </div>
         <div id="solver">
@@ -319,18 +344,7 @@
                     }
                 }
                 function btnRetry() {
-                    c.volume = 0.5;
-                    const pr = c.play();
-                    if (pr !== undefined) {
-                        pr.then(() => {
-                            c.addEventListener('ended', () => {
-                                loc.reload();
-                            });
-                        }).catch((error) => {
-                            console.error('audio error:', error);
-                            loc.reload();
-                        });
-                    }
+
                 }
             </script>
             <div class='ui-panel'>
@@ -405,7 +419,9 @@
             <hr>
         </header>
         <main>
-            <canvas id="puzzlecanvas" class="fade"></canvas>
+            <div id="game-aria"></div>
+            <canvas id="puzzlecanvas" class="fade">
+            </canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
             <div id="info"></div>
             <label class="switch-vertical">
