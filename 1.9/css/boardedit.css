@@ -53,19 +53,19 @@
     border-bottom: 1px solid var(--border);
 }
 
-.piece-inner-right {
+.blk-inner-right {
     border-right-color: transparent;
 }
 
-.piece-inner-bottom {
+.blk-inner-bottom {
     border-bottom-color: transparent;
 }
 
-.editor-grid-cell.preview-piece {
+.editor-grid-cell.preview-blk {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.editor-grid-cell.hovered-piece {
+.editor-grid-cell.hovered-blk {
     filter: brightness(1.25);
 }
 
@@ -85,15 +85,15 @@
     margin: 0 10px 0 0;
 }
 
-/* Piece Colors */
-.piece-A {    background-color: #883a3a;    color: white;}/* 2x2, Red */
-.piece-B {    background-color: #446644;    color: white;}/* 2x1, Green */
-.piece-C {    background-color: #445588;    color: white;}/* 1x2, Blue */
-.piece-D {    background-color: #664488;    color: white;}/* 1x2, Purple */
-.piece-E {    background-color: #336666;    color: white;/* 1x2, Teal */
-.piece-F {    background-color: #444477;    color: white;}/* 1x2, Indigo */
-.piece-G {    background-color: #777733;    color: white;}/* 1x1, Yellow */
-.piece-H {    background-color: #884466;    color: white;}/* 1x1, Pink */
-.piece-I {    background-color: #885533;    color: white;}/* 1x1, Orange */
-.piece-J {    background-color: #665555;    color: white;}/* 1x1, Brown */
-.piece-dot {    background-color: var(--surface-color);}
+/* Blk Colors */
+.blk-A {    background-color: #883a3a;    color: white;}/* 2x2, Red */
+.blk-B {    background-color: #446644;    color: white;}/* 2x1, Green */
+.blk-C {    background-color: #445588;    color: white;}/* 1x2, Blue */
+.blk-D {    background-color: #664488;    color: white;}/* 1x2, Purple */
+.blk-E {    background-color: #336666;    color: white;/* 1x2, Teal */
+.blk-F {    background-color: #444477;    color: white;}/* 1x2, Indigo */
+.blk-G {    background-color: #777733;    color: white;}/* 1x1, Yellow */
+.blk-H {    background-color: #884466;    color: white;}/* 1x1, Pink */
+.blk-I {    background-color: #885533;    color: white;}/* 1x1, Orange */
+.blk-J {    background-color: #665555;    color: white;}/* 1x1, Brown */
+.blk-dot {    background-color: var(--surface-color);}

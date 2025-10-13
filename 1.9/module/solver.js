@@ -1,5 +1,8 @@
-import { SolDisp } from "./soldisp.js";
+import { SOLDISP } from "./soldisp.js";
 import { COMMON } from "./common.js";
+import { BFSSolver } from './solvers/bfs.js';
+import { AStarSolver } from './solvers/astar.js';
+import { IDAStarSolver } from './solvers/idastar.js';
 import { stateStr } from './main.js';
 const DEFULT_START_POS = "BAACBAACDFFEDIJEG..H";  // 探索開始の配置状態
 let START_POS = stateStr;
@@ -92,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Handle action buttons
-        if (button.closest('.action-buttons')) {
+        if (button.closest('.action-buttons') || button.classList.contains('icon-btn')) {
             if (button.classList.contains('start-algorithm-btn')) {
                 let algorithm = button.value;
                 // IDA*の場合、チェックボックスの状態に応じてアルゴリズムを決定
@@ -129,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Tltip Handling ---
     document.querySelectorAll('.icon-btn-label').forEach(label => {
         const tltip = label.querySelector('.tltip-text');
-        const startBtn = label.querySelector('.start-algorithm-btn');
+        const startBtn = label.querySelector('.icon-btn.start-algorithm-btn');
         const arrowMargin = 12; // 矢印の高さ(5px) + アイコンとの隙間
 
         label.addEventListener('mouseenter', () => {
@@ -299,17 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (solverAlgorithm) {
         case 'bfs':
-            currentSolver = new BfsSolver(options);
+            currentSolver = new BFSSolver(options);
             console.log('currentSolverに代入:', currentSolver, 'アルゴリズム:', solverAlgorithm);
             break;
         case 'astar':
-            currentSolver = new AstarSolver(options);
+            currentSolver = new AStarSolver(options);
             break;
         case 'idastar':
-            currentSolver = new IDAstarSolver(options);
+            currentSolver = new IDAStarSolver(options);
             break;
         case 'iddfs':
-            currentSolver = new IDAstarSolver(options); // IDDFSもIDAstarSolverクラスを使用
+            currentSolver = new IDAStarSolver(options); // IDDFSもIDAstarSolverクラスを使用
             break;
         default:
             console.error('Unknown algorithm:', solverAlgorithm);
@@ -349,10 +352,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 駒の一貫性を保つためのパス修正処理 ---
         // ソルバーは駒の形状のみを考慮するため、駒の名前（文字）がステップごとに入れ替わることがある。
         // ここでは、1手ずつ経路をたどり、駒の移動を追跡して正しい名前を復元する。
-        const correctedPathStrings = [];
+        const correctedPathStrs = [];
         if (result.path && result.path.length > 0) {
             const initialString = COMMON.bigIntToState(result.path[0]);
-            correctedPathStrings.push(initialString);
+            correctedPathStrs.push(initialString);
             // 基準となる最初の盤面の駒リストを作成
             let prevBlks = stateToBlks(initialString);
 
@@ -390,21 +393,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     // このケースは通常発生しない。安全策として、未修正の盤面を使い、次のステップのためにリセットする。
                     console.warn(`Path correction failed at step ${i}. Found ${unmatchedPrevBlks.length} old and ${unmatchedCurrentBlks.length} new Blks.`);
-                    correctedPathStrings.push(currentRawString);
+                    correctedPathStrs.push(currentRawString);
                     prevBlks = stateToBlks(currentRawString); // 状態をリセット
                     continue;
                 }
 
                 // 3. 修正された駒情報から盤面文字列を再構築し、次のループのために駒情報を更新する。
-                const correctedStateString = BlksToState(correctedCurrentBlks);
-                correctedPathStrings.push(correctedStateString);
+                const correctedStStr = BlksToState(correctedCurrentBlks);
+                correctedPathStrs.push(correctedStStr);
                 prevBlks = correctedCurrentBlks;
             }
         }
-        const pathAsStrings = correctedPathStrings;
+        const pathStrs = correctedPathStrs;
 
-        SolDisp.displaySolution(pathAsStrings);
-        status.textContent = `${result.message} 　 ${title}: ${pathAsStrings.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
+        SOLDISP.dispSol(pathStrs);
+        status.textContent = `${result.message} 　 ${title}: ${pathStrs.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
         setUIState(false);
     }
 
@@ -486,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startPos.disabled = isSearching;
         prunCb.disabled = isSearching || !optPathData.normalizedSet;
 
-        const currentSign = getBlksSign(START_POS);
+        const currentSign = COMMON.getBlksSign(START_POS);
         const isFullSet = (currentSign === FULL_SET_SIGN);
         const dataStore = loVstDt[isFullSet ? 'fullset' : 'subset'];
         loVstCb.disabled = isSearching || dataStore.status !== '読込完了';
@@ -1153,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetEditor();
     }
 
-    SolDisp.init({
+    SOLDISP.init({
         solPath: document.getElementById('sol-path'),
         startPos: document.getElementById('start-pos'),
         handleSetState: handleSetState,

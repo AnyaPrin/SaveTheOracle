@@ -543,7 +543,12 @@ function drawAll() {
         infoDiv.style.whiteSpace = 'pre-wrap';
     }
 
-    // draw Solver
+    // Solverの開始盤面入力欄に現在の盤面文字列をセットする
+    const startPosInput = document.getElementById('start-pos');
+    if (startPosInput) {
+        startPosInput.value = stateStr;
+    }
+
 }
 
 let pixyFlap = 0;
@@ -1002,6 +1007,41 @@ window.onload = async function () {
     puzzleCanvas.addEventListener("mousemove", onMouseMove);
     puzzleCanvas.addEventListener("mouseup", onMouseUp);
     mainLoop();
+
+    // // --- Solver State Setter ---
+    // // Solver -> Puzzel board
+    // const setStateBtn = document.getElementById('set-state-btn');
+    // const startPosInput = document.getElementById('start-pos');
+    // const setStateStatus = document.getElementById('set-state-status');
+
+    // if (setStateBtn && startPosInput && setStateStatus) {
+    //     setStateBtn.addEventListener('click', () => {
+    //         const newStateStr = startPosInput.value.trim();
+    //         setStateStatus.textContent = ''; // Clear previous status
+
+    //         // 盤面文字列の検証
+    //         if (newStateStr.length !== BRD_LEN) {
+    //             setStateStatus.textContent = `Error: 文字列は${BRD_LEN}文字である必要があります。`;
+    //             setStateStatus.style.color = 'red';
+    //             return;
+    //         }
+    //         // 使用可能な文字種をキーにしたSetを作成
+    //         const validChars = new Set(Object.keys(COMMON.PIECE_MAP));
+    //         if (![...newStateStr].every(char => validChars.has(char))) {
+    //             setStateStatus.textContent = 'Error: 無効な文字が含まれています。';
+    //             setStateStatus.style.color = 'red';
+    //             return;
+    //         }
+
+    //         // ゲーム状態の更新
+    //         stateStr = newStateStr;
+    //         stateInt = COMMON.stateToBigInt(newStateStr);
+    //         gameHistory = []; // 履歴をリセット
+    //         gameTurn = 0;     // ターン数もリセット
+    //         setStateStatus.textContent = '盤面を更新しました。';
+    //         setStateStatus.style.color = 'rgb(76, 175, 80)'; // Green
+    //     });
+    // }
 }
 
 export { stateStr, stateInt};

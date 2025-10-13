@@ -12,13 +12,13 @@ export const COMMON = {
      * @returns {string} 駒の種類と数をアルファベット順に並べたシグネチャ (例: "A:4,B:2,C:2,...")
      */
     getBlksSign(state) {
-        const pieceCounts = {};
+        const blkCounts = {};
         for (const char of state) {
             if (char !== '.') {
-                pieceCounts[char] = (pieceCounts[char] || 0) + 1;
+                blkCounts[char] = (blkCounts[char] || 0) + 1;
             }
         }
-        return Object.keys(pieceCounts).sort().map(char => `${char}:${pieceCounts[char]}`).join(',');
+        return Object.keys(blkCounts).sort().map(char => `${char}:${blkCounts[char]}`).join(',');
     },
 
     /**
@@ -27,7 +27,7 @@ export const COMMON = {
      */
     generateRandomState() {
         // パズルの駒構成: 'A'x4, 'B'x2, 'C'x2, 'D'x2, 'E'x2, 'F'x2, 'G'x1, 'H'x1, 'I'x1, 'J'x1, '.'x2
-        const pieces = 'AAAABBCCDDEEFFGHIJ..';
+        const blks = 'AAAABBCCDDEEFFGHIJ..';
         // 文字列を配列に変換し、ランダムに並び替えてから、再び文字列に戻す
         return blks.split('').sort(() => Math.random() - 0.5).join('');
     },
