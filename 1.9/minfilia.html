@@ -207,6 +207,7 @@
                 margin:0;
                 position:0;
             }
+
             .sol-panel {
                 position: absolute;
                 left: 441px;
@@ -304,7 +305,19 @@
                 z-index: 1200;
             }
 
+
+            /* --- DRAG HANDLE --- */
+            .drag-handle {
+                position: absolute;
+                cursor: grab;
+                transition: background-color 0.2s ease;
+                z-index: 10000;
+            }
+            .drag-handle:hover {
+                background-color: var(--bg);
+            }
         </style>
+
     </head>
 
     <body>
@@ -426,6 +439,7 @@
             <div id="drag-handle-right" class="drag-handle drag-handle-side" title="Drag to move"></div>
             <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
         </div>
+
         <header>
             <span style="font-size:16pt">Save The Oracle</span>
             <span style="font-size:10pt"> - Final Fantasy XIV unofficial mini-game

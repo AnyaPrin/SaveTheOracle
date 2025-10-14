@@ -168,9 +168,6 @@
     z-index: 10000; /* 他の要素より手前に */
 }
 
-.drag-handle:hover {
-    background-color: var(--bg);
-}
 
 #drag-handle-bottom {
     bottom: 0;

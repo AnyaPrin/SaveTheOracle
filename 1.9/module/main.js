@@ -384,8 +384,8 @@ function drawBlks() {
         pctx.roundRect( x + BLKBDR / 2, drawY + BLKBDR / 2 , w - BLKBDR , h - BLKBDR, BLKBDR_R);
         pctx.stroke();
         pctx.restore();
-        // --- インライン化ここまで ---
 
+        // --- インライン化ここまで ---
         if (Selected == blkId) {
             // --- drImgShadowのインライン化 ---
             pctx.save();
