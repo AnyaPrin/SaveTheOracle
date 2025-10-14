@@ -10,12 +10,9 @@ let START_POS = stateStr;
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     const ui = document.querySelector('.ui-panel');
-    const sol = document.querySelector('.sol-panel');
     const actBtn = document.querySelector('.action-buttons');
     const status = document.getElementById('status');
-    const summary = document.getElementById('search-summary');
     const progress = document.getElementById('progress-details');
-    const solPath = document.getElementById('sol-path');
     const startPos = document.getElementById('start-pos');
     const svBtn = document.getElementById('sv-btn');
     const setStBtn = document.getElementById('set-state-btn');
@@ -496,22 +493,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isSearching) {
             sol.hidden = false;
-            summary.hidden = false;
             svStts.textContent = '';
             status.textContent = 'Searching...';
             solPath.innerHTML = '';
         }
     }
 
-    const hideSummaryBtn = document.getElementById('hide-summary-btn');
-    if (hideSummaryBtn) {
-        hideSummaryBtn.addEventListener('click', () => {
-            if (sol.hidden == true)
-                sol.hidden = false;
-            else
-                sol.hidden = true;
-        });
-    }
 
     function handleSetState() {
         const newState = startPos.value.trim().toUpperCase();
@@ -1155,62 +1142,4 @@ document.addEventListener('DOMContentLoaded', () => {
         createGrid(tgtGrid);
         resetEditor();
     }
-
-    SOLDISP.init({
-        solPath: document.getElementById('sol-path'),
-        startPos: document.getElementById('start-pos'),
-        handleSetState: handleSetState,
-        stateToBlks: stateToBlks,
-        COMMON: COMMON
-    });
-
-    initializeBoardEditor();
-    // --- Draggable Panel Logic ---
-    function initializeDraggablePanel() {
-        const panel = document.querySelector('.sol-panel');
-        let isDragging = false;
-        let offsetX, offsetY;
-        panel.addEventListener('mousedown', (e) => {
-            // ドラッグを開始する要素（サマリー部か、下のハンドル）
-            const dragTgt = e.target.closest('#search-summary, .drag-handle');
-            // ドラッグ対象外の要素（ボタンやクリック可能な盤面など）
-            const nonDraggable = e.target.closest('button, .clickable-board, input, a, .close-btn');
-
-            // ドラッグ対象であり、かつドラッグ対象外の要素でなければドラッグ開始
-            if (dragTgt && !nonDraggable) {
-                isDragging = true;
-                offsetX = e.clientX - panel.offsetLeft;
-                offsetY = e.clientY - panel.offsetTop;
-
-                // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
-                dragTgt.style.cursor = 'grabbing';
-                document.body.style.userSelect = 'none';
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            }
-        });
-
-        function onMouseMove(e) {
-            if (!isDragging) return;
-            panel.style.left = `${e.clientX - offsetX}px`;
-            panel.style.top = `${e.clientY - offsetY}px`;
-        }
-
-        function onMouseUp() {
-            isDragging = false;
-            // スタイルを元に戻す
-            const header = document.getElementById('search-summary');
-            if (header) header.style.cursor = 'grab';
-            document.querySelectorAll('.drag-handle').forEach(handle => {
-                handle.style.cursor = 'grab';
-            });
-            document.body.style.userSelect = '';
-
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-    }
-
-    initializeDraggablePanel();
 });

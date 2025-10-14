@@ -11,6 +11,13 @@
         <link rel="stylesheet" href="css/nodegraph.css">
         <link rel="stylesheet" href="css/switch.css">
         <style>
+            @font-face {
+                font-family: 'impact';
+                src: url('../../fonts/impact.ttf') format('ttf');
+                font-weight: bold;
+                font-style: normal;
+                font-display: swap;
+            }
             :root {
                 --link:    rgba(0, 50, 80, 0.15);
                 --menu:    rgba(12, 93, 123, 0.5);
@@ -28,6 +35,16 @@
                 --info-bg:    rgba(123, 123, 123, 1);
                 --tab:        rgba(12, 93, 123, 0.5);
                 --half-trans: rgba(43, 43, 43, 0.5);
+                --blk-w: 10px;
+                --blk-h: 10px;
+                --bd-pad: 4px;
+                --bd-w: calc( var(--blk-w) * 4 + var(--bd-pad)*2 );
+                --bd-h: calc( var(--blk-h) * 5 + var(--bd-pad)*2 );
+                --bd-bg:rgba(11,21,41,0.8);
+                --bd-gap: 1px;
+                --bd-cols: 13;
+                --grey: rgba(44,44,74,0.5);
+
 	        background: black;
 	        border: 1px solid var(--border);
 	        box-shadow: var(--shadow);
@@ -208,26 +225,6 @@
                 position:0;
             }
 
-            .sol-panel {
-                position: absolute;
-                left: 441px;
-                top: 76px;
-                font-size: 14px;
-                width: 660px;
-                background-image: url('../img/background2');
-                background-color: rgba(44, 44, 44, 0.85);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                box-sizing: border-box;
-                border-radius: 18px;
-                padding: 14px;
-                background: transparent;
-                box-shadow: none;
-                overflow-y: hidden;
-                scrollbar-width: thin;
-                scrollbar-color: var(--button) var(--bg);
-                padding: 20px 20px;
-                z-index: 9000;
-            }
 
             #start-pos {
                 font-family: monospace;
@@ -305,7 +302,80 @@
                 z-index: 1200;
             }
 
+            /* solution path panel */
+            .sol-panel {
+                display:block;
+                background-color: var(--grey);
+                border-radius: 16px;
+                width: calc( var(--bd-cols) * var(--bd-w) + (var(--bd-cols) - 1) * var(--bd-gap) + 0px );
+                padding: 20px;
+                backdrop-filter: blur(2px);
+            }
+            .sol-panel p{
+                padding: 2px;
+                margin: 2px;
+                font-size:20px;
+                font-weight:bold;
+            }
+            /*puzzle solution sequence container*/
+            .sol-path {
+                display: grid;
+                grid-template-columns: repeat(var(--bd-cols), var(--bd-w));
+                grid-auto-rows: var(--bd-h);
+                gap: var(--bd-gap); /* board の 間隔 */
+                padding: 0px 0px 0px;
+                margin:0px;
+            }
+            .pBrd:hover {
+                background-color: #ffffff;
+                cursor: pointer;
+            }
+            .pBrd {
+                position: relative;
+                display: grid;
+                grid-template-columns: repeat(4, var(--blk-w));
+                grid-template-rows: repeat(5, var(--blk-h));
+                width: var(--bd-w);
+                height: var(--bd-h);
+                border: none;
+                margin: 2px;
+                border-radius: 4px;
+                box-sizing: border-box;
+                background-color: var(--bd-bg);
+                padding: var(--bd-pad);
+                gap:0;
+                z-index: 1;
+                opacity: 0.95; /* 少し透過 */
+            }
+            .step-wrapper {
+                position: relative;
+            }
+            .pIdx {
+                position: absolute;
+                top: -3px;
+                right: 1px;
+                font-family: impact;
+                font-size: 14px;
+                font-weight: bold;
+                color: rgba(255,255,255,0.5);
+                pointer-events: none;
+                z-index: 200;
+            }
 
+            .blk {
+                width: var(--blk-w);
+                height: var(--blk-h);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 8px;
+                font-family: monospace;
+                font-weight: bold;
+                padding: 0;
+                margin: 0;
+                gap: 0;
+                box-sizing: border-box;
+            }
             /* --- DRAG HANDLE --- */
             .drag-handle {
                 position: absolute;
@@ -314,14 +384,12 @@
                 z-index: 10000;
             }
             .drag-handle:hover {
-                background-color: var(--bg);
+                background-color: var(--grey);
             }
         </style>
-
     </head>
 
     <body>
-
         <div id="hint" onclick='btnHint();'></div>
         <div id="retry" onclick='btnRetry();'> </div>
         <div id="solver">
@@ -428,16 +496,9 @@
             </div>
         </div>
 
-        <div class="sol-panel">
-            <div id="drag-handle-left" class="drag-handle drag-handle-side" title="Drag to move"></div>
-            <div id="search-summary" hidden>
-                <button id="hide-summary-btn" class="close-btn" title="CLOSE">&times;</button>
-                <div id="status"></div>
-                <div id="progress-details"></div>
-            </div>
-            <div id="sol-path"></div>
-            <div id="drag-handle-right" class="drag-handle drag-handle-side" title="Drag to move"></div>
-            <div id="drag-handle-bottom" class="drag-handle" title="Drag to move"></div>
+        <div class="drag-handle sol-panel"><p>SOLUTION</p>
+            <div class="sol-path"></div>
+            <div class="path-idx"></div>
         </div>
 
         <header>
@@ -483,12 +544,225 @@
     <script type="module" src="module/puzzle.js"></script>
     <script type="module" src="module/nodegraph.js"></script>
     <script type="module" src="module/solver.js"></script>
-    <script type="module" src="module/soldisp.js"></script>
     <script type="module">
+        const pathStrs = [
+            "BAACBAACDFFEDIJEG..H",
+            "BAACBAACDFFEDIJE.G.H",
+            "BAACBAAC.FFEDIJEDG.H",
+            "BAACBAACFF.EDIJEDG.H",
+            "BAACBAACFFJEDI.EDG.H",
+            "BAACBAACFFJEDI.EDGH.",
+            "BAACBAACFFJ.DI.EDGHE",
+            "BAACBAACFF.JDI.EDGHE",
+            "BAACBAAC.FFJDI.EDGHE",
+            "BAACBAACDFFJDI.E.GHE",
+            "BAACBAACDFFJDI.EG.HE",
+            "BAACBAACDFFJDI.EGH.E",
+            "BAACBAACDFFJDIE.GHE.",
+            "BAACBAACDFF.DIEJGHE.",
+            "BAACBAACD.FFDIEJGHE.",
+            "BAACBAACDIFFD.EJGHE.",
+            "BAACBAACDIFFD.E.GHEJ",
+            "BAACBAACDIFFDHE.G.EJ",
+            "BAACBAACDIFFDHE..GEJ",
+            "BAACBAAC.IFFDHE.DGEJ",
+            "BAACBAACI.FFDHE.DGEJ",
+            "BAACBAACIFF.DHE.DGEJ",
+            "BAA.BAACIFFCDHE.DGEJ",
+            "BAA.BAA.IFFCDHECDGEJ",
+            "B.AAB.AAIFFCDHECDGEJ",
+            ".BAA.BAAIFFCDHECDGEJ",
+            ".BAAIBAA.FFCDHECDGEJ",
+            "IBAA.BAA.FFCDHECDGEJ",
+            "IBAA.BAADFFCDHEC.GEJ",
+            "IBAADBAADFFC.HEC.GEJ",
+            "IBAADBAADFFCH.EC.GEJ",
+            "IBAADBAADFFCH.ECG.EJ",
+            "IBAADBAADFFCHE.CGE.J",
+            "IBAADBAADFFCHE.CGEJ.",
+            "IBAADBAADFF.HE.CGEJC",
+            "IBAADBAAD.FFHE.CGEJC",
+            "IBAADBAADEFFHE.CG.JC",
+            "IBAADBAADEFFHE.C.GJC",
+            "IBAADBAADEFFHEJC.G.C",
+            "IBAADBAADEFFHEJC..GC",
+            "IBAADBAAD.FFHEJC.EGC",
+            "I.AADBAADBFFHEJC.EGC",
+            ".IAADBAADBFFHEJC.EGC",
+            "DIAADBAA.BFFHEJC.EGC",
+            "DIAADBAAHBFF.EJC.EGC",
+            "DIAADBAAHBFFE.JCE.GC",
+            "DIAAD.AAHBFFEBJCE.GC",
+            "DIAAD.AAH.FFEBJCEBGC",
+            "DIAAD.AA.HFFEBJCEBGC",
+            "DIAADHAA..FFEBJCEBGC",
+            "DIAADHAA.FF.EBJCEBGC",
+            "DIAADHAAFF..EBJCEBGC",
+            "DIAADHAAFF.CEBJCEBG.",
+            "DIAADHAAFF.CEBJCEB.G",
+            "DIAADHAAFF.CEB.CEBJG",
+            "DIAADHAAFFC.EBC.EBJG",
+            "DIAADHAAFFC.EBCGEBJ.",
+            "DIAADHAAFFC.EBCGEB.J",
+            "DIAADHAAFF..EBCGEBCJ",
+            "DIAADHAA.FF.EBCGEBCJ",
+            ".IAADHAADFF.EBCGEBCJ",
+            "I.AADHAADFF.EBCGEBCJ",
+            "IHAAD.AADFF.EBCGEBCJ",
+            "IHAAD.AAD.FFEBCGEBCJ",
+            "IHAAD.AADBFFEBCGE.CJ",
+            "IHAADBAADBFFE.CGE.CJ",
+            "IHAADBAADBFFEC.GEC.J",
+            "IHAADBAADBFFECG.EC.J",
+            "IHAADBAADBFFEC..ECGJ",
+            "IHAADBAADB..ECFFECGJ",
+            "IH..DBAADBAAECFFECGJ",
+            "I.H.DBAADBAAECFFECGJ",
+            ".IH.DBAADBAAECFFECGJ",
+            ".I.HDBAADBAAECFFECGJ",
+            "..IHDBAADBAAECFFECGJ",
+            "D.IHDBAA.BAAECFFECGJ",
+            "DBIHDBAA..AAECFFECGJ",
+            "DBIHDBAAE.AAECFF.CGJ",
+            "DBIHDBAAECAAECFF..GJ",
+            "DBIHDBAAECAAECFF.G.J",
+            "DBIHDBAAECAAECFFG..J",
+            "DBIHDBAAECAAECFFG.J.",
+            "DBIHDBAAECAAECFFGJ..",
+            "DBIHDBAAECAAEC..GJFF",
+            "DBIHDB..ECAAECAAGJFF",
+            "DB.HDBI.ECAAECAAGJFF",
+            "DB.HDB.IECAAECAAGJFF",
+            "D.BHD.BIECAAECAAGJFF",
+            "D.BHDCBIECAAE.AAGJFF",
+            "DCBHDCBIE.AAE.AAGJFF",
+            "DCBHDCBIEAA.EAA.GJFF",
+            "DCBHDCB.EAAIEAA.GJFF",
+            "DCB.DCBHEAAIEAA.GJFF",
+            "DCB.DCBHEAA.EAAIGJFF",
+            "DCB.DCB.EAAHEAAIGJFF",
+            "DC.BDC.BEAAHEAAIGJFF",
+            "D.CBD.CBEAAHEAAIGJFF",
+            ".DCB.DCBEAAHEAAIGJFF",
+            ".DCBEDCBEAAH.AAIGJFF",
+            "EDCBEDCB.AAH.AAIGJFF",
+            "EDCBEDCBAA.HAA.IGJFF",
+            "EDCBEDCBAAH.AA.IGJFF",
+            "EDCBEDCBAAHIAA..GJFF",
+            "EDCBEDCBAAHIAAFFGJ..",
+            "EDCBEDCBAAHIAAFFG.J.",
+            "EDCBEDCBAAHIAAFF.GJ.",
+            "EDCBEDCBAAHIAAFF.G.J",
+            "EDCBEDCBAAHIAAFF..GJ",
+            "EDCBEDCB..HIAAFFAAGJ",
+            "EDCBEDCB.H.IAAFFAAGJ",
+            "EDCBEDCBH..IAAFFAAGJ",
+            "EDCBEDCBH.I.AAFFAAGJ",
+            "EDCBEDCBHI..AAFFAAGJ",
+            "EDCBEDCBHIFFAA..AAGJ",
+            "EDCBEDCBHIFFAAG.AA.J",
+            "EDCBEDCBHIFFAA.GAA.J",
+            "EDCBEDCBHIFF.AAG.AAJ"
+        ];
+
         import { stateStr } from "./module/main.js";
+        const solPath = document.querySelector('.sol-path');
+        function dispSolPath(path) {
+            const n = pathStrs.length;
+            for (let step = 0; step < path.length; step++) {
+                const str = pathStrs[step];
+                const prevStr = step > 0 ? pathStrs[step - 1] : null;
+                const mvCh = new Set();
+                if (prevStr) {
+                    for (let i = 0; i < str.length; i++) {
+                        const ch = str[i];
+                        const prevCh = prevStr[i];
+                        if (ch !== '.' && ch !== prevCh) {
+                            mvCh.add(ch);
+                        }
+                    }
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'step-wrapper';
+                const bd = document.createElement('div');
+                bd.className = 'pBrd';
+                const idx = document.createElement('div');
+                idx.className = 'pIdx';
+
+                const shown = new Set();
+                for (let i = 0; i < str.length; i++) {
+                    const ch = str[i];
+                    const blk = document.createElement('div');
+                    blk.className = 'blk';
+                    // 最初に出現した文字だけ表示
+                    if (ch !== '.' && !shown.has(ch)) {
+                        blk.textContent = ch;
+                        blk.style.cssText += getStrokeStyle(ch);
+
+                    } else {
+                        blk.textContent = '';
+                    }
+                    shown.add(ch);
+                    blk.style.backgroundColor =
+                        ch === '.' ? 'none' : (mvCh.has(ch) ? '#ffff88' : '#888888');
+                    blk.style.color =
+                        ch === '.' ? 'none' : (mvCh.has(ch) ? 'black' : 'black');
+                    bd.appendChild(blk);
+                }
+
+                idx.textContent = step;
+                wrapper.appendChild(bd);
+                wrapper.appendChild(idx);
+                solPath.appendChild(wrapper);
+            }
+        }
+
+        function getStrokeStyle(ch) {
+            const base = 'z-index:0; outline-offset:-1px; outline: 1px solid var(--grey);';
+            switch (ch) {
+            case 'A':
+                return `${base} width: calc(var(--blk-w) * 2); height: calc(var(--blk-h) * 2);`;
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'E':
+                return `${base} height: calc(var(--blk-h) * 2);`;
+            case 'F':
+                return `${base} width: calc(var(--blk-w) * 2);`;
+            case 'G':
+            case 'H':
+            case 'I':
+            case 'J':
+                return `${base}`;
+            default:
+                return '';
+            }
+        }
+
+        dispSolPath(pathStrs);
+
+        let dragged = null;
+        let offsetX = 0, offsetY = 0;
+        document.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('.drag-handle');
+            if (!target) return;
+            dragged = target;
+            offsetX = e.clientX - dragged.offsetLeft;
+            offsetY = e.clientY - dragged.offsetTop;
+            dragged.style.position = 'absolute';
+            dragged.style.zIndex = 1000;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!dragged) return;
+            dragged.style.left = `${e.clientX - offsetX}px`;
+            dragged.style.top = `${e.clientY - offsetY}px`;
+        });
+        document.addEventListener('mouseup', () => {
+            dragged = null;
+        });
         document.getElementById('close-solver').addEventListener('click', () => {
             document.getElementById('solver').classList.remove('active');
         });
     </script>
-
 </html>
