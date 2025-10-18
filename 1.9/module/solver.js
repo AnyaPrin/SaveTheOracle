@@ -1,8 +1,5 @@
-import { SOLDISP } from "./soldisp.js";
+import { SolDisp } from "./soldisp.js";
 import { COMMON } from "./common.js";
-import { BFSSolver } from './solvers/bfs.js';
-import { AStarSolver } from './solvers/astar.js';
-import { IDAStarSolver } from './solvers/idastar.js';
 import { stateStr } from './main.js';
 const DEFULT_START_POS = "BAACBAACDFFEDIJEG..H";  // 探索開始の配置状態
 let START_POS = stateStr;
@@ -10,9 +7,12 @@ let START_POS = stateStr;
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global State and DOM Elements ---
     const ui = document.querySelector('.ui-panel');
+    const sol = document.querySelector('.sol-panel');
     const actBtn = document.querySelector('.action-buttons');
     const status = document.getElementById('status');
+    const summary = document.getElementById('search-summary');
     const progress = document.getElementById('progress-details');
+    const solPath = document.getElementById('sol-path');
     const startPos = document.getElementById('start-pos');
     const svBtn = document.getElementById('sv-btn');
     const setStBtn = document.getElementById('set-state-btn');
@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
     //const urlParams = new URLSearchParams(window.location.search);
     //const stateFromUrl = urlParams.get('state');
     //if (stateFromUrl) {
-        //// URLに 'state' パラメータがあれば、その値を探索開始状態として設定
-        // startPos.value = stateFromUrl.toUpperCase();
-        //// 既存の盤面設定処理を呼び出して、検証とUI更新を行う
+    //// URLに 'state' パラメータがあれば、その値を探索開始状態として設定
+    // startPos.value = stateFromUrl.toUpperCase();
+    //// 既存の盤面設定処理を呼び出して、検証とUI更新を行う
     // handleSetState();
     //}
 
@@ -299,17 +299,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (solverAlgorithm) {
         case 'bfs':
-            currentSolver = new BFSSolver(options);
+            currentSolver = new BfsSolver(options);
             console.log('currentSolverに代入:', currentSolver, 'アルゴリズム:', solverAlgorithm);
             break;
         case 'astar':
-            currentSolver = new AStarSolver(options);
+            currentSolver = new AstarSolver(options);
             break;
         case 'idastar':
-            currentSolver = new IDAStarSolver(options);
+            currentSolver = new IDAstarSolver(options);
             break;
         case 'iddfs':
-            currentSolver = new IDAStarSolver(options); // IDDFSもIDAstarSolverクラスを使用
+            currentSolver = new IDAstarSolver(options); // IDDFSもIDAstarSolverクラスを使用
             break;
         default:
             console.error('Unknown algorithm:', solverAlgorithm);
@@ -349,10 +349,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 駒の一貫性を保つためのパス修正処理 ---
         // ソルバーは駒の形状のみを考慮するため、駒の名前（文字）がステップごとに入れ替わることがある。
         // ここでは、1手ずつ経路をたどり、駒の移動を追跡して正しい名前を復元する。
-        const correctedPathStrs = [];
+        const correctedPathStrings = [];
         if (result.path && result.path.length > 0) {
             const initialString = COMMON.bigIntToState(result.path[0]);
-            correctedPathStrs.push(initialString);
+            correctedPathStrings.push(initialString);
             // 基準となる最初の盤面の駒リストを作成
             let prevBlks = stateToBlks(initialString);
 
@@ -390,21 +390,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     // このケースは通常発生しない。安全策として、未修正の盤面を使い、次のステップのためにリセットする。
                     console.warn(`Path correction failed at step ${i}. Found ${unmatchedPrevBlks.length} old and ${unmatchedCurrentBlks.length} new Blks.`);
-                    correctedPathStrs.push(currentRawString);
+                    correctedPathStrings.push(currentRawString);
                     prevBlks = stateToBlks(currentRawString); // 状態をリセット
                     continue;
                 }
 
                 // 3. 修正された駒情報から盤面文字列を再構築し、次のループのために駒情報を更新する。
-                const correctedStStr = BlksToState(correctedCurrentBlks);
-                correctedPathStrs.push(correctedStStr);
+                const correctedStateString = BlksToState(correctedCurrentBlks);
+                correctedPathStrings.push(correctedStateString);
                 prevBlks = correctedCurrentBlks;
             }
         }
-        const pathStrs = correctedPathStrs;
+        const pathAsStrings = correctedPathStrings;
 
-        SOLDISP.dispSol(pathStrs);
-        status.textContent = `${result.message} 　 ${title}: ${pathStrs.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
+        SolDisp.displaySolution(pathAsStrings);
+        status.textContent = `${result.message} 　 ${title}: ${pathAsStrings.length - 1} 　 探索時間: ${totalTime.toFixed(2)}秒`;
         setUIState(false);
     }
 
@@ -486,19 +486,29 @@ document.addEventListener('DOMContentLoaded', () => {
         startPos.disabled = isSearching;
         prunCb.disabled = isSearching || !optPathData.normalizedSet;
 
-        const currentSign = COMMON.getBlksSign(START_POS);
+        const currentSign = getBlksSign(START_POS);
         const isFullSet = (currentSign === FULL_SET_SIGN);
         const dataStore = loVstDt[isFullSet ? 'fullset' : 'subset'];
         loVstCb.disabled = isSearching || dataStore.status !== '読込完了';
 
         if (isSearching) {
             sol.hidden = false;
+            summary.hidden = false;
             svStts.textContent = '';
             status.textContent = 'Searching...';
             solPath.innerHTML = '';
         }
     }
 
+    const hideSummaryBtn = document.getElementById('hide-summary-btn');
+    if (hideSummaryBtn) {
+        hideSummaryBtn.addEventListener('click', () => {
+            if (sol.hidden == true)
+                sol.hidden = false;
+            else
+                sol.hidden = true;
+        });
+    }
 
     function handleSetState() {
         const newState = startPos.value.trim().toUpperCase();
@@ -1142,4 +1152,63 @@ document.addEventListener('DOMContentLoaded', () => {
         createGrid(tgtGrid);
         resetEditor();
     }
+
+    SolDisp.init({
+        solPath: document.getElementById('sol-path'),
+        startPos: document.getElementById('start-pos'),
+        handleSetState: handleSetState,
+        stateToBlks: stateToBlks,
+        COMMON: COMMON
+    });
+
+    initializeBoardEditor();
+    // --- Draggable Panel Logic ---
+    function initializeDraggablePanel() {
+        const panel = document.querySelector('.sol-panel');
+        let isDragging = false;
+        let offsetX, offsetY;
+        panel.addEventListener('mousedown', (e) => {
+            // ドラッグを開始する要素（サマリー部か、下のハンドル）
+            const dragTgt = e.target.closest('#search-summary, .drag-handle');
+            // ドラッグ対象外の要素（ボタンやクリック可能な盤面など）
+            const nonDraggable = e.target.closest('button, .clickable-board, input, a, .close-btn');
+
+            // ドラッグ対象であり、かつドラッグ対象外の要素でなければドラッグ開始
+            if (dragTgt && !nonDraggable) {
+                isDragging = true;
+                offsetX = e.clientX - panel.offsetLeft;
+                offsetY = e.clientY - panel.offsetTop;
+
+                // ドラッグ中のカーソルスタイルとテキスト選択防止を設定
+                dragTgt.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            }
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            panel.style.left = `${e.clientX - offsetX}px`;
+            panel.style.top = `${e.clientY - offsetY}px`;
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            // スタイルを元に戻す
+            const header = document.getElementById('search-summary');
+            if (header) header.style.cursor = 'grab';
+            document.querySelectorAll('.drag-handle').forEach(handle => {
+                handle.style.cursor = 'grab';
+            });
+            document.body.style.userSelect = '';
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+
+
+    initializeDraggablePanel();
 });

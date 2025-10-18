@@ -42,9 +42,8 @@
                 --bd-h: calc( var(--blk-h) * 5 + var(--bd-pad)*2 );
                 --bd-bg:rgba(11,21,41,0.8);
                 --bd-gap: 1px;
-                --bd-cols: 13;
+                --bd-cols: 16;
                 --grey: rgba(44,44,74,0.5);
-
 	        background: black;
 	        border: 1px solid var(--border);
 	        box-shadow: var(--shadow);
@@ -92,7 +91,6 @@
 	        border: 5px solid var(--border);
                 z-index: 2000;
             }
-
             #retry {
                 background-image:url('./img/icon/retry.png');
                 background-size:60px;
@@ -225,7 +223,6 @@
                 position:0;
             }
 
-
             #start-pos {
                 font-family: monospace;
                 width: 22ch;
@@ -250,8 +247,9 @@
                 flex-shrink: 0;
             }
             #set-state-status {
-                min-height: 1.2em;
-                font-size: 0.9em;
+                height: 2em;
+                min-height: 2em;
+                font-size: 0.7em;
                 text-align: left;
                 margin-top: 5px;
             }
@@ -406,8 +404,8 @@
                 const loc = document.location;
                 function tglPanel() {
                     const isO =!sol.classList.contains('active');
-                    o.volume =0.5;
-                    c.volume =0.5;
+                    o.volume =0.1;
+                    c.volume =0.1;
                     sol.classList.toggle('active');
                     if (isO) {
                         o.play();
@@ -417,8 +415,8 @@
                 }
                 function btnHint() {
                     const isO =!sol.classList.contains('active');
-                    o.volume =0.5;
-                    c.volume =0.5;
+                    o.volume =0.1;
+                    c.volume =0.1;
                     sol.classList.toggle('active');
                     if (isO) {
                         o.play();
@@ -426,25 +424,23 @@
                         c.play();
                     }
                 }
-                function btnRetry() {
-                }
             </script>
             <div class='ui-panel'>
                 <input type="text" id="start-pos" maxlength="20" minlength="20" title="start state string">
                 <button id="set-state-btn" >OK</button>
                 <div id="set-state-status"></div>
                 <div class="action-buttons">
-                    <button class="icon-btn start-algorithm-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS">
+                    <button class="icon-btn start-algo-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS">
                         <span class="tltip"
                               data-en="<strong>Brave Forwards Search (BFS)</strong><br>The most basic search algorithm, said to be developed by Alphinaud. It explores all nodes in order of proximity from the start, guaranteeing the shortest solution."
                               data-jp="<strong>Brave Forwards Search (BFS)</strong><br>アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。"></span>
                     </button>
-                    <button class="icon-btn start-algorithm-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*">
+                    <button class="icon-btn start-algo-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*">
                         <span class="tltip"
                               data-jp="<strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、このパズルではBFSより遅いことが多い。"
                               data-en="<strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>This search algorithm was apparently developed by Nero using Allagan's super technology. It uses the estimated cost to reach the goal to make the search more efficient, and like BFS, it is supposed to find a solution faster while guaranteeing the shortest number of moves, but in this puzzle it is often slower than BFS."></span>
                     </button>
-                    <button class="icon-btn start-algorithm-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*">
+                    <button class="icon-btn start-algo-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*">
                         <span class="tltip"
                               data-jp="<strong>Ironworks Designed Astar (IDA*)</strong><br>シドが開発したIDDFS改良版。メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)"
                               data-en="<strong>Ironworks Designed Astar (IDA*)</strong><br>An improved version of IDDFS developed by Sid. It uses less memory, but it doesn't work well with this puzzle. (Experimental implementation)"></span>
@@ -454,7 +450,10 @@
                               data-jp="<strong>詳細設定</strong>"
                               data-en="<strong>Options</strong>"></span>
                     </button>
+                    <script>
+                    </script>
                 </div>
+                <div id="status"></div>
                 <div id="sv-status"></div>
             </div>
             <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
@@ -495,17 +494,15 @@
                 </div>
             </div>
         </div>
-
         <div class="drag-handle sol-panel"><p>SOLUTION</p>
-            <div class="sol-path"></div>
+            <div class="sol-path" id='sol-path' hidden></div>
             <div class="path-idx"></div>
         </div>
-
         <header>
             <span style="font-size:16pt">Save The Oracle</span>
             <span style="font-size:10pt"> - Final Fantasy XIV unofficial mini-game
                 <span id='langToggle' style="font-size:10pt;top:12px;left:500px;">ja</span>
-            -</span>
+                -</span>
             <hr>
         </header>
         <main>
@@ -543,135 +540,12 @@
     <script type="module" src="module/main.js"></script>
     <script type="module" src="module/puzzle.js"></script>
     <script type="module" src="module/nodegraph.js"></script>
-    <script type="module" src="module/solver.js"></script>
     <script type="module">
-        const pathStrs = [
-            "BAACBAACDFFEDIJEG..H",
-            "BAACBAACDFFEDIJE.G.H",
-            "BAACBAAC.FFEDIJEDG.H",
-            "BAACBAACFF.EDIJEDG.H",
-            "BAACBAACFFJEDI.EDG.H",
-            "BAACBAACFFJEDI.EDGH.",
-            "BAACBAACFFJ.DI.EDGHE",
-            "BAACBAACFF.JDI.EDGHE",
-            "BAACBAAC.FFJDI.EDGHE",
-            "BAACBAACDFFJDI.E.GHE",
-            "BAACBAACDFFJDI.EG.HE",
-            "BAACBAACDFFJDI.EGH.E",
-            "BAACBAACDFFJDIE.GHE.",
-            "BAACBAACDFF.DIEJGHE.",
-            "BAACBAACD.FFDIEJGHE.",
-            "BAACBAACDIFFD.EJGHE.",
-            "BAACBAACDIFFD.E.GHEJ",
-            "BAACBAACDIFFDHE.G.EJ",
-            "BAACBAACDIFFDHE..GEJ",
-            "BAACBAAC.IFFDHE.DGEJ",
-            "BAACBAACI.FFDHE.DGEJ",
-            "BAACBAACIFF.DHE.DGEJ",
-            "BAA.BAACIFFCDHE.DGEJ",
-            "BAA.BAA.IFFCDHECDGEJ",
-            "B.AAB.AAIFFCDHECDGEJ",
-            ".BAA.BAAIFFCDHECDGEJ",
-            ".BAAIBAA.FFCDHECDGEJ",
-            "IBAA.BAA.FFCDHECDGEJ",
-            "IBAA.BAADFFCDHEC.GEJ",
-            "IBAADBAADFFC.HEC.GEJ",
-            "IBAADBAADFFCH.EC.GEJ",
-            "IBAADBAADFFCH.ECG.EJ",
-            "IBAADBAADFFCHE.CGE.J",
-            "IBAADBAADFFCHE.CGEJ.",
-            "IBAADBAADFF.HE.CGEJC",
-            "IBAADBAAD.FFHE.CGEJC",
-            "IBAADBAADEFFHE.CG.JC",
-            "IBAADBAADEFFHE.C.GJC",
-            "IBAADBAADEFFHEJC.G.C",
-            "IBAADBAADEFFHEJC..GC",
-            "IBAADBAAD.FFHEJC.EGC",
-            "I.AADBAADBFFHEJC.EGC",
-            ".IAADBAADBFFHEJC.EGC",
-            "DIAADBAA.BFFHEJC.EGC",
-            "DIAADBAAHBFF.EJC.EGC",
-            "DIAADBAAHBFFE.JCE.GC",
-            "DIAAD.AAHBFFEBJCE.GC",
-            "DIAAD.AAH.FFEBJCEBGC",
-            "DIAAD.AA.HFFEBJCEBGC",
-            "DIAADHAA..FFEBJCEBGC",
-            "DIAADHAA.FF.EBJCEBGC",
-            "DIAADHAAFF..EBJCEBGC",
-            "DIAADHAAFF.CEBJCEBG.",
-            "DIAADHAAFF.CEBJCEB.G",
-            "DIAADHAAFF.CEB.CEBJG",
-            "DIAADHAAFFC.EBC.EBJG",
-            "DIAADHAAFFC.EBCGEBJ.",
-            "DIAADHAAFFC.EBCGEB.J",
-            "DIAADHAAFF..EBCGEBCJ",
-            "DIAADHAA.FF.EBCGEBCJ",
-            ".IAADHAADFF.EBCGEBCJ",
-            "I.AADHAADFF.EBCGEBCJ",
-            "IHAAD.AADFF.EBCGEBCJ",
-            "IHAAD.AAD.FFEBCGEBCJ",
-            "IHAAD.AADBFFEBCGE.CJ",
-            "IHAADBAADBFFE.CGE.CJ",
-            "IHAADBAADBFFEC.GEC.J",
-            "IHAADBAADBFFECG.EC.J",
-            "IHAADBAADBFFEC..ECGJ",
-            "IHAADBAADB..ECFFECGJ",
-            "IH..DBAADBAAECFFECGJ",
-            "I.H.DBAADBAAECFFECGJ",
-            ".IH.DBAADBAAECFFECGJ",
-            ".I.HDBAADBAAECFFECGJ",
-            "..IHDBAADBAAECFFECGJ",
-            "D.IHDBAA.BAAECFFECGJ",
-            "DBIHDBAA..AAECFFECGJ",
-            "DBIHDBAAE.AAECFF.CGJ",
-            "DBIHDBAAECAAECFF..GJ",
-            "DBIHDBAAECAAECFF.G.J",
-            "DBIHDBAAECAAECFFG..J",
-            "DBIHDBAAECAAECFFG.J.",
-            "DBIHDBAAECAAECFFGJ..",
-            "DBIHDBAAECAAEC..GJFF",
-            "DBIHDB..ECAAECAAGJFF",
-            "DB.HDBI.ECAAECAAGJFF",
-            "DB.HDB.IECAAECAAGJFF",
-            "D.BHD.BIECAAECAAGJFF",
-            "D.BHDCBIECAAE.AAGJFF",
-            "DCBHDCBIE.AAE.AAGJFF",
-            "DCBHDCBIEAA.EAA.GJFF",
-            "DCBHDCB.EAAIEAA.GJFF",
-            "DCB.DCBHEAAIEAA.GJFF",
-            "DCB.DCBHEAA.EAAIGJFF",
-            "DCB.DCB.EAAHEAAIGJFF",
-            "DC.BDC.BEAAHEAAIGJFF",
-            "D.CBD.CBEAAHEAAIGJFF",
-            ".DCB.DCBEAAHEAAIGJFF",
-            ".DCBEDCBEAAH.AAIGJFF",
-            "EDCBEDCB.AAH.AAIGJFF",
-            "EDCBEDCBAA.HAA.IGJFF",
-            "EDCBEDCBAAH.AA.IGJFF",
-            "EDCBEDCBAAHIAA..GJFF",
-            "EDCBEDCBAAHIAAFFGJ..",
-            "EDCBEDCBAAHIAAFFG.J.",
-            "EDCBEDCBAAHIAAFF.GJ.",
-            "EDCBEDCBAAHIAAFF.G.J",
-            "EDCBEDCBAAHIAAFF..GJ",
-            "EDCBEDCB..HIAAFFAAGJ",
-            "EDCBEDCB.H.IAAFFAAGJ",
-            "EDCBEDCBH..IAAFFAAGJ",
-            "EDCBEDCBH.I.AAFFAAGJ",
-            "EDCBEDCBHI..AAFFAAGJ",
-            "EDCBEDCBHIFFAA..AAGJ",
-            "EDCBEDCBHIFFAAG.AA.J",
-            "EDCBEDCBHIFFAA.GAA.J",
-            "EDCBEDCBHIFF.AAG.AAJ"
-        ];
-
-        import { stateStr } from "./module/main.js";
-        const solPath = document.querySelector('.sol-path');
+        document.getElementById("sol-path").hidden = true;
         function dispSolPath(path) {
-            const n = pathStrs.length;
             for (let step = 0; step < path.length; step++) {
-                const str = pathStrs[step];
-                const prevStr = step > 0 ? pathStrs[step - 1] : null;
+                const str = path[step];
+                const prevStr = step > 0 ? path[step - 1] : null;
                 const mvCh = new Set();
                 if (prevStr) {
                     for (let i = 0; i < str.length; i++) {
@@ -682,35 +556,30 @@
                         }
                     }
                 }
-
                 const wrapper = document.createElement('div');
                 wrapper.className = 'step-wrapper';
                 const bd = document.createElement('div');
                 bd.className = 'pBrd';
                 const idx = document.createElement('div');
                 idx.className = 'pIdx';
-
                 const shown = new Set();
                 for (let i = 0; i < str.length; i++) {
                     const ch = str[i];
                     const blk = document.createElement('div');
                     blk.className = 'blk';
-                    // 最初に出現した文字だけ表示
                     if (ch !== '.' && !shown.has(ch)) {
                         blk.textContent = ch;
                         blk.style.cssText += getStrokeStyle(ch);
-
                     } else {
                         blk.textContent = '';
                     }
                     shown.add(ch);
                     blk.style.backgroundColor =
-                        ch === '.' ? 'none' : (mvCh.has(ch) ? '#ffff88' : '#888888');
+                        ch === '.' ? 'none' : (mvCh.has(ch) ?  '#12e4c8' : '#625258' );
                     blk.style.color =
-                        ch === '.' ? 'none' : (mvCh.has(ch) ? 'black' : 'black');
+                        ch === '.' ? 'none' : (mvCh.has(ch) ? '#000' : '#8c8c8c' );
                     bd.appendChild(blk);
                 }
-
                 idx.textContent = step;
                 wrapper.appendChild(bd);
                 wrapper.appendChild(idx);
@@ -718,51 +587,5 @@
             }
         }
 
-        function getStrokeStyle(ch) {
-            const base = 'z-index:0; outline-offset:-1px; outline: 1px solid var(--grey);';
-            switch (ch) {
-            case 'A':
-                return `${base} width: calc(var(--blk-w) * 2); height: calc(var(--blk-h) * 2);`;
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-                return `${base} height: calc(var(--blk-h) * 2);`;
-            case 'F':
-                return `${base} width: calc(var(--blk-w) * 2);`;
-            case 'G':
-            case 'H':
-            case 'I':
-            case 'J':
-                return `${base}`;
-            default:
-                return '';
-            }
-        }
-
-        dispSolPath(pathStrs);
-
-        let dragged = null;
-        let offsetX = 0, offsetY = 0;
-        document.addEventListener('mousedown', (e) => {
-            const target = e.target.closest('.drag-handle');
-            if (!target) return;
-            dragged = target;
-            offsetX = e.clientX - dragged.offsetLeft;
-            offsetY = e.clientY - dragged.offsetTop;
-            dragged.style.position = 'absolute';
-            dragged.style.zIndex = 1000;
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!dragged) return;
-            dragged.style.left = `${e.clientX - offsetX}px`;
-            dragged.style.top = `${e.clientY - offsetY}px`;
-        });
-        document.addEventListener('mouseup', () => {
-            dragged = null;
-        });
-        document.getElementById('close-solver').addEventListener('click', () => {
-            document.getElementById('solver').classList.remove('active');
-        });
     </script>
 </html>
