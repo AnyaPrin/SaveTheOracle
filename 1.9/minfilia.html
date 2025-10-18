@@ -542,50 +542,6 @@
     <script type="module" src="module/nodegraph.js"></script>
     <script type="module">
         document.getElementById("sol-path").hidden = true;
-        function dispSolPath(path) {
-            for (let step = 0; step < path.length; step++) {
-                const str = path[step];
-                const prevStr = step > 0 ? path[step - 1] : null;
-                const mvCh = new Set();
-                if (prevStr) {
-                    for (let i = 0; i < str.length; i++) {
-                        const ch = str[i];
-                        const prevCh = prevStr[i];
-                        if (ch !== '.' && ch !== prevCh) {
-                            mvCh.add(ch);
-                        }
-                    }
-                }
-                const wrapper = document.createElement('div');
-                wrapper.className = 'step-wrapper';
-                const bd = document.createElement('div');
-                bd.className = 'pBrd';
-                const idx = document.createElement('div');
-                idx.className = 'pIdx';
-                const shown = new Set();
-                for (let i = 0; i < str.length; i++) {
-                    const ch = str[i];
-                    const blk = document.createElement('div');
-                    blk.className = 'blk';
-                    if (ch !== '.' && !shown.has(ch)) {
-                        blk.textContent = ch;
-                        blk.style.cssText += getStrokeStyle(ch);
-                    } else {
-                        blk.textContent = '';
-                    }
-                    shown.add(ch);
-                    blk.style.backgroundColor =
-                        ch === '.' ? 'none' : (mvCh.has(ch) ?  '#12e4c8' : '#625258' );
-                    blk.style.color =
-                        ch === '.' ? 'none' : (mvCh.has(ch) ? '#000' : '#8c8c8c' );
-                    bd.appendChild(blk);
-                }
-                idx.textContent = step;
-                wrapper.appendChild(bd);
-                wrapper.appendChild(idx);
-                solPath.appendChild(wrapper);
-            }
-        }
 
     </script>
 </html>
