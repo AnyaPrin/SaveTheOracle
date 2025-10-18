@@ -6,9 +6,8 @@ camera.rotation.y = 1;
 camera.rotation.x = 2;
 
 const renderer = new THREE.WebGLRenderer({ canvas: graphCanvas });
-style = getComputedStyle(graphCanvas);
-const GRAF_W = parseInt(style.width);
-const GRAF_H = parseInt(style.height);
+const GRAF_W = 600;
+const GRAF_H = 800;
 renderer.setSize(GRAF_W, GRAF_H);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);

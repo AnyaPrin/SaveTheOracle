@@ -1,0 +1,24 @@
+{
+    "ja": {
+        "bfs": "幅優先探索(BFS)で最短解を探索します。メモリ消費が大きくなる可能性があります。",
+        "astar": "A*探索で最短解を探索します。BFSより高速ですが、ヒューリスティック関数の精度に依存します。",
+        "idastar": "反復深化A*(IDA*)で最短解を探索します。メモリ効率が良いですが、同じノードを何度も再評価することがあります。",
+        "iddfs": "反復深化深さ優先探索(IDDFS)で解を探索します。ヒューリスティックを使用しないため、IDA*より遅くなる可能性があります。",
+        "save": "今回の探索で到達した盤面(ノード)を、ブラウザのローカルストレージに保存します。",
+        "data-check": "ローカルストレージに保存された探索済みデータに重複がないかチェックし、必要に応じてクリーンアップします。",
+        "config": "オプションパネルを開閉します。",
+        "retry": "パズルを初期状態に戻します。",
+        "hint": "ソルバーパネルを開閉します。"
+    },
+    "en": {
+        "bfs": "Finds the shortest solution using Breadth-First Search (BFS). Can be memory-intensive.",
+        "astar": "Finds the shortest solution using A* search. Faster than BFS, but its performance depends on the heuristic function's accuracy.",
+        "idastar": "Finds the shortest solution using Iterative Deepening A* (IDA*). It's memory-efficient but may re-evaluate the same nodes multiple times.",
+        "iddfs": "Finds a solution using Iterative Deepening Depth-First Search (IDDFS). As it doesn't use heuristics, it may be slower than IDA*.",
+        "save": "Saves the nodes reached in the current search to your browser's local storage.",
+        "data-check": "Checks for and removes duplicate nodes in the data saved in local storage.",
+        "config": "Toggles the options panel.",
+        "retry": "Resets the puzzle to the initial state.",
+        "hint": "Toggles the solver panel."
+    }
+}

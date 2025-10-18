@@ -1,14 +1,14 @@
 import { COMMON } from "../common.js";
 export class IDAStarSolver {
-    constructor(options) {
+    constructor(opt) {
         // main.jsからBigIntに変換された状態で渡される
-        this.initialBigInt = options.initialState;
-        this.onSuccess = options.onSuccess;
-        this.onProgress = options.onProgress;
-        this.onFailure = options.onFailure;
-        this.onUpdateStatus = options.onUpdateStatus;
-        this.algorithm = options.algorithm || 'idastar'; // 'idastar' or 'iddfs'
-        this.pruningOptions = options.pruningOptions;
+        this.initialBigInt = opt.initialState;
+        this.onSuccess = opt.onSuccess;
+        this.onProgress = opt.onProgress;
+        this.onFailure = opt.onFailure;
+        this.onUpdateStts = opt.onUpdateStts;
+        this.algorithm = opt.algorithm || 'idastar'; // 'idastar' or 'iddfs'
+        this.prunOpt = opt.prunOpt;
 
         this.CHUNK_SIZE = 500;
         this.foundSolution = false;
@@ -20,7 +20,7 @@ export class IDAStarSolver {
 
         this.queue = []; // { state: BigInt, path: BigInt[], gScore, visitedInPath: Set<BigInt> }
         // 全ての深さで探索したユニークな正規化済み盤面を記録する
-        const preloadedVisited = options.preloadedVisited || new Set();
+        const preloadedVisited = opt.preloadedVisited || new Set();
         this.visited = preloadedVisited;
     }
 
@@ -68,7 +68,7 @@ export class IDAStarSolver {
         this.costLimit = (this.costLimit === 0) ? this._heuristic(this.initialBigInt) : this.nextCostLimit;
         this.nextCostLimit = Infinity;
         const limitType = this.algorithm === 'iddfs' ? '深さ制限' : 'コスト制限';
-        this.onUpdateStatus(`探索中... (${limitType}: ${this.costLimit})`);
+        this.onUpdateStts(`探索中... (${limitType}: ${this.costLimit})`);
 
         // 探索キューを初期化。パス内のサイクル検出のため、正規化済み盤面のSetも一緒に管理する
         const normalizedInitialBigInt = COMMON.normalizeStateBigInt(this.initialBigInt);
@@ -118,7 +118,7 @@ export class IDAStarSolver {
                 // そのため、現在の探索パス内でのサイクル検出(visitedInPath)のみを行う。
                 // this.visited は探索した全ノードの記録・レポート目的でのみ使用する。
                 if (!visitedInPath.has(normalizedNextBigInt)) {
-                    if (this.handlePruning(currentBigInt, nextBigInt, currentPath)) {
+                    if (this.handlePrun(currentBigInt, nextBigInt, currentPath)) {
                         if (this.foundSolution) return;
                         continue;
                     }
@@ -153,9 +153,9 @@ export class IDAStarSolver {
         }
     }
 
-    handlePruning(currentBigInt, nextBigInt, currentPath) {
-        const { usePruning, isStartOnOptimalPath, optimalPathSet, optimalPathArray } = this.pruningOptions;
-        if (!usePruning) return false;
+    handlePrun(currentBigInt, nextBigInt, currentPath) {
+        const { usePrun, isStartOnOptimalPath, optimalPathSet, optimalPathArray } = this.prunOpt;
+        if (!usePrun) return false;
 
         const normalizedNextBigInt = COMMON.normalizeStateBigInt(nextBigInt);
 

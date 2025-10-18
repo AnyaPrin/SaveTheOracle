@@ -214,14 +214,9 @@ function getBlkRect(idx, blkId) {
     // 盤面上の左上座標
     const x = idx % W;
     const y = Math.floor(idx / W);
-
-    // ブロックのサイズを取得
     const [bw, bh] = BLK_SIZE_BY_ID[blkId];
-
-    // 描画座標
     const drawX = BDOFFX + x * CELL;
     const drawY = BDOFFY + y * CELL;
-
     return [drawX, drawY, bw * CELL, bh * CELL];
 }
 
@@ -339,9 +334,7 @@ function drawBlks() {
         const rect = getBlkRect(idx, blkId);
         const [x, y, w, h] = rect;
         let drawY = y; // アニメーション用にY座標を別変数に
-
         let orclKey = "down"; // デフォルトの向き
-
         if (blkId == 1) {                     // メインブロックのアニメーション処理
             if (exitAnim) {                   // パズルをクリアしたらオラクルは城の外へ自動移動
                 const elapsed = performance.now() - exitAnimMod;
@@ -870,7 +863,6 @@ function updateGameState() {
         if (elapsed >= MRCL_FX_DUR) mrclFx = false;
     }
 }
-
 
 function mainLoop() {
     updateGameState();

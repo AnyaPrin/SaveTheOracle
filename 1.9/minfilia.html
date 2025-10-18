@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+    <!-- CSSは外部ファイルにまとめることを推奨します -->
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,18 +92,27 @@
 	        border: 5px solid var(--border);
                 z-index: 2000;
             }
-            #retry {
-                background-image:url('./img/icon/retry.png');
+            #retry, #hint, #undo {
+                position: fixed;
                 background-size:60px;
+            }
+            #retry{
+                background-image:url('./img/icon/retry.png');
                 top: 660px;
                 left: 540px;
             }
             #hint {
                 background-image:url('./img/icon/hint.png');
-                background-size:60px;
                 top: 740px;
                 left: 540px;
 
+            }
+            #undo {
+                position: fixed;
+                background-image:url('./img/icon/undo.png');
+                background-size:60px;
+                top: 580px;
+                left: 540px;
             }
             #hint:hover, #retry:hover {
                 transform: translateY(-1.5px);
@@ -178,7 +188,6 @@
             .icon-btn:active {
                 transform: rotate(360deg);
             }
-
             #solver {
                 position: relative;
                 display: block;
@@ -246,34 +255,14 @@
                 border: 1px solid var(--border);
                 flex-shrink: 0;
             }
-            #set-state-status {
-                height: 2em;
-                min-height: 2em;
-                font-size: 0.7em;
-                text-align: left;
-                margin-top: 5px;
-            }
-            #set-state-status[style*="color: rgb(76, 175, 80)"] {
-                /* For success message */
-                color: var(--success) !important;
-            }
-            .prun-selection {
+            .prun {
                 margin-bottom: 20px;
                 text-align: left;
             }
-            .prun-selection label {
+            .prun label {
                 margin: 0 10px;
                 font-size: 1em;
                 cursor: pointer;
-            }
-            #prun-data-status {
-                color: var(--text);
-                margin-left: 0px;
-            }
-            #local-visited-data-status {
-                color: var(--text);
-                margin-left: 10px;
-                font-size: 0.9em;
             }
             #puzzlecanvas {
                 background-color: var(--bg);
@@ -388,92 +377,41 @@
     </head>
 
     <body>
-        <div id="hint" onclick='btnHint();'></div>
-        <div id="retry" onclick='btnRetry();'> </div>
+        <div id="hint" ><span class="tltip"></span></div>
+        <div id="retry" onclick='btnRetry();'><span class="tltip"></span></div>
+        <div id="undo"><span class="tltip"></span></div>
         <div id="solver">
             <div id="close-solver"></div>
-            <div class="tab" id="solver-tab" onclick='tglPanel()'>SOLVER</div>
+            <div class="tab" id="solver-tab">SOLVER</div>
             <audio id="sndOpen" src="snd/openSnd.mp3" style="display:none;"></audio>
-            <audio id="sndClose" src="snd/closeSnd.mp3" style="display:none;"></audio>
-            <audio id="sndStart" src="snd/start.mp3" style="display:none;"></audio>
-            <script>
-                const sol = document.getElementById('solver');
-                const o = document.getElementById('sndOpen');
-                const c = document.getElementById('sndClose');
-                const s = document.getElementById('sndStart');
-                const loc = document.location;
-                function tglPanel() {
-                    const isO =!sol.classList.contains('active');
-                    o.volume =0.1;
-                    c.volume =0.1;
-                    sol.classList.toggle('active');
-                    if (isO) {
-                        o.play();
-                    }else{
-                        c.play();
-                    }
-                }
-                function btnHint() {
-                    const isO =!sol.classList.contains('active');
-                    o.volume =0.1;
-                    c.volume =0.1;
-                    sol.classList.toggle('active');
-                    if (isO) {
-                        o.play();
-                    }else{
-                        c.play();
-                    }
-                }
-            </script>
             <div class='ui-panel'>
                 <input type="text" id="start-pos" maxlength="20" minlength="20" title="start state string">
-                <button id="set-state-btn" >OK</button>
+                <button id="set-start-state-btn">OK</button>
                 <div id="set-state-status"></div>
-                <div class="action-buttons">
-                    <button class="icon-btn start-algo-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS">
-                        <span class="tltip"
-                              data-en="<strong>Brave Forwards Search (BFS)</strong><br>The most basic search algorithm, said to be developed by Alphinaud. It explores all nodes in order of proximity from the start, guaranteeing the shortest solution."
-                              data-jp="<strong>Brave Forwards Search (BFS)</strong><br>アルフィノが開発したとされる最も基本的な探索アルゴリズム。スタートから近い順に全てのノードを網羅的に探索するため、必ず最短手数解を見つける。"></span>
-                    </button>
-                    <button class="icon-btn start-algo-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*">
-                        <span class="tltip"
-                              data-jp="<strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>ネロが、アラグの超技術を利用して開発したらしい探索アルゴリズム。ゴールまでの推定コストを利用して探索を効率化、BFSと同様に最短手数解を保証しつつより高速に解を見つけるはずだが、このパズルではBFSより遅いことが多い。"
-                              data-en="<strong>All-encompassed Super Tech Aragan Research (A*)</strong><br>This search algorithm was apparently developed by Nero using Allagan's super technology. It uses the estimated cost to reach the goal to make the search more efficient, and like BFS, it is supposed to find a solution faster while guaranteeing the shortest number of moves, but in this puzzle it is often slower than BFS."></span>
-                    </button>
-                    <button class="icon-btn start-algo-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*">
-                        <span class="tltip"
-                              data-jp="<strong>Ironworks Designed Astar (IDA*)</strong><br>シドが開発したIDDFS改良版。メモリ使用量を抑えられるが、このパズルとの相性はあまりよくない。 (試験的実装)"
-                              data-en="<strong>Ironworks Designed Astar (IDA*)</strong><br>An improved version of IDDFS developed by Sid. It uses less memory, but it doesn't work well with this puzzle. (Experimental implementation)"></span>
-                    </button>
-                    <button style="margin-left:6px;" class="icon-btn" id="opt"><img src="img/icon/config.png" alt="Settings">
-                        <span class="tltip"
-                              data-jp="<strong>詳細設定</strong>"
-                              data-en="<strong>Options</strong>"></span>
-                    </button>
-                    <script>
-                    </script>
-                </div>
+                <button class="icon-btn" id="bfs" value="bfs"><img src="img/icon/bfs.png" alt="BFS"><span class="tltip"></span>
+                </button>
+                <button class="icon-btn" id="astar" value="astar"><img src="img/icon/astar.png" alt="A*"><span class="tltip"></span>
+                </button>
+                <button class="icon-btn" id="idastar" value="idastar"><img src="img/icon/idastar.png" alt="IDA*"><span class="tltip"></span>
+                </button>
+                <button class="icon-btn" id="iddfs" value="iddfs"><img src="img/icon/iddfs.png" alt="IDDFS"><span class="tltip"></span>
+                </button>
+                <button style="margin-left:6px;" class="icon-btn" id="opt"><img src="img/icon/config.png" alt="Settings">
+                    <span class="tltip"></span>
+                </button>
                 <div id="status"></div>
-                <div id="sv-status"></div>
             </div>
             <div style='margin:0 0 0 42px;padding-top:0' class="horizontal-panel">
                 <div id="opt-panel" class="opt-panel" hidden>
                     <strong>OPTIONS</strong><br>
-                    <button id="sv-btn" class="icon-btn" disabled><img src="img/icon/save.png" alt="Save">
-                        <span class="tltip"
-                              data-jp="<strong>探索結果を保存</strong><br>今回の探索で訪れた盤面データを、ブラウザのローカルストレージに保存します。既に保存されているデータがある場合は、新しいデータが追加（マージ）されます。保存したデータは「探索データの利用」オプションを有効にすることで、次回以降の探索を高速化するために利用できます。"
-                              data-en="<strong>Save Exploration Results</strong><br>The data of the board visited during this exploration will be saved in your browser's local storage. If data has already been saved, the new data will be added (merged). Saved data can be used to speed up subsequent explorations by enabling the 'Use Exploration Data' option.">
-                        </span>
+                    <button id="sv-btn" class="icon-btn" disabled><img src="img/icon/save.png" alt="Save"><span class="tltip"></span>
                     </button>
-                    <button id="check-data-btn" class="icon-btn"><img src="img/icon/check.png" alt="Check">
-                        <span class="tltip"><strong>データ整合性チェック</strong><br>探索済みデータに重複がないかチェックし、必要であればクリーンアップします。</span>
+                    <button id="check-data-btn" class="icon-btn"><img src="img/icon/check.png" alt="Check"><span class="tltip"></span>
                     </button>
-                    <label class="checkbox-label"><input type="checkbox" id="prun-enabled" disabled>
-                        最短解による剪定 </label><span id="prun-data-status" hidden></span>
-                    <label class="checkbox-label"><input type="checkbox" id="use-local-visited" disabled>
-                        探索データの利用 </label><span id="local-visited-data-status" hidden></span>
-                    <label class="checkbox-label" id="ida-opt-label" hidden><input type="checkbox" id="ida-no-heuristic">
-                        <span style="text-decoration: line-through;text-decoration-color:#ff3818;">IDA* h 関数不使用 (＝IDDFS)</span><span style="color:#ff3808;">故障中！</span></label>
+                    <label class="checkbox-label"><input type="checkbox" id="prun" disabled>
+                        最短解による剪定 </label>
+                    <label class="checkbox-label"><input type="checkbox" id="visit" disabled>
+                        探索データの利用 </label>
                     <p>─</p>
                     <strong>BOARD EDITOR</strong><br>
                     <label class="checkbox-label" style="justify-content: center; margin-top: 5px;">
@@ -494,8 +432,9 @@
                 </div>
             </div>
         </div>
-        <div class="drag-handle sol-panel"><p>SOLUTION</p>
-            <div class="sol-path" id='sol-path' hidden></div>
+
+        <div class="drag-handle sol-panel" id='sol-panel' hidden>
+            <div class="sol-path" id='sol-path'></div>
             <div class="path-idx"></div>
         </div>
         <header>
@@ -507,17 +446,10 @@
         </header>
         <main>
             <div id="game-aria"></div>
-            <canvas id="puzzlecanvas" class="fade">
-            </canvas>
+            <canvas id="puzzlecanvas" class="fade"></canvas>
             <canvas id="graphcanvas" class="fade"></canvas>
             <div id="info"></div>
             <label class="switch-vertical">
-                <script>
-                    function toggleFade() {
-                        const canvas = document.getElementById("graphcanvas");
-                        canvas.classList.toggle("visible");
-                    }
-                </script>
                 <input type="checkbox" id="lightSwitch" onchange="toggleFade()">
                 <span class="slider-vertical"></span>
                 <div class="switch-label">nodes</div>
@@ -533,15 +465,11 @@
                     <img width="20" src="../img/github-mark-white.png"> GitHub </a> </span>
         </footer>
     </body>
-    <script src="../lib/three.min.js"></script>
-    <script src="../lib/GLTFLoader.js"></script>
-    <script type="module" src="../lib/OrbitControls.js"></script>
+    <script src="/lib/three.min.js"></script>
+    <script src="/lib/GLTFLoader.js"></script>
+    <script type="module" src="/lib/OrbitControls.js"></script>
     <script type="module" src="module/common.js"></script>
     <script type="module" src="module/main.js"></script>
     <script type="module" src="module/puzzle.js"></script>
     <script type="module" src="module/nodegraph.js"></script>
-    <script type="module">
-        document.getElementById("sol-path").hidden = true;
-
-    </script>
 </html>
