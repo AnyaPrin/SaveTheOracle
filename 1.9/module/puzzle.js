@@ -241,7 +241,7 @@ export function move(blkId, mv) {
     gameTurn++;
     pixyRect[1] -= 0.001 * gameTurn;
     if (pixyRect[1] < 0) pixyRect[1] = PIXY_Y;
-
+    Freedom = freedom();
     if (snd_move)
         snd_move.currentTime = 0, snd_move.play();
 }
@@ -417,10 +417,8 @@ export const toGridXY = (x, y) => {
 
 export function checkGameClear() {
     if (gameClr) return; // 既にクリア済みなら何もしない
-
     const goalMask = 0b00000000000001100110n;
     const blkABitmap = getBlkBitmap(1);
-
     if (blkABitmap === goalMask) {
         gameClr = true;
     }
@@ -439,7 +437,7 @@ export function drawAll() {
 
     // Draw thus speaks Urianger
     // --- 状況に応じたセリフ選択ロジック ---
-    Freedom = freedom();
+
     const defaultUriangerSays = URIANGER_QUOTES['start'];
     if (gameClr) {
         UriangerSays = URIANGER_QUOTES['clear'];

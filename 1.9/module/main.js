@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateGameState();
         drawAll();
         checkGameClear(); // クリア判定をpuzzle.jsに委譲
-
         requestAnimationFrame(mainLoop);
     }
+
     const onMouseMove = (e) => {
         if (!isDrag || !Selected || exitAnim || mrclAnim) return;
         let rect = puzzleCanvas.getBoundingClientRect();
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (mv) {
             // ゴール位置にいるオラクル(blkId=1)を下に動かすと、外へでるアニメーションがはじまる
-            if (Selected == 1 && gameClr && mv == "down") {
+            if (Selected == 1 && checkGameClear() && mv == "down") {
                 startExitAnim();
             } else if (canMove(Selected, mv)) { // 普通の駒の動き
                 move(Selected, mv);
